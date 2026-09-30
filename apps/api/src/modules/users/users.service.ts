@@ -26,13 +26,18 @@ export class UsersService {
     },
   ];
 
-  async create(createUserDto: CreateUserDto): Promise<void> {
+  async create(createUserDto: CreateUserDto): Promise<Omit<User, 'passwordHash'>> {
     const newUser = this.usersRepository.create(createUserDto);
 
     try {
-      await this.usersRepository.save(newUser)
+      const savedUser = await this.usersRepository.save(newUser)
+
+      const { passwordHash, ...result } = savedUser;
+
+      return result
     } catch (error) {
       console.log('There was an error during the save')
+      throw error
     }
     
   }
@@ -41,8 +46,33 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
+  // Find by Id
   async findOne(id: string): Promise<User | null> {
     return await this.usersRepository.findOneBy({ id })
+  }
+
+  // Find by Email
+  async findByEmail(email: string): Promise<Omit<User, 'passwordHash'> | null> {
+    const foundUser =  await this.usersRepository.findOneBy({ email })
+
+    if (!foundUser) {
+      return null;
+    }
+
+    const { passwordHash, ...result } = foundUser;
+
+    return result
+  }
+
+  async findCredentials(email: string): Promise<{user: Omit<User, 'passwordHash'>, passwordHash: string}> {
+    const user = await this.usersRepository.findOneBy({email})
+    if (!user) {
+      throw new NotFoundException(`User with email ${email} not found`)
+    };
+    return {
+      user: user,
+      passwordHash: user.passwordHash
+    }
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {

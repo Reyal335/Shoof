@@ -12,9 +12,15 @@ enum UserRole {
 export class User {
     @PrimaryGeneratedColumn("uuid")
     id: string
+
+    @Column()
+    email: string
     
     @Column()
     username: string
+
+    @Column()
+    passwordHash: string
 
     @Column()
     firstName: string

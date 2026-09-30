@@ -24,6 +24,13 @@ export class CreateUserDto {
     })
     email: string
 
+    // Last name
+    @IsString()
+    lastName: string
+
+    @IsString()
+    firstName: string
+
     // Username
     @MaxLength(max_username_len, {
         message: `Can only have up to ${max_username_len} characters`
@@ -43,7 +50,7 @@ export class CreateUserDto {
     })
     @IsStrongPassword()
     @IsString()
-    password: string;
+    passwordHash: string;
 
 
 }
