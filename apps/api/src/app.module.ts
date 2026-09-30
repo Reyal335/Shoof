@@ -12,6 +12,9 @@ import { PostsModule } from './posts/posts.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AuthenticationModule } from '@nestjs/authentication';
 
+import { FileTemplateEngine, LogMailTransport, MailModule, SmtpTransport } from '@nestjs/mail'
+import { join } from 'node:path'
+
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -44,6 +47,16 @@ const observeImports = [...(observeAppKey && observeAppSecret
       }),
     ]
   : []),
+  MailModule.forRootAsync({
+    useFactory: () => ({
+      transport: process.env.SMRP_URL 
+        ? new SmtpTransport({ url: process.env.SMTP_URL })
+        : new LogMailTransport(),
+      templates: new FileTemplateEngine({
+        dir: join(import.meta.dirname, 'mail/templates'),
+      }),
+      from: 'Accounts <accounts@example.com>'})
+  }),
   AuthenticationModule.forRoot({
     session: {
       absoluteTtl: '14d',

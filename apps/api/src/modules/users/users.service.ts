@@ -92,4 +92,8 @@ export class UsersService {
   async remove(id: string): Promise<void> {
     await this.usersRepository.delete(id);
   }
+
+  async markEmailVerified(id: string, email: string) {
+    
+  }
 }
