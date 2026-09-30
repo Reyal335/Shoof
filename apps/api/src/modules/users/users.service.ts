@@ -1,0 +1,65 @@
+import { Injectable } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { UpdateUserDto } from './dto/update-user.dto.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity.js';
+import { NotFoundException } from '@nestjs/common';
+
+@Injectable()
+export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>
+  ) {}
+
+  private readonly users = [
+    {
+      userId: 1,
+      username: 'john',
+      password: 'changeme',
+    },
+    {
+      userId: 2,
+      username: 'maria',
+      password: 'guess',
+    },
+  ];
+
+  async create(createUserDto: CreateUserDto): Promise<void> {
+    const newUser = this.usersRepository.create(createUserDto);
+
+    try {
+      await this.usersRepository.save(newUser)
+    } catch (error) {
+      console.log('There was an error during the save')
+    }
+    
+  }
+
+  findAll() {
+    return this.usersRepository.find();
+  }
+
+  async findOne(id: string): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ id })
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
+    // 1. Execute direct database update
+    const result = await this.usersRepository.update(id, updateUserDto);
+
+    // 2. Check if the row actually existed
+    if (result.affected === 0) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // 3. Manually fetch and return the updated entity if needed
+    return await this.usersRepository.findOneBy({ id });
+
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.usersRepository.delete(id);
+  }
+}
