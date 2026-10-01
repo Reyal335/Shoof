@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
 import { NotFoundException } from '@nestjs/common';
+import { normalize } from 'node:path';
+import { _normalize } from 'zod/v4/core';
 
 @Injectable()
 export class UsersService {
@@ -94,6 +96,10 @@ export class UsersService {
   }
 
   async markEmailVerified(id: string, email: string) {
-    
+    const user = await this.usersRepository.findOneBy({ id })
+    if (!user || user.email !== email) {
+      return false
+    }
+    return true
   }
 }

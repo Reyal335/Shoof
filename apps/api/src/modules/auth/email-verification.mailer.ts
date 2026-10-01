@@ -30,8 +30,8 @@ export class EmailVerificationMailer extends EmailVerificationHandler {
     }
 
     // Runs when link is used. Verifies nothing if the address changed since
-    markVerified(userId: string, email: string) {
-        return true
+    markVerified(id: string, email: string) {
+        return this.usersService.markEmailVerified(id, email);
     }
 }
 

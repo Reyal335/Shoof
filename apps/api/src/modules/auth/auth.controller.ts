@@ -1,15 +1,16 @@
 import { Controller, Body, Post, HttpCode, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { CredentialsService } from './credentials.service.js';
-import { Public, SignInService } from '@nestjs/authentication';
+import { Public, TokenService } from '@nestjs/authentication';
 import { SignInDto, SignUpDto } from './dto/auth.dto.js';
 
 @Controller('auth')
 export class AuthController {
     constructor (
-        private readonly signInService: SignInService,
+        private readonly tokenService: TokenService,
         private readonly credentialService: CredentialsService
     ) {}
 
+    @Public()
     @Post('sign-up')
     async singUp(@Body() body: SignUpDto) {
         const user = await this.credentialService.register(
@@ -19,10 +20,13 @@ export class AuthController {
             body.lastName,
             body.firstName,
         )
-        await this.signInService.signIn(user.id, { method: 'password' })
-        return user
+        
+        return this.tokenService.issue(user.id, {
+            method: 'password'
+        })
     }
 
+    @Public()
     @HttpCode(HttpStatus.OK)
     @Post('sign-in')
     async signIn(@Body() body: SignInDto) {
@@ -30,7 +34,9 @@ export class AuthController {
         if(!user) {
             throw new UnauthorizedException('Invalid email or password');
         }
-        const { session } = await this.signInService.signIn(user.id, { method: 'password' })
-        return { mfaRequired: session.mfa === 'pending' }
+
+        return this.tokenService.issue(user.id, {
+            method: 'password',
+        });
     }
 }
