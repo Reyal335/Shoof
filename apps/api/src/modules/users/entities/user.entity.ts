@@ -13,10 +13,18 @@ export class User {
     @PrimaryGeneratedColumn("uuid")
     id: string
 
-    @Column()
+    @Column({
+        type: "varchar",
+        length: 150,
+        unique: true
+    })
     email: string
     
-    @Column()
+    @Column({
+        type: "varchar",
+        length: 150,
+        unique: true
+    })
     username: string
 
     @Column()
@@ -40,4 +48,10 @@ export class User {
         default: UserRole.GUEST
     })
     role: UserRole
+
+    @Column({ type: 'date' })
+    date_only: string
+
+    @Column({ type: 'timestamptz' })
+    date_time_with_timezone: Date;
 }
