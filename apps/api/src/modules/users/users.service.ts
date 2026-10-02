@@ -66,15 +66,16 @@ export class UsersService {
     return result
   }
 
-  async findCredentials(email: string): Promise<{user: Omit<User, 'passwordHash'>, passwordHash: string}> {
-    const user = await this.usersRepository.findOneBy({email})
-    if (!user) {
-      throw new NotFoundException(`User with email ${email} not found`)
-    };
-    return {
-      user: user,
-      passwordHash: user.passwordHash
+  // Null for an unknown email: sign-in must not reveal which addresses have accounts
+  async findCredentials(email: string): Promise<{user: Omit<User, 'passwordHash'>, passwordHash: string} | null> {
+    const found = await this.usersRepository.findOneBy({email})
+    if (!found) {
+      return null
     }
+
+    const { passwordHash, ...user } = found;
+
+    return { user, passwordHash }
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {

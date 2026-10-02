@@ -14,8 +14,10 @@ let max_password_len = 25;
 let min_password_len = 8;
 export class CreateUserDto {
     email;
+    lastName;
+    firstName;
     username;
-    password;
+    passwordHash;
 }
 __decorate([
     IsEmail({}, {
@@ -23,6 +25,14 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "email", void 0);
+__decorate([
+    IsString(),
+    __metadata("design:type", String)
+], CreateUserDto.prototype, "lastName", void 0);
+__decorate([
+    IsString(),
+    __metadata("design:type", String)
+], CreateUserDto.prototype, "firstName", void 0);
 __decorate([
     MaxLength(max_username_len, {
         message: `Can only have up to ${max_username_len} characters`
@@ -34,14 +44,14 @@ __decorate([
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "username", void 0);
 __decorate([
-    MaxLength(max_username_len, {
-        message: `Can only have up to ${max_username_len} characters`
+    MaxLength(max_password_len, {
+        message: `Can only have up to ${max_password_len} characters`
     }),
-    MinLength(min_username_len, {
-        message: `Should at least have ${min_username_len} characters`
+    MinLength(min_password_len, {
+        message: `Should at least have ${min_password_len} characters`
     }),
     IsStrongPassword(),
     IsString(),
     __metadata("design:type", String)
-], CreateUserDto.prototype, "password", void 0);
+], CreateUserDto.prototype, "passwordHash", void 0);
 //# sourceMappingURL=create-user.dto.js.map

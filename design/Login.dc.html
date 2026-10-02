@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Log in to Shoof</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+body{margin:0}
+a{color:#1b3a8a}a:hover{color:#10275e}
+.field{width:100%;box-sizing:border-box;height:52px;border:1.5px solid #7d89a8;border-radius:12px;padding:0 16px;font:500 16px 'Figtree',system-ui,sans-serif;color:#0f1a33;background:#ffffff}
+.field:focus-visible,.btn:focus-visible,.ghost:focus-visible,.eye:focus-visible,.check:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.btn{cursor:pointer}.ghost{cursor:pointer}
+@media (max-width: 880px){.split{grid-template-columns:minmax(0,1fr) !important}.hero{display:none !important}.formside{padding:32px 24px !important}}
+</style>
+</helmet>
+<div class="split" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; font-family: 'Figtree', system-ui, sans-serif; color: #0f1a33">
+  <div class="hero" style="background: #101b33; color: #eef1f8; padding: 48px 56px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <img src="shoof-blob.svg" alt="" style="width: 40px; height: 40px">
+      <span style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 30px; color: #dba40c">Shoof</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 28px; max-width: 480px">
+      <img src="shoof-blob.svg" alt="Shoof mascot" style="width: 220px; height: 217px">
+      <h1 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 52px; line-height: 54px; letter-spacing: -1.5px">Good to see you again.</h1>
+      <p style="margin: 0; font-size: 18px; line-height: 28px; color: #b4bdd6">Pick up where you left off: new demos, notes from other musicians and people looking to play.</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: #1a2848; max-width: 440px">
+      <div style="width: 44px; height: 44px; border-radius: 22px; background: #dba40c; flex-shrink: 0"></div>
+      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+        <span style="font-weight: 600; font-size: 15px">[Artist name]</span>
+        <span style="font-size: 13px; color: #b4bdd6">New demo · 0:42</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 3px; height: 36px">
+        <sc-for list="{{bars}}" as="bar" hint-placeholder-count="12">
+          <div style="width: 4px; border-radius: 2px; background: #dba40c; --bar-height: {{bar}}; height: var(--bar-height)"></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  <div class="formside" style="background: #f3f5fa; display: flex; align-items: center; justify-content: center; padding: 48px">
+    <form style="width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 36px; line-height: 40px; letter-spacing: -0.8px">Log in</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; color: #46516f">Use your email and password to open your Shoof account.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="email" style="font-weight: 600; font-size: 14px">Email</label>
+        <input class="field" id="email" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <label for="password" style="font-weight: 600; font-size: 14px">Password</label>
+          <a href="#forgot" style="font-weight: 600; font-size: 14px">Forgot password?</a>
+        </div>
+        <div style="position: relative">
+          <input class="field" id="password" type="{{pwType}}" placeholder="Your password" autocomplete="current-password" style="padding-right: 84px">
+          <button class="eye" type="button" onClick="{{toggle}}" aria-label="{{eyeLabel}}" style="position: absolute; top: 6px; right: 6px; height: 40px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #1b3a8a; font: 600 14px 'Figtree', sans-serif; cursor: pointer">{{eyeText}}</button>
+        </div>
+      </div>
+      <label style="display: flex; align-items: center; gap: 10px; font-size: 15px; color: #1e2a47">
+        <input class="check" type="checkbox" style="width: 20px; height: 20px; accent-color: #101b33; margin: 0">
+        Keep me logged in on this device
+      </label>
+      <button class="btn" type="submit" style="height: 54px; border: 0; border-radius: 12px; background: #dba40c; color: #101b33; font: 700 17px 'Outfit', sans-serif">Log in</button>
+      <div style="display: flex; align-items: center; gap: 12px; color: #46516f; font-size: 14px">
+        <div style="flex-grow: 1; height: 1px; background: #c3cadb"></div>
+        <span>or</span>
+        <div style="flex-grow: 1; height: 1px; background: #c3cadb"></div>
+      </div>
+      <button class="ghost" type="button" style="height: 52px; border: 1.5px solid #101b33; border-radius: 12px; background: #ffffff; color: #101b33; font: 600 16px 'Figtree', sans-serif">Continue with Google</button>
+      <p style="margin: 4px 0 0; text-align: center; font-size: 15px; color: #46516f">New to Shoof? <a href="#join" style="font-weight: 600">Create an account</a></p>
+    </form>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { show: false };
+  }
+  renderVals() {
+    const show = this.state.show;
+    return {
+      bars: [14, 24, 18, 32, 22, 36, 26, 16, 30, 20, 12, 28].map((n) => n + 'px'),
+      pwType: show ? 'text' : 'password',
+      eyeText: show ? 'Hide' : 'Show',
+      eyeLabel: show ? 'Hide password' : 'Show password',
+      toggle: () => this.setState({ show: !this.state.show })
+    };
+  }
+}
+</script>
+</body>
+</html>

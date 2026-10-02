@@ -8,19 +8,19 @@ import { UsersController } from './modules/users/users.controller.js';
 import { UsersService } from './modules/users/users.service.js';
 
 import { UsersModule } from './modules/users/users.module.js';
-import { PostsModule } from './posts/posts.module.js';
+import { PostsModule } from './modules/posts/posts.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AuthenticationModule } from '@nestjs/authentication';
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 import { FileTemplateEngine, LogMailTransport, MailModule, SmtpTransport } from '@nestjs/mail'
 import { join } from 'node:path'
 
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 // Entities
 import { User } from './modules/users/entities/user.entity.js';
-import { PostModule } from './post/post.module.js';
 
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
@@ -28,15 +28,18 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const observeAppKey = process.env.OBSERVE_APP_KEY;
 const observeAppSecret = process.env.OBSERVE_APP_SECRET;
 
-const ormModule = TypeOrmModule.forRoot({
-  type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'postgres',
-  password: 'Anyasam101',
-  database: 'shoof',
-  entities: [User],
-  synchronize: true
+const ormModule = TypeOrmModule.forRootAsync({
+  inject: [ConfigService],
+  useFactory: (config: ConfigService): TypeOrmModuleOptions => ({
+      type: 'postgres',
+      host: config.get<string>('DB_HOST'),
+      port: config.get<number>('DB_PORT'),
+      username: config.get<string>('DB_USERNAME'),
+      password: config.get<string>('DB_PASSWORD'),
+      database: config.get<string>('DB_DATABASE'),
+      autoLoadEntities: true,
+      synchronize: true
+  })
 })
 
 const observeImports = [...(observeAppKey && observeAppSecret
@@ -48,9 +51,13 @@ const observeImports = [...(observeAppKey && observeAppSecret
       }),
     ]
   : []),
+  ConfigModule.forRoot({
+    isGlobal: true,
+    envFilePath: '../../.env'
+  }),
   MailModule.forRootAsync({
     useFactory: () => ({
-      transport: process.env.SMRP_URL 
+      transport: process.env.SMTP_URL 
         ? new SmtpTransport({ url: process.env.SMTP_URL })
         : new LogMailTransport(),
       templates: new FileTemplateEngine({
@@ -85,7 +92,7 @@ const observeImports = [...(observeAppKey && observeAppSecret
 
 
 @Module({
-  imports: [...observeImports, PostModule],
+  imports: [...observeImports, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

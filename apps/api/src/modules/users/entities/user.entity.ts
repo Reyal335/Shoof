@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
-enum UserRole {
+export enum UserRole {
     GUEST = "Guest",
     MEMBER = "Member",
     INFLUENCER = "Influencer",
@@ -49,9 +49,9 @@ export class User {
     })
     role: UserRole
 
-    @Column({ type: 'date' })
-    date_only: string
+    @CreateDateColumn({ type: 'timestamptz' })
+    createdAt: Date
 
-    @Column({ type: 'timestamptz' })
-    date_time_with_timezone: Date;
+    @UpdateDateColumn({ type: 'timestamptz' })
+    updatedAt: Date
 }
