@@ -2,17 +2,19 @@ import { Controller, Body, Post, HttpCode, HttpStatus, UnauthorizedException } f
 import { CredentialsService } from './credentials.service.js';
 import { Public, TokenService } from '@nestjs/authentication';
 import { SignInDto, SignUpDto } from './dto/auth.dto.js';
+import { EmailVerificationService } from '@nestjs/authentication';
 
 @Controller('auth')
 export class AuthController {
     constructor (
         private readonly tokenService: TokenService,
-        private readonly credentialService: CredentialsService
+        private readonly credentialService: CredentialsService,
+        private readonly emailVerificationService: EmailVerificationService
     ) {}
 
     @Public()
     @Post('sign-up')
-    async singUp(@Body() body: SignUpDto) {
+    async signUp(@Body() body: SignUpDto) {
         const user = await this.credentialService.register(
             body.email,
             body.password,
@@ -21,6 +23,9 @@ export class AuthController {
             body.firstName,
         )
         
+        // The link in the email proves the customer owns the address
+        await this.emailVerificationService.send(user)
+
         return this.tokenService.issue(user.id, {
             method: 'password'
         })
