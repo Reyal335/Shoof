@@ -7,6 +7,8 @@ async function bootstrap() {
     instrument: ObserveInstrument,
   });
 
+  app.setGlobalPrefix('api/v1');
+
   app.enableCors({
     origin: "*",
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE']

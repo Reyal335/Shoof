@@ -13,6 +13,7 @@ export type TokenPair = {
   expiresIn: number;
 };
 
+/** The login request. The login form reaches it through `useSignIn`; nothing else calls the endpoint. */
 export function signIn(credentials: SignInCredentials): Promise<TokenPair> {
   return apiPost<TokenPair>("/auth/sign-in", credentials);
 }

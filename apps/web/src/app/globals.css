@@ -1,19 +1,11 @@
 @import "tailwindcss";
 
-/* Two-panel layouts (e.g. login) split above 880px and collapse to one column at or below it. */
-@custom-variant split (@media (width > 880px));
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Two-panel layouts (e.g. login) split above 960px and collapse to one column at or below it. */
+@custom-variant split (@media (width > 960px));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-figtree), system-ui, sans-serif;
   --font-display: var(--font-outfit), sans-serif;
-  --font-mono: var(--font-geist-mono);
 }
 
 /* Shoof brand palette */
@@ -21,29 +13,50 @@
   --color-navy: #101b33;
   --color-navy-raised: #1a2848;
   --color-yellow: #dba40c;
+  --color-tint: #fdf3d3;
   --color-ground: #f3f5fa;
   --color-ink: #0f1a33;
   --color-ink-soft: #1e2a47;
   --color-ink-muted: #46516f;
   --color-on-navy: #eef1f8;
   --color-on-navy-muted: #b4bdd6;
+  --color-on-navy-faint: #5b6a92;
+  --color-card-border: #d5dbe9;
+  --color-card-divider: #e1e6f1;
   --color-field-border: #7d89a8;
   --color-divider: #c3cadb;
+  --color-chip: #e6eaf3;
   --color-link: #1b3a8a;
   --color-link-hover: #10275e;
   --color-danger: #b3261e;
   --color-danger-bg: #fdecea;
+
+  /* Feed grid: one column below 700px, two below 1100px, three from 1100px. */
+  --breakpoint-tablet: 43.75rem;
+  --breakpoint-desktop: 68.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
 }

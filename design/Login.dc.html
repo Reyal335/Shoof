@@ -13,40 +13,85 @@
 body{margin:0}
 a{color:#1b3a8a}a:hover{color:#10275e}
 .field{width:100%;box-sizing:border-box;height:52px;border:1.5px solid #7d89a8;border-radius:12px;padding:0 16px;font:500 16px 'Figtree',system-ui,sans-serif;color:#0f1a33;background:#ffffff}
-.field:focus-visible,.btn:focus-visible,.ghost:focus-visible,.eye:focus-visible,.check:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.field:focus-visible,.btn:focus-visible,.ghost:focus-visible,.eye:focus-visible,.check:focus-visible,a:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
 .btn{cursor:pointer}.ghost{cursor:pointer}
-@media (max-width: 880px){.split{grid-template-columns:minmax(0,1fr) !important}.hero{display:none !important}.formside{padding:32px 24px !important}}
+@media (max-width: 960px){.split{grid-template-columns:minmax(0,1fr) !important}.hero{display:none !important}.formside{padding:32px 24px !important}}
 </style>
 </helmet>
-<div class="split" style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; font-family: 'Figtree', system-ui, sans-serif; color: #0f1a33">
-  <div class="hero" style="background: #101b33; color: #eef1f8; padding: 48px 56px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden">
+<div class="split" style="display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); min-height: 100vh; font-family: 'Figtree', system-ui, sans-serif; color: #0f1a33">
+  <div class="hero" style="background: #101b33; color: #eef1f8; padding: 44px 0 0 56px; box-sizing: border-box; display: flex; flex-direction: column; gap: 36px; overflow: hidden; position: relative">
     <div style="display: flex; align-items: center; gap: 12px">
       <img src="shoof-blob.svg" alt="" style="width: 40px; height: 40px">
       <span style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 30px; color: #dba40c">Shoof</span>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 28px; max-width: 480px">
-      <img src="shoof-blob.svg" alt="Shoof mascot" style="width: 220px; height: 217px">
-      <h1 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 52px; line-height: 54px; letter-spacing: -1.5px">Good to see you again.</h1>
-      <p style="margin: 0; font-size: 18px; line-height: 28px; color: #b4bdd6">Pick up where you left off: new demos, notes from other musicians and people looking to play.</p>
+    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 560px; padding-right: 56px">
+      <h1 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 60px; line-height: 60px; letter-spacing: -2px">Don&#39;t describe your site. <span style="color: #dba40c">Show it.</span></h1>
+      <p style="margin: 0; font-size: 19px; line-height: 29px; color: #b4bdd6">Games, portfolios, SaaS and CSS experiments, posted as the real thing. No repo to open and no README to read.</p>
     </div>
-    <div style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: #1a2848; max-width: 440px">
-      <div style="width: 44px; height: 44px; border-radius: 22px; background: #dba40c; flex-shrink: 0"></div>
-      <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
-        <span style="font-weight: 600; font-size: 15px">[Artist name]</span>
-        <span style="font-size: 13px; color: #b4bdd6">New demo · 0:42</span>
+    <div style="flex-grow: 1; min-height: 420px; position: relative">
+      <div style="position: absolute; top: 0; left: 0; width: 300px; display: flex; flex-direction: column; gap: 20px">
+        <div style="background: #1a2848; border-radius: 16px; overflow: hidden">
+          <div style="height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 12px">
+            <span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span>
+            <span style="margin-left: 6px; font-size: 11px; color: #b4bdd6">[yourgame].example.com</span>
+          </div>
+          <div role="img" aria-label="Preview of a browser game" style="height: 190px; background: #1d1b3a; padding: 14px; box-sizing: border-box; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 3px">
+            <sc-for list="{{cells}}" as="gc" hint-placeholder-count="60">
+              <div style="border-radius: 3px; background: {{gc}}"></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background: #1a2848; border-radius: 16px; overflow: hidden">
+          <div style="height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 12px">
+            <span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span>
+            <span style="margin-left: 6px; font-size: 11px; color: #b4bdd6">[layout-study].example.com</span>
+          </div>
+          <div role="img" aria-label="Preview of a CSS layout study" style="height: 190px; background: #dfe5f2; padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; gap: 10px; height: 52px"><div style="flex-grow: 1; border-radius: 8px; background: #101b33"></div><div style="flex-grow: 2; border-radius: 8px; background: #dba40c"></div><div style="flex-grow: 1; border-radius: 8px; background: #7d89a8"></div></div>
+            <div style="display: flex; gap: 10px; flex-grow: 1"><div style="flex-grow: 1; border-radius: 8px; background: #9db4f0"></div><div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 2"><div style="flex-grow: 1; border-radius: 8px; background: #101b33"></div><div style="flex-grow: 1; border-radius: 8px; background: #ffffff"></div></div></div>
+          </div>
+        </div>
       </div>
-      <div style="display: flex; align-items: center; gap: 3px; height: 36px">
-        <sc-for list="{{bars}}" as="bar" hint-placeholder-count="12">
-          <div style="width: 4px; border-radius: 2px; background: #dba40c; --bar-height: {{bar}}; height: var(--bar-height)"></div>
-        </sc-for>
+      <div style="position: absolute; top: 56px; left: 330px; width: 320px; display: flex; flex-direction: column; gap: 20px">
+        <div style="background: #1a2848; border-radius: 16px; overflow: hidden">
+          <div style="height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 12px">
+            <span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span>
+            <span style="margin-left: 6px; font-size: 11px; color: #b4bdd6">[yourapp].example.com</span>
+          </div>
+          <div role="img" aria-label="Preview of a SaaS dashboard" style="height: 210px; background: #f3f5fa; display: flex">
+            <div style="width: 48px; background: #101b33; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 14px"><div style="width: 20px; height: 20px; border-radius: 6px; background: #dba40c"></div><div style="width: 20px; height: 6px; border-radius: 3px; background: #5b6a92"></div><div style="width: 20px; height: 6px; border-radius: 3px; background: #5b6a92"></div></div>
+            <div style="flex-grow: 1; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; gap: 8px"><div style="flex-grow: 1; height: 38px; border-radius: 8px; background: #ffffff"></div><div style="flex-grow: 1; height: 38px; border-radius: 8px; background: #ffffff"></div><div style="flex-grow: 1; height: 38px; border-radius: 8px; background: #ffffff"></div></div>
+              <div style="flex-grow: 1; border-radius: 8px; background: #ffffff; display: flex; align-items: flex-end; gap: 7px; padding: 10px">
+                <sc-for list="{{bars}}" as="bh" hint-placeholder-count="9">
+                  <div style="flex-grow: 1; border-radius: 3px 3px 0 0; background: #1b3a8a; height: {{bh}}"></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="background: #1a2848; border-radius: 16px; overflow: hidden">
+          <div style="height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 12px">
+            <span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span><span style="width: 8px; height: 8px; border-radius: 4px; background: #5b6a92"></span>
+            <span style="margin-left: 6px; font-size: 11px; color: #b4bdd6">[yourname].dev</span>
+          </div>
+          <div role="img" aria-label="Preview of a portfolio" style="height: 210px; background: #fbfbfd; padding: 16px 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; justify-content: space-between; align-items: center"><div style="width: 50px; height: 8px; border-radius: 4px; background: #101b33"></div><div style="display: flex; gap: 10px"><div style="width: 28px; height: 6px; border-radius: 3px; background: #9aa5c0"></div><div style="width: 28px; height: 6px; border-radius: 3px; background: #9aa5c0"></div></div></div>
+            <div style="display: flex; gap: 14px; align-items: center; flex-grow: 1">
+              <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 9px"><div style="width: 90%; height: 16px; border-radius: 5px; background: #101b33"></div><div style="width: 64%; height: 16px; border-radius: 5px; background: #101b33"></div><div style="width: 50px; height: 20px; border-radius: 10px; background: #dba40c; margin-top: 6px"></div></div>
+              <div style="width: 80px; height: 80px; border-radius: 40px; background: #dba40c; flex-shrink: 0"></div>
+            </div>
+          </div>
+        </div>
       </div>
+      <img src="shoof-blob.svg" alt="Shoof mascot" style="position: absolute; top: -34px; left: 600px; width: 84px; height: 83px">
     </div>
   </div>
   <div class="formside" style="background: #f3f5fa; display: flex; align-items: center; justify-content: center; padding: 48px">
-    <form style="width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px">
+    <form style="width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 20px">
       <div style="display: flex; flex-direction: column; gap: 8px">
         <h2 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 36px; line-height: 40px; letter-spacing: -0.8px">Log in</h2>
-        <p style="margin: 0; font-size: 16px; line-height: 24px; color: #46516f">Use your email and password to open your Shoof account.</p>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; color: #46516f">See what people shipped while you were away.</p>
       </div>
       <div style="display: flex; flex-direction: column; gap: 8px">
         <label for="email" style="font-weight: 600; font-size: 14px">Email</label>
@@ -72,8 +117,8 @@ a{color:#1b3a8a}a:hover{color:#10275e}
         <span>or</span>
         <div style="flex-grow: 1; height: 1px; background: #c3cadb"></div>
       </div>
-      <button class="ghost" type="button" style="height: 52px; border: 1.5px solid #101b33; border-radius: 12px; background: #ffffff; color: #101b33; font: 600 16px 'Figtree', sans-serif">Continue with Google</button>
-      <p style="margin: 4px 0 0; text-align: center; font-size: 15px; color: #46516f">New to Shoof? <a href="#join" style="font-weight: 600">Create an account</a></p>
+      <button class="ghost" type="button" style="height: 52px; border: 1.5px solid #101b33; border-radius: 12px; background: #ffffff; color: #101b33; font: 600 16px 'Figtree', sans-serif">Continue with GitHub</button>
+      <p style="margin: 4px 0 0; text-align: center; font-size: 15px; color: #46516f">New to Shoof? <a href="Register.dc.html" style="font-weight: 600">Create an account</a></p>
     </form>
   </div>
 </div>
@@ -86,8 +131,15 @@ class Component extends DCLogic {
   }
   renderVals() {
     const show = this.state.show;
+    const pal = ['#26335c', '#26335c', '#26335c', '#2ec4b6', '#dba40c', '#ef6f6f', '#7d89a8'];
+    const cells = [];
+    for (let i = 0; i < 72; i++) {
+      const v = Math.abs(Math.sin(i * 2.3 + 2) * 3.4 + Math.cos(i * 0.7 + 3.4) * 2.6);
+      cells.push(pal[Math.floor(v) % pal.length]);
+    }
     return {
-      bars: [14, 24, 18, 32, 22, 36, 26, 16, 30, 20, 12, 28].map((n) => n + 'px'),
+      cells: cells,
+      bars: [40, 62, 48, 80, 66, 92, 74, 58, 86].map((n) => Math.round(n * 0.8) + 'px'),
       pwType: show ? 'text' : 'password',
       eyeText: show ? 'Hide' : 'Show',
       eyeLabel: show ? 'Hide password' : 'Show password',

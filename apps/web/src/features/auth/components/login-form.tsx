@@ -1,14 +1,29 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { useSignIn } from "../hooks/use-sign-in";
 
-const focusRing =
-  "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-link";
-const field = `h-[52px] w-full rounded-xl border-[1.5px] border-field-border bg-white px-4 text-base font-medium text-ink ${focusRing}`;
-const link = `font-semibold text-link hover:text-link-hover ${focusRing}`;
+const loginSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Enter your email address.")
+    .pipe(z.email("Enter a valid email address, like you@example.com.")),
+  password: z.string().min(1, "Enter your password."),
+  remember: z.boolean(),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
+
+const field =
+  "h-[52px] w-full rounded-xl border-[1.5px] border-field-border bg-white px-4 text-base font-medium text-ink aria-invalid:border-danger";
+const link = "font-semibold text-link hover:text-link-hover";
+const fieldError = "m-0 text-sm font-medium text-danger";
 
 const ERROR_ID = "login-error";
 
@@ -16,32 +31,30 @@ export function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const { submit, isPending, error } = useSignIn({ onSuccess: () => router.replace("/") });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "", remember: false },
+  });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    submit({
-      email: String(data.get("email")),
-      password: String(data.get("password")),
-      remember: data.get("remember") === "on",
-    });
+  // Each input points at its own message, and at the server error when one is showing.
+  function describedBy(fieldErrorId: string | false) {
+    return [fieldErrorId, error && ERROR_ID].filter(Boolean).join(" ") || undefined;
   }
-
-  const describedBy = error ? ERROR_ID : undefined;
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(submit)}
+      noValidate
       aria-busy={isPending}
-      className="flex w-full max-w-[400px] flex-col gap-5"
+      className="flex w-full max-w-[380px] flex-col gap-5"
     >
       <div className="flex flex-col gap-2">
-        <h1 className="m-0 font-display text-[36px]/[40px] font-semibold tracking-[-0.8px]">
-          Log in
-        </h1>
-        <p className="m-0 text-base text-ink-muted">
-          Use your email and password to open your Shoof account.
-        </p>
+        <h1 className="m-0 text-[36px]/[40px] font-semibold tracking-[-0.8px]">Log in</h1>
+        <p className="m-0 text-base text-ink-muted">See what people shipped while you were away.</p>
       </div>
 
       {error && (
@@ -60,14 +73,19 @@ export function LoginForm() {
         </label>
         <input
           id="email"
-          name="email"
           type="email"
-          required
           placeholder="you@example.com"
           autoComplete="email"
-          aria-describedby={describedBy}
+          aria-invalid={errors.email ? true : undefined}
+          aria-describedby={describedBy(!!errors.email && "email-error")}
           className={field}
+          {...register("email")}
         />
+        {errors.email && (
+          <p id="email-error" className={fieldError}>
+            {errors.email.message}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -82,38 +100,39 @@ export function LoginForm() {
         <div className="relative">
           <input
             id="password"
-            name="password"
             type={showPassword ? "text" : "password"}
-            required
             placeholder="Your password"
             autoComplete="current-password"
-            aria-describedby={describedBy}
+            aria-invalid={errors.password ? true : undefined}
+            aria-describedby={describedBy(!!errors.password && "password-error")}
             className={`${field} pr-[84px]`}
+            {...register("password")}
           />
           <button
             type="button"
             onClick={() => setShowPassword((shown) => !shown)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className={`absolute top-1.5 right-1.5 h-10 cursor-pointer rounded-lg bg-transparent px-3 text-sm font-semibold text-link ${focusRing}`}
+            className="absolute top-1.5 right-1.5 h-10 rounded-lg bg-transparent px-3 text-sm font-semibold text-link"
           >
             {showPassword ? "Hide" : "Show"}
           </button>
         </div>
+        {errors.password && (
+          <p id="password-error" className={fieldError}>
+            {errors.password.message}
+          </p>
+        )}
       </div>
 
       <label className="flex items-center gap-2.5 text-[15px] text-ink-soft">
-        <input
-          type="checkbox"
-          name="remember"
-          className={`m-0 size-5 accent-navy ${focusRing}`}
-        />
+        <input type="checkbox" className="m-0 size-5 accent-navy" {...register("remember")} />
         Keep me logged in on this device
       </label>
 
       <button
         type="submit"
         disabled={isPending}
-        className={`h-[54px] cursor-pointer rounded-xl bg-yellow font-display text-[17px] font-bold text-navy disabled:cursor-progress disabled:opacity-75 ${focusRing}`}
+        className="h-[54px] rounded-xl bg-yellow font-display text-[17px] font-bold text-navy disabled:cursor-progress disabled:opacity-75"
       >
         {isPending ? "Logging in…" : "Log in"}
       </button>
@@ -124,17 +143,21 @@ export function LoginForm() {
         <div className="h-px grow bg-divider" />
       </div>
 
-      {/* TODO: no Google sign-in endpoint exists in the API yet. */}
+      {/* TODO: enable once the API has a GitHub OAuth endpoint. */}
       <button
         type="button"
-        className={`h-[52px] cursor-pointer rounded-xl border-[1.5px] border-navy bg-white text-base font-semibold text-navy ${focusRing}`}
+        disabled
+        className="flex h-[52px] cursor-not-allowed items-center justify-center gap-2.5 rounded-xl border-[1.5px] border-divider bg-white text-base font-semibold text-ink-muted"
       >
-        Continue with Google
+        Continue with GitHub
+        <span className="rounded-md bg-chip px-2 py-0.5 text-xs font-semibold text-navy">
+          Coming soon
+        </span>
       </button>
 
       <p className="mt-1 mb-0 text-center text-[15px] text-ink-muted">
         New to Shoof?{" "}
-        <Link href="/sign-up" className={link}>
+        <Link href="/register" className={link}>
           Create an account
         </Link>
       </p>

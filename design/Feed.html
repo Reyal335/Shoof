@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shoof | Sites people are shipping</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:'Figtree',system-ui,sans-serif}
+a{color:var(--link)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+button{cursor:pointer;font-family:inherit}
+h1,h2,h3{font-family:'Outfit',sans-serif;margin:0}
+.top{position:sticky;top:0;z-index:2;background:var(--white);border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px}
+.top-left{display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:34px;height:34px}
+.brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:26px;color:var(--navy)}
+nav{display:flex;gap:20px}
+nav a{font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;padding:4px 0;border-bottom:3px solid transparent}
+nav a.current{border-bottom-color:var(--yellow)}
+.search{flex-grow:1;max-width:420px}
+.search input{width:100%;height:44px;border:1.5px solid var(--input);border-radius:22px;padding:0 20px;font:400 15px 'Figtree',sans-serif;background:var(--ground);color:var(--ink)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.top-right{display:flex;align-items:center;gap:14px}
+.post-btn{display:flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:21px;background:var(--yellow);color:var(--navy);font:700 15px 'Outfit',sans-serif;text-decoration:none}
+.me{width:40px;height:40px;border-radius:20px;background:var(--navy);display:block}
+.wrap{max-width:1360px;margin:0 auto;padding:36px 32px 64px;display:flex;flex-direction:column;gap:28px}
+.intro h1{font-weight:600;font-size:44px;line-height:48px;letter-spacing:-1.2px}
+.intro p{margin:8px 0 0;font-size:18px;line-height:27px;color:var(--muted)}
+.filters{display:flex;flex-direction:column;gap:12px}
+.tabs,.stacks{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tab{height:42px;padding:0 18px;border-radius:21px;font:600 15px 'Figtree',sans-serif;border:1.5px solid var(--input);background:var(--white);color:var(--navy)}
+.tab.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.stacks .label{font-size:14px;font-weight:600;color:var(--muted);margin-right:4px}
+.stack{height:34px;padding:0 14px;border-radius:8px;font:600 14px 'Figtree',sans-serif;border:1.5px solid #c3cadb;background:var(--white);color:var(--navy)}
+.stack[aria-pressed="true"]{background:var(--tint);border-color:var(--yellow)}
+.featured{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);background:var(--white);border:1px solid var(--border);border-radius:24px;overflow:hidden}
+.feat-shot{background:#1d1b3a;padding:28px;min-height:380px;display:flex;flex-direction:column;gap:14px}
+.dots{display:flex;align-items:center;gap:8px}
+.dots i{width:10px;height:10px;border-radius:5px}
+.dots .url{margin-left:8px;flex-grow:1;height:22px;border-radius:11px;background:#2c2a55;color:#b9b7e6;font-size:12px;display:flex;align-items:center;padding:0 12px}
+.feat-game{flex-grow:1;display:grid;grid-template-columns:repeat(16,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:3px}
+.feat-game span,.game span{border-radius:3px}
+.c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
+.feat-info{padding:36px;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.feat-tag{align-self:flex-start;font-size:13px;font-weight:700;padding:5px 12px;border-radius:13px;background:var(--yellow);color:var(--navy)}
+.feat-info h2{font-weight:600;font-size:36px;line-height:40px;letter-spacing:-.8px}
+.feat-info p{margin:0;font-size:17px;line-height:26px;color:#1e2a47}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;font-weight:600;padding:4px 9px;border-radius:7px;background:var(--chip)}
+.feat-info .chip{font-size:13px;padding:5px 10px;border-radius:8px}
+.feat-by{display:flex;align-items:center;gap:10px}
+.feat-by .avatar{width:32px;height:32px}
+.feat-by span:last-child{font-size:14px;color:var(--muted)}
+.feat-btns{display:flex;gap:10px;margin-top:4px}
+.btn-dark{display:flex;align-items:center;gap:8px;height:50px;padding:0 24px;border-radius:25px;background:var(--navy);color:#fff;font:600 16px 'Figtree',sans-serif;text-decoration:none}
+.btn-line{display:flex;align-items:center;height:50px;padding:0 22px;border-radius:25px;border:1.5px solid var(--navy);color:var(--navy);font:600 16px 'Figtree',sans-serif;text-decoration:none}
+.bar{display:flex;align-items:center;justify-content:space-between}
+#count{font-size:15px;color:var(--muted)}
+.sort{display:flex;gap:6px;font-size:14px;font-weight:600}
+.sort span{padding:6px 12px;border-radius:8px;color:var(--navy)}
+.sort .on{background:var(--navy);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.preview{position:relative;height:230px;overflow:hidden}
+.pv{height:100%}
+.badge{position:absolute;top:12px;left:12px;font-size:12px;font-weight:700;padding:5px 10px;border-radius:12px;background:#fff;color:var(--navy)}
+.visit{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:18px;background:var(--yellow);display:flex;align-items:center;justify-content:center}
+.card-body{padding:18px 20px 16px;display:flex;flex-direction:column;gap:12px;flex-grow:1}
+.card-body h3{font-weight:600;font-size:21px;line-height:26px}
+.card-body p{margin:4px 0 0;font-size:15px;line-height:22px;color:var(--muted)}
+.card-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #e1e6f1;padding-top:12px;margin-top:auto}
+.creator{display:flex;align-items:center;gap:8px}
+.avatar{width:28px;height:28px;border-radius:14px;background:var(--navy);display:inline-block}
+.cname{font-weight:600;font-size:14px}
+.collabs{display:flex;margin-left:2px}
+.mini{width:22px;height:22px;border-radius:11px;border:2px solid #fff;margin-left:-6px}
+.like{display:flex;align-items:center;gap:6px;height:36px;padding:0 10px;border:0;border-radius:18px;background:transparent;color:var(--navy);font:600 14px 'Figtree',sans-serif}
+.like[aria-pressed="true"] svg{fill:var(--yellow)}
+.like svg{fill:none}
+.empty{padding:48px;text-align:center;background:#fff;border:1px dashed var(--input);border-radius:20px;font-size:17px;color:var(--muted)}
+[hidden]{display:none !important}
+/* stand-in previews */
+.game{background:#1d1b3a;padding:16px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:3px}
+.portfolio{background:#fbfbfd;padding:18px 22px;display:flex;flex-direction:column;gap:14px}
+.pf-nav{display:flex;justify-content:space-between;align-items:center}
+.pf-logo{width:54px;height:8px;border-radius:4px;background:var(--navy)}
+.pf-nav span{display:flex;gap:10px}.pf-nav span i{width:30px;height:6px;border-radius:3px;background:var(--input)}
+.pf-hero{display:flex;gap:16px;align-items:center;flex-grow:1}
+.pf-text{flex-grow:1;display:flex;flex-direction:column;gap:10px}
+.pf-text b{height:18px;border-radius:6px;background:var(--navy);display:block}
+.pf-text em{width:54px;height:22px;border-radius:11px;background:var(--yellow);margin-top:8px}
+.pf-dot{width:96px;height:96px;border-radius:48px;background:var(--yellow);flex-shrink:0}
+.pf-row{display:flex;gap:10px}.pf-row i{flex-grow:1;height:34px;border-radius:8px;background:var(--chip)}
+.css{background:#dfe5f2;padding:18px;display:flex;flex-direction:column;gap:12px}
+.css .row1{display:flex;gap:12px;height:60px}.css .row2{display:flex;gap:12px;flex-grow:1}
+.css i{border-radius:10px;display:block}
+.css .col{display:flex;flex-direction:column;gap:12px;flex-grow:2}.css .col i{flex-grow:1}
+.saas{background:var(--ground);display:flex}
+.saas .side{width:54px;background:var(--navy);display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:16px}
+.saas .side i{width:22px;height:6px;border-radius:3px;background:#5b6a92}.saas .side .sq{height:22px;border-radius:6px;background:var(--yellow)}
+.saas .main{flex-grow:1;padding:16px;display:flex;flex-direction:column;gap:12px}
+.saas .tiles{display:flex;gap:10px}.saas .tiles i{flex-grow:1;height:44px;border-radius:8px;background:#fff}
+.saas .chart{flex-grow:1;border-radius:8px;background:#fff;display:flex;align-items:flex-end;gap:8px;padding:12px}
+.saas .chart i{flex-grow:1;border-radius:3px 3px 0 0;background:var(--link)}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.featured{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){.grid{grid-template-columns:minmax(0,1fr)}.search{display:none}.wrap{padding:20px 16px 48px}.top{padding:0 16px}nav{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-left">
+    <a class="brand" href="/"><img src="shoof-blob.svg" alt=""><span>Shoof</span></a>
+    <nav aria-label="Main">
+      <a class="current" href="/">Home</a>
+      <a href="#explore">Explore</a>
+      <a href="#creators">Creators</a>
+    </nav>
+  </div>
+  <div class="search">
+    <label class="sr" for="q">Search Shoof</label>
+    <input id="q" type="search" placeholder="Search sites, creators, stacks">
+  </div>
+  <div class="top-right">
+    <a class="post-btn" href="#post">Post a site</a>
+    <a class="me" href="/profile" aria-label="Your profile"></a>
+  </div>
+</header>
+<main class="wrap">
+  <div class="intro">
+    <h1>Sites people are shipping right now.</h1>
+    <p>See the real thing first. Open any card and the site is live.</p>
+  </div>
+  <div class="filters">
+    <div class="tabs" role="tablist" aria-label="Categories"><button type="button" role="tab" class="tab active" aria-selected="true" data-cat="All">All</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="Games">Games</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="Portfolios">Portfolios</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="SaaS">SaaS</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="CSS &amp; UI">CSS &amp; UI</button></div>
+    <div class="stacks"><span class="label">Stack</span><button type="button" class="stack" aria-pressed="false" data-stack="React">React</button><button type="button" class="stack" aria-pressed="false" data-stack="TypeScript">TypeScript</button><button type="button" class="stack" aria-pressed="false" data-stack="Node.js">Node.js</button><button type="button" class="stack" aria-pressed="false" data-stack="Vue">Vue</button><button type="button" class="stack" aria-pressed="false" data-stack="Next.js">Next.js</button><button type="button" class="stack" aria-pressed="false" data-stack="Tailwind">Tailwind</button><button type="button" class="stack" aria-pressed="false" data-stack="HTML &amp; CSS">HTML &amp; CSS</button></div>
+  </div>
+  <article class="featured" id="featured">
+    <div class="feat-shot" role="img" aria-label="Screenshot of the featured site">
+      <div class="dots"><i style="background:#ef6f6f"></i><i style="background:#dba40c"></i><i style="background:#4fd1a5"></i><span class="url">[yourgame].example.com</span></div>
+      <div class="feat-game"><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span></div>
+    </div>
+    <div class="feat-info">
+      <span class="feat-tag">Featured today</span>
+      <h2>[Project name]</h2>
+      <p>A browser game built from scratch. Describe what it does and what you learned making it, in a sentence or two.</p>
+      <div class="chips"><span class="chip">TypeScript</span><span class="chip">Phaser</span><span class="chip">Vite</span></div>
+      <div class="feat-by"><span class="avatar"></span><b style="font-size:15px">[Creator]</b><span>with 2 collaborators</span></div>
+      <div class="feat-btns">
+        <a class="btn-dark" href="#visit">Visit live site <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        <a class="btn-line" href="#details">Details</a>
+      </div>
+    </div>
+  </article>
+  <div class="bar">
+    <span id="count" aria-live="polite">8 sites</span>
+    <div class="sort"><span class="on">Trending</span><span>New</span><span>Following</span></div>
+  </div>
+  <section class="grid" id="grid" aria-label="Sites">
+      <article class="card" data-category="Games" data-stack="TypeScript|Phaser|Vite">
+        <div class="preview" role="img" aria-label="Screenshot of Browser game">
+          <div class="pv game"><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span></div>
+          <span class="badge">Games</span>
+          <a class="visit" href="#visit" aria-label="Visit Browser game"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>A browser game. One line on what it is and how you play.</p>
+          </div>
+          <div class="chips"><span class="chip">TypeScript</span><span class="chip">Phaser</span><span class="chip">Vite</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"><span class="mini" style="background:#dba40c"></span><span class="mini" style="background:#6b7ba8"></span></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="128"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">128</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="card" data-category="Portfolios" data-stack="Next.js|Tailwind|React">
+        <div class="preview" role="img" aria-label="Screenshot of Portfolio">
+          <div class="pv portfolio"><div class="pf-nav"><i class="pf-logo"></i><span><i></i><i></i><i></i></span></div><div class="pf-hero"><div class="pf-text"><b style="width:92%"></b><b style="width:66%"></b><em></em></div><div class="pf-dot"></div></div><div class="pf-row"><i></i><i></i><i></i></div></div>
+          <span class="badge">Portfolios</span>
+          <a class="visit" href="#visit" aria-label="Visit Portfolio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>Personal portfolio with case studies and a contact form.</p>
+          </div>
+          <div class="chips"><span class="chip">Next.js</span><span class="chip">Tailwind</span><span class="chip">React</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="74"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">74</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="card" data-category="CSS &amp; UI" data-stack="HTML &amp; CSS">
+        <div class="preview" role="img" aria-label="Screenshot of CSS layout study">
+          <div class="pv css"><div class="row1"><i style="flex:1;background:#101b33"></i><i style="flex:2;background:#dba40c"></i><i style="flex:1;background:#7d89a8"></i></div><div class="row2"><i style="flex:1;background:#9db4f0"></i><div class="col"><i style="background:#101b33"></i><i style="background:#fff"></i></div></div></div>
+          <span class="badge">CSS &amp; UI</span>
+          <a class="visit" href="#visit" aria-label="Visit CSS layout study"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>A layout study built with flex and grid, no JavaScript.</p>
+          </div>
+          <div class="chips"><span class="chip">HTML &amp; CSS</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"><span class="mini" style="background:#3b4f86"></span></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="203"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">203</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="card" data-category="SaaS" data-stack="React|Node.js|PostgreSQL">
+        <div class="preview" role="img" aria-label="Screenshot of SaaS dashboard">
+          <div class="pv saas"><div class="side"><i class="sq"></i><i></i><i></i><i></i></div><div class="main"><div class="tiles"><i></i><i></i><i></i></div><div class="chart"><i style="height:32px"></i><i style="height:50px"></i><i style="height:38px"></i><i style="height:64px"></i><i style="height:53px"></i><i style="height:74px"></i><i style="height:59px"></i><i style="height:46px"></i><i style="height:69px"></i><i style="height:56px"></i></div></div></div>
+          <span class="badge">SaaS</span>
+          <a class="visit" href="#visit" aria-label="Visit SaaS dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>A tool that solves one problem well. Say who it is for.</p>
+          </div>
+          <div class="chips"><span class="chip">React</span><span class="chip">Node.js</span><span class="chip">PostgreSQL</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"><span class="mini" style="background:#dba40c"></span><span class="mini" style="background:#3b4f86"></span><span class="mini" style="background:#6b7ba8"></span></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="311"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">311</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="card" data-category="Games" data-stack="React|TypeScript">
+        <div class="preview" role="img" aria-label="Screenshot of Puzzle game">
+          <div class="pv game"><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span></div>
+          <span class="badge">Games</span>
+          <a class="visit" href="#visit" aria-label="Visit Puzzle game"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>A small puzzle game made in a weekend for a game jam.</p>
+          </div>
+          <div class="chips"><span class="chip">React</span><span class="chip">TypeScript</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="59"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">59</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="card" data-category="Portfolios" data-stack="Vue|Tailwind">
+        <div class="preview" role="img" aria-label="Screenshot of Illustrator portfolio">
+          <div class="pv portfolio"><div class="pf-nav"><i class="pf-logo"></i><span><i></i><i></i><i></i></span></div><div class="pf-hero"><div class="pf-text"><b style="width:92%"></b><b style="width:66%"></b><em></em></div><div class="pf-dot"></div></div><div class="pf-row"><i></i><i></i><i></i></div></div>
+          <span class="badge">Portfolios</span>
+          <a class="visit" href="#visit" aria-label="Visit Illustrator portfolio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>Illustrator portfolio with a fast image gallery.</p>
+          </div>
+          <div class="chips"><span class="chip">Vue</span><span class="chip">Tailwind</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"><span class="mini" style="background:#6b7ba8"></span></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="96"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">96</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="card" data-category="SaaS" data-stack="Vue|Node.js|TypeScript">
+        <div class="preview" role="img" aria-label="Screenshot of Tracking dashboard">
+          <div class="pv saas"><div class="side"><i class="sq"></i><i></i><i></i><i></i></div><div class="main"><div class="tiles"><i></i><i></i><i></i></div><div class="chart"><i style="height:56px"></i><i style="height:43px"></i><i style="height:66px"></i><i style="height:48px"></i><i style="height:72px"></i><i style="height:61px"></i><i style="height:40px"></i><i style="height:54px"></i><i style="height:67px"></i><i style="height:77px"></i></div></div></div>
+          <span class="badge">SaaS</span>
+          <a class="visit" href="#visit" aria-label="Visit Tracking dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>Dashboard for tracking something people actually need to track.</p>
+          </div>
+          <div class="chips"><span class="chip">Vue</span><span class="chip">Node.js</span><span class="chip">TypeScript</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"><span class="mini" style="background:#3b4f86"></span></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="142"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">142</span></button>
+          </div>
+        </div>
+      </article>
+      <article class="card" data-category="CSS &amp; UI" data-stack="HTML &amp; CSS|TypeScript">
+        <div class="preview" role="img" aria-label="Screenshot of Animated components">
+          <div class="pv css"><div class="row1"><i style="flex:1;background:#101b33"></i><i style="flex:2;background:#dba40c"></i><i style="flex:1;background:#7d89a8"></i></div><div class="row2"><i style="flex:1;background:#9db4f0"></i><div class="col"><i style="background:#101b33"></i><i style="background:#fff"></i></div></div></div>
+          <span class="badge">CSS &amp; UI</span>
+          <a class="visit" href="#visit" aria-label="Visit Animated components"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="card-body">
+          <div>
+            <h3>[Project name]</h3>
+            <p>Animated components collection with copy-paste snippets.</p>
+          </div>
+          <div class="chips"><span class="chip">HTML &amp; CSS</span><span class="chip">TypeScript</span></div>
+          <div class="card-foot">
+            <div class="creator"><span class="avatar"></span><span class="cname">[Creator]</span><span class="collabs"></span></div>
+            <button type="button" class="like" aria-pressed="false" aria-label="Like [Project name]" data-likes="187"><svg width="20" height="20" viewBox="0 0 24 24" stroke="#101b33" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0112 7a4.5 4.5 0 018 2.5C20 15.3 12 20 12 20z"/></svg><span class="count">187</span></button>
+          </div>
+        </div>
+      </article>
+  </section>
+  <div class="empty" id="empty" hidden>No sites match these filters yet. Clear a filter or post the first one.</div>
+</main>
+<script>
+(function () {
+  var cat = 'All', stack = null;
+  var tabs = document.querySelectorAll('.tab'), stacks = document.querySelectorAll('.stack');
+  var cards = document.querySelectorAll('.card'), featured = document.getElementById('featured');
+  function render() {
+    var shown = 0;
+    cards.forEach(function (c) {
+      var ok = (cat === 'All' || c.dataset.category === cat) && (!stack || c.dataset.stack.split('|').indexOf(stack) >= 0);
+      c.hidden = !ok; if (ok) shown++;
+    });
+    featured.hidden = !(cat === 'All' && !stack);
+    document.getElementById('count').textContent = shown + (shown === 1 ? ' site' : ' sites');
+    document.getElementById('empty').hidden = shown !== 0;
+  }
+  tabs.forEach(function (t) { t.addEventListener('click', function () {
+    cat = t.dataset.cat;
+    tabs.forEach(function (x) { var on = x === t; x.classList.toggle('active', on); x.setAttribute('aria-selected', on); });
+    render();
+  }); });
+  stacks.forEach(function (s) { s.addEventListener('click', function () {
+    stack = stack === s.dataset.stack ? null : s.dataset.stack;
+    stacks.forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.stack === stack); });
+    render();
+  }); });
+  document.querySelectorAll('.like').forEach(function (b) { b.addEventListener('click', function () {
+    var on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', on);
+    b.querySelector('.count').textContent = +b.dataset.likes + (on ? 1 : 0);
+  }); });
+})();
+</script>
+</body>
+</html>

@@ -1,13 +1,13 @@
-import type { DataSource } from 'typeorm';
 import type { Seeder, SeederFactoryManager } from 'typeorm-extension';
 import { User, UserRole } from '../../modules/users/entities/user.entity.js';
 import { hashSeedPassword, SEED_PASSWORD } from '../factories/user.factory.js';
 
 const DEMO_EMAIL = 'demo@example.com';
 const FAKE_USER_COUNT = 25;
+type SeederDataSource = Parameters<Seeder['run']>[0];
 
 export default class UserSeeder implements Seeder {
-    async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void> {
+    async run(dataSource: SeederDataSource, factoryManager: SeederFactoryManager): Promise<void> {
         if (process.env.NODE_ENV === 'production') {
             throw new Error('UserSeeder creates accounts with a shared, known password; refusing to run in production.');
         }

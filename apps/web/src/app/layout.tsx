@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Figtree, Geist_Mono, Outfit } from "next/font/google";
+import { Figtree, Outfit } from "next/font/google";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -14,21 +14,16 @@ const outfit = Outfit({
   weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "Shoof",
-  description: "Show off what you make, and what you make it with.",
+  description: "Don't describe your site. Show it.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${figtree.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${figtree.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
