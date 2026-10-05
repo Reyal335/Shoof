@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto.js';
+
+// DTO
+import { CreateUserDto, CreateWithSignIn } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
@@ -41,6 +44,9 @@ export class UsersService {
       console.log('There was an error during the save')
       throw error
     }
+  }
+
+  async createWithEmail(createWithSignIn: CreateWithSignIn) {
     
   }
 
@@ -102,5 +108,13 @@ export class UsersService {
       return false
     }
     return true
+  }
+
+  async findByIdentity(provider: string, subject: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ id: "1" })
+  }
+
+  async linkIdentity(id: string, provider: string, subject: string) {
+    return 
   }
 }

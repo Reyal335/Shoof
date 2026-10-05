@@ -11,11 +11,9 @@ export class CredentialsService {
     ) {}
 
     async register (
+        username: string,
         email: string, 
         password: string, 
-        username: string, 
-        lastName: string, 
-        firstName: string
     ): Promise<Omit<User, 'passwordHash'>> {
         if (await this.usersService.findByEmail(email)) {
             throw new ConflictException('Email already registered');
@@ -24,11 +22,10 @@ export class CredentialsService {
         const passwordHash = await this.passwordHasher.hash(password)
 
         return this.usersService.create({
+            username,
             email, 
             passwordHash,
-            username,
-            lastName,
-            firstName
+            emailVerified: false
         })
     }
 

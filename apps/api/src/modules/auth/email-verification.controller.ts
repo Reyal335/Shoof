@@ -1,11 +1,15 @@
-import { BadRequestException, Body, ConflictException, Controller, HttpCode, Post } from '@nestjs/common';
-import { CurrentUser, EmailVerificationService, Public } from '@nestjs/authentication';
-import type { User } from '../users/entities/user.entity.js';
+import { BadRequestException, Body, ConflictException, Controller, HttpCode, Post, UnauthorizedException } from '@nestjs/common';
+import { EmailVerificationService } from '@nestjs/authentication';
+import { UsersService } from '../users/users.service.js';
+import { Public } from './decorators/public.decorator.js';
+import { CurrentUser } from './decorators/current-user.decorator.js';
+import type { AuthUser } from './auth.types.js';
 
 @Controller('auth/email')
 export class EmailVerificationController {
     constructor(
-        private readonly emailVerificationService: EmailVerificationService
+        private readonly emailVerificationService: EmailVerificationService,
+        private readonly usersService: UsersService
     ) {}
 
     @Public()
@@ -23,7 +27,11 @@ export class EmailVerificationController {
     // Send the link again
     @Post('verification')
     @HttpCode(202)
-    async resend(@CurrentUser() user: User) {
+    async resend(@CurrentUser() authUser: AuthUser) {
+        const user = await this.usersService.findOne(authUser.id)
+        if (!user) {
+            throw new UnauthorizedException()
+        }
         if (user.emailVerified) {
             throw new ConflictException('Email address already verified')
         }

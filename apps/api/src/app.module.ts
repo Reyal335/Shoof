@@ -8,7 +8,6 @@ import { UsersController } from './modules/users/users.controller.js';
 import { UsersService } from './modules/users/users.service.js';
 
 import { UsersModule } from './modules/users/users.module.js';
-import { PostsModule } from './modules/posts/posts.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AuthenticationModule } from '@nestjs/authentication';
 import { ConfigModule, ConfigService } from '@nestjs/config'
@@ -65,27 +64,15 @@ const observeImports = [...(observeAppKey && observeAppSecret
       }),
       from: 'Accounts <accounts@example.com>'})
   }),
+  // Password hashing and email verification only. Authentication is passport's (AuthModule),
+  // so this module's own guard stays off.
   AuthenticationModule.forRootAsync({
+    globalGuard: false,
     useFactory: () => ({
-      session: {
-        absoluteTtl: '14d',
-        idleTtl: '3d'
-      },
       emailVerification: { url: `${process.env.APP_URL}/verify-email` },
-      accessToken: {
-        key: process.env.JWT_ACCESS_SECRET!,
-        issuer: 'shoof-api',
-        audience: 'shoof-client',
-        ttl: '15m'
-      },
-      refreshToken: {
-        ttl: '30d',
-        absoluteTtl: '90d'
-      }
     })
   }),
   UsersModule,
-  PostsModule,
   ormModule
 ];
 

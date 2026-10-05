@@ -6,7 +6,8 @@ import {
     IsOptional, 
     MaxLength, 
     MinLength,
-    IsStrongPassword
+    IsStrongPassword,
+    IsBoolean
 } from 'class-validator'
 import { string } from 'zod';
 
@@ -16,30 +17,18 @@ let min_username_len: number = 5
 let max_password_len: number = 25;
 let min_password_len: number = 8
 
-
 export class CreateUserDto {
+    @IsString()
+    username: string
+
     // Email
     @IsEmail({}, {
         message: "ts not an email twin"
     })
     email: string
 
-    // Last name
-    @IsString()
-    lastName: string
-
-    @IsString()
-    firstName: string
-
-    // Username
-    @MaxLength(max_username_len, {
-        message: `Can only have up to ${max_username_len} characters`
-    })
-    @MinLength(min_username_len, {
-        message: `Should at least have ${min_username_len} characters`
-    })
-    @IsString()
-    username: string;
+    @IsBoolean()
+    emailVerified: false
 
     // Password
     @MaxLength(max_password_len, {
@@ -51,6 +40,16 @@ export class CreateUserDto {
     @IsStrongPassword()
     @IsString()
     passwordHash: string;
+}
 
+export class CreateWithSignIn {
+    // Email
+    @IsEmail({}, {
+        message: "ts not an email twin"
+    })
+    email: string
+
+    @IsBoolean()
+    emailVerified: false
 
 }

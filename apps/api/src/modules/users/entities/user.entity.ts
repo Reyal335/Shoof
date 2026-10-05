@@ -1,4 +1,13 @@
-import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { 
+    Entity, 
+    Column, 
+    CreateDateColumn, 
+    PrimaryGeneratedColumn, 
+    UpdateDateColumn, 
+    OneToOne 
+} from 'typeorm'
+import type { Relation } from 'typeorm'
+import { User_Identity } from './user-identity.js'
 
 export enum UserRole {
     GUEST = "Guest",
@@ -30,12 +39,6 @@ export class User {
     @Column()
     passwordHash: string
 
-    @Column()
-    firstName: string
-
-    @Column()
-    lastName: string
-
     @Column({ default: true })
     isActive: boolean
 
@@ -54,4 +57,7 @@ export class User {
 
     @UpdateDateColumn({ type: 'timestamptz' })
     updatedAt: Date
+
+    @OneToOne(() => User_Identity, (user_identity) => user_identity.user)
+    identity: Relation<User_Identity>
 }

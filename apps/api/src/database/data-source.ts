@@ -5,6 +5,7 @@ import { DataSource, type DataSourceOptions } from 'typeorm';
 import type { SeederOptions } from 'typeorm-extension';
 
 import { User } from '../modules/users/entities/user.entity.js';
+import { RefreshToken } from '../modules/auth/entities/refresh-token.entity.js';
 
 config({ path: resolve(import.meta.dirname, '../../../../.env'), quiet: true });
 
@@ -15,7 +16,7 @@ const options: DataSourceOptions & SeederOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: [User],
+  entities: [User, RefreshToken],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   seeds: ['src/database/seeds/**/*.ts'],
