@@ -9,7 +9,7 @@ export declare class UsersService {
     create(createUserDto: CreateUserDto): Promise<Omit<User, 'passwordHash'>>;
     createWithEmail(createWithSignIn: CreateWithSignIn): Promise<void>;
     findAll(): Promise<User[]>;
-    findOne(id: string): Promise<User | null>;
+    findOne(id: string): Promise<Omit<User, 'passwordHash'> | null>;
     findByEmail(email: string): Promise<Omit<User, 'passwordHash'> | null>;
     findCredentials(email: string): Promise<{
         user: Omit<User, 'passwordHash'>;

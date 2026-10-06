@@ -19,7 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { FileTemplateEngine, LogMailTransport, MailModule, SmtpTransport } from '@nestjs/mail';
 import { join } from 'node:path';
 import { DataSource } from 'typeorm';
-import { PostsModule } from './posts/posts.module.js';
+import { PostsModule } from './modules/posts/posts.module.js';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const observeAppKey = process.env.OBSERVE_APP_KEY;
 const observeAppSecret = process.env.OBSERVE_APP_SECRET;

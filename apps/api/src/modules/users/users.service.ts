@@ -7,6 +7,7 @@ import { UpdateUserDto } from './dto/update-user.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
+import { Profile } from './entities/profile.entity.js';
 import { NotFoundException } from '@nestjs/common';
 import { normalize } from 'node:path';
 import { _normalize } from 'zod/v4/core';
@@ -15,7 +16,9 @@ import { _normalize } from 'zod/v4/core';
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>
+    private usersRepository: Repository<User>,
+    @InjectRepository(Profile)
+    private profilesRepository: Repository<Profile>
   ) {}
 
   private readonly users = [
@@ -35,7 +38,12 @@ export class UsersService {
     const newUser = this.usersRepository.create(createUserDto);
 
     try {
-      const savedUser = await this.usersRepository.save(newUser)
+      // The profile is created with the user so a user never exists without one
+      const savedUser = await this.usersRepository.manager.transaction(async (manager) => {
+        const user = await manager.save(newUser)
+        await manager.insert(Profile, { userId: user.id, displayName: user.username })
+        return user
+      })
 
       const { passwordHash, ...result } = savedUser;
 
@@ -55,8 +63,16 @@ export class UsersService {
   }
 
   // Find by Id
-  async findOne(id: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ id })
+  async findOne(id: string): Promise<Omit<User, 'passwordHash'> | null> {
+    const foundUser =  await this.usersRepository.findOneBy({ id });
+
+    if (!foundUser) {
+      return null;
+    }
+
+    const { passwordHash, ...result } = foundUser;
+
+    return result
   }
 
   // Find by Email
@@ -73,7 +89,7 @@ export class UsersService {
   }
 
   // Null for an unknown email: sign-in must not reveal which addresses have accounts
-  async findCredentials(email: string): Promise<{user: Omit<User, 'passwordHash'>, passwordHash: string} | null> {
+  async findCredentials(email: string): Promise<{user: Omit<User, 'passwordHash'>, passwordHash: string | null} | null> {
     const found = await this.usersRepository.findOneBy({email})
     if (!found) {
       return null

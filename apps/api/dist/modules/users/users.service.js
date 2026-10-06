@@ -50,7 +50,12 @@ let UsersService = class UsersService {
         return this.usersRepository.find();
     }
     async findOne(id) {
-        return await this.usersRepository.findOneBy({ id });
+        const foundUser = await this.usersRepository.findOneBy({ id });
+        if (!foundUser) {
+            return null;
+        }
+        const { passwordHash, ...result } = foundUser;
+        return result;
     }
     async findByEmail(email) {
         const foundUser = await this.usersRepository.findOneBy({ email });

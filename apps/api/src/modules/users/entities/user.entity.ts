@@ -4,10 +4,12 @@ import {
     CreateDateColumn, 
     PrimaryGeneratedColumn, 
     UpdateDateColumn, 
-    OneToOne 
+    OneToMany,
+    OneToOne
 } from 'typeorm'
 import type { Relation } from 'typeorm'
 import { User_Identity } from './user-identity.js'
+import { Profile } from './profile.entity.js'
 
 export enum UserRole {
     GUEST = "Guest",
@@ -36,8 +38,9 @@ export class User {
     })
     username: string
 
-    @Column()
-    passwordHash: string
+    // Null for accounts that only sign in with a provider such as Google
+    @Column({ type: 'varchar', nullable: true })
+    passwordHash: string | null
 
     @Column({ default: true })
     isActive: boolean
@@ -48,7 +51,7 @@ export class User {
     @Column({
         type: "enum",
         enum: UserRole,
-        default: UserRole.GUEST
+        default: UserRole.MEMBER
     })
     role: UserRole
 
@@ -58,6 +61,9 @@ export class User {
     @UpdateDateColumn({ type: 'timestamptz' })
     updatedAt: Date
 
-    @OneToOne(() => User_Identity, (user_identity) => user_identity.user)
-    identity: Relation<User_Identity>
+    @OneToMany(() => User_Identity, (identity) => identity.user)
+    identities: Relation<User_Identity[]>
+
+    @OneToOne(() => Profile, (profile) => profile.user)
+    profile: Relation<Profile>
 }

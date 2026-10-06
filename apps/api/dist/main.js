@@ -12,7 +12,7 @@ async function bootstrap() {
     app.enableCors({
         origin: app.get(ConfigService).getOrThrow('APP_URL'),
         credentials: true,
-        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE']
+        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
     });
     app.useGlobalPipes(new ValidationPipe());
     await app.listen(process.env.PORT ?? 3000);

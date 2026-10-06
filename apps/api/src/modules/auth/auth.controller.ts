@@ -115,7 +115,7 @@ export class AuthController {
             path: REFRESH_COOKIE_PATH,
             expires: tokens.refreshExpiresAt,
         });
-
+        
         return {
             accessToken: tokens.accessToken,
             tokenType: 'Bearer',

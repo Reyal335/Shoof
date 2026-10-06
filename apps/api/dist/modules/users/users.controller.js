@@ -14,6 +14,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -24,6 +25,9 @@ let UsersController = class UsersController {
     }
     findAll() {
         return this.usersService.findAll();
+    }
+    me(user) {
+        return this.usersService.findOne(user.id);
     }
     findOne(id) {
         return this.usersService.findOne(id);
@@ -48,6 +52,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findAll", null);
+__decorate([
+    Get('me'),
+    __param(0, CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "me", null);
 __decorate([
     Get(':id'),
     __param(0, Param('id')),

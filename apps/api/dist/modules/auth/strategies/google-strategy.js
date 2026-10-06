@@ -16,7 +16,7 @@ let GoogleStrategy = class GoogleStrategy extends PassportStrategy(Strategy, 'go
         super({
             clientID: config.getOrThrow('GOOGLE_CLIENT_ID'),
             clientSecret: config.getOrThrow('GOOGLE_CLIENT_SECRET'),
-            callbackURL: config.get('GOOGLE_CALLBACK_URL', 'http://localhost:3000/api/v1/auth/google/redirect'),
+            callbackURL: config.get('GOOGLE_CALLBACK_URL', 'http://localhost:5000/api/v1/auth/google/redirect'),
             scope: ['email', 'profile']
         });
     }

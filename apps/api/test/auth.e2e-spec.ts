@@ -17,6 +17,7 @@ import { Roles } from '../src/modules/auth/decorators/roles.decorator.js';
 import { REFRESH_COOKIE } from '../src/modules/auth/auth.constants.js';
 import type { AuthUser } from '../src/modules/auth/auth.types.js';
 import { User, UserRole } from '../src/modules/users/entities/user.entity.js';
+import { Profile } from '../src/modules/users/entities/profile.entity.js';
 import { User_Identity } from '../src/modules/users/entities/user-identity.js';
 import { UsersService } from '../src/modules/users/users.service.js';
 import { fakeRefreshTokens } from './fakes/refresh-tokens.fake.js';
@@ -80,6 +81,7 @@ describe('Auth (e2e)', () => {
       .overrideProvider(getRepositoryToken(RefreshToken)).useValue(fakeRefreshTokens())
       .overrideProvider(getRepositoryToken(User)).useValue({})
       .overrideProvider(getRepositoryToken(User_Identity)).useValue({})
+      .overrideProvider(getRepositoryToken(Profile)).useValue({})
       .overrideProvider(UsersService).useValue({ findOne: async (id: string) => (id === user.id ? user : null) })
       .overrideProvider(CredentialsService).useValue({
         verify: async (email: string, password: string) => (email === user.email && password === PASSWORD ? user : null),
