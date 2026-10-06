@@ -1,5 +1,6 @@
-import type { DataSource } from 'typeorm';
 import type { Seeder, SeederFactoryManager } from 'typeorm-extension';
+type SeederDataSource = Parameters<Seeder['run']>[0];
 export default class UserSeeder implements Seeder {
-    run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<void>;
+    run(dataSource: SeederDataSource, factoryManager: SeederFactoryManager): Promise<void>;
 }
+export {};

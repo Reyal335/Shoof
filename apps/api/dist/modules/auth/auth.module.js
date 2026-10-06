@@ -5,17 +5,33 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller.js';
+import { AuthService } from './auth.service.js';
 import { UsersModule } from '../users/users.module.js';
 import { CredentialsService } from './credentials.service.js';
 import { EmailVerificationMailer } from './email-verification.mailer.js';
-import { JwtAuth } from './jwt-auth.provider.js';
 import { EmailVerificationController } from './email-verification.controller.js';
+import { RefreshToken } from './entities/refresh-token.entity.js';
+import { LocalStrategy } from './strategies/local.strategy.js';
+import { AccessTokenStrategy } from './strategies/access-token.strategy.js';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy.js';
+import { GoogleStrategy } from './strategies/google-strategy.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { RolesGuard } from './guards/roles.guard.js';
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
     Module({
-        imports: [UsersModule],
+        imports: [
+            UsersModule,
+            PassportModule,
+            JwtModule.register({}),
+            TypeOrmModule.forFeature([RefreshToken]),
+        ],
         controllers: [
             AuthController,
             EmailVerificationController
@@ -23,7 +39,13 @@ AuthModule = __decorate([
         providers: [
             CredentialsService,
             EmailVerificationMailer,
-            JwtAuth
+            AuthService,
+            LocalStrategy,
+            AccessTokenStrategy,
+            RefreshTokenStrategy,
+            GoogleStrategy,
+            { provide: APP_GUARD, useClass: JwtAuthGuard },
+            { provide: APP_GUARD, useClass: RolesGuard },
         ],
         exports: [CredentialsService]
     })

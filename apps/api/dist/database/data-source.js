@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import { resolve } from 'node:path';
 import { DataSource } from 'typeorm';
 import { User } from '../modules/users/entities/user.entity.js';
+import { RefreshToken } from '../modules/auth/entities/refresh-token.entity.js';
 config({ path: resolve(import.meta.dirname, '../../../../.env'), quiet: true });
 const options = {
     type: 'postgres',
@@ -11,7 +12,7 @@ const options = {
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    entities: [User],
+    entities: [User, RefreshToken],
     migrations: ['src/database/migrations/*.ts'],
     synchronize: false,
     seeds: ['src/database/seeds/**/*.ts'],

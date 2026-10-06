@@ -1,3 +1,5 @@
+import type { Relation } from 'typeorm';
+import { User_Identity } from './user-identity.js';
 export declare enum UserRole {
     GUEST = "Guest",
     MEMBER = "Member",
@@ -10,11 +12,10 @@ export declare class User {
     email: string;
     username: string;
     passwordHash: string;
-    firstName: string;
-    lastName: string;
     isActive: boolean;
     emailVerified: boolean;
     role: UserRole;
     createdAt: Date;
     updatedAt: Date;
+    identity: Relation<User_Identity>;
 }

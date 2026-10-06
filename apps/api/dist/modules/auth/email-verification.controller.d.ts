@@ -1,11 +1,13 @@
 import { EmailVerificationService } from '@nestjs/authentication';
-import type { User } from '../users/entities/user.entity.js';
+import { UsersService } from '../users/users.service.js';
+import type { AuthUser } from './auth.types.js';
 export declare class EmailVerificationController {
     private readonly emailVerificationService;
-    constructor(emailVerificationService: EmailVerificationService);
+    private readonly usersService;
+    constructor(emailVerificationService: EmailVerificationService, usersService: UsersService);
     verify(token: string): Promise<{
         email: string;
         emailVerified: boolean;
     }>;
-    resend(user: User): Promise<void>;
+    resend(authUser: AuthUser): Promise<void>;
 }

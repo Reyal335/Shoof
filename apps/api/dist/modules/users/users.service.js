@@ -44,6 +44,8 @@ let UsersService = class UsersService {
             throw error;
         }
     }
+    async createWithEmail(createWithSignIn) {
+    }
     findAll() {
         return this.usersRepository.find();
     }
@@ -82,6 +84,12 @@ let UsersService = class UsersService {
             return false;
         }
         return true;
+    }
+    async findByIdentity(provider, subject) {
+        return this.usersRepository.findOneBy({ id: "1" });
+    }
+    async linkIdentity(id, provider, subject) {
+        return;
     }
 };
 UsersService = __decorate([

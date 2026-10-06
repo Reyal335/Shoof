@@ -17,6 +17,7 @@ import { Roles } from '../src/modules/auth/decorators/roles.decorator.js';
 import { REFRESH_COOKIE } from '../src/modules/auth/auth.constants.js';
 import type { AuthUser } from '../src/modules/auth/auth.types.js';
 import { User, UserRole } from '../src/modules/users/entities/user.entity.js';
+import { User_Identity } from '../src/modules/users/entities/user-identity.js';
 import { UsersService } from '../src/modules/users/users.service.js';
 import { fakeRefreshTokens } from './fakes/refresh-tokens.fake.js';
 
@@ -64,7 +65,12 @@ describe('Auth (e2e)', () => {
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
-          load: [() => ({ JWT_ACCESS_SECRET: 'a'.repeat(32), JWT_REFRESH_SECRET: 'r'.repeat(32) })],
+          load: [() => ({
+            JWT_ACCESS_SECRET: 'a'.repeat(32),
+            JWT_REFRESH_SECRET: 'r'.repeat(32),
+            GOOGLE_CLIENT_ID: 'test-google-client-id',
+            GOOGLE_CLIENT_SECRET: 'test-google-secret',
+          })],
         }),
         AuthenticationModule.forRoot({ globalGuard: false }),
         AuthModule,
@@ -73,6 +79,7 @@ describe('Auth (e2e)', () => {
     })
       .overrideProvider(getRepositoryToken(RefreshToken)).useValue(fakeRefreshTokens())
       .overrideProvider(getRepositoryToken(User)).useValue({})
+      .overrideProvider(getRepositoryToken(User_Identity)).useValue({})
       .overrideProvider(UsersService).useValue({ findOne: async (id: string) => (id === user.id ? user : null) })
       .overrideProvider(CredentialsService).useValue({
         verify: async (email: string, password: string) => (email === user.email && password === PASSWORD ? user : null),

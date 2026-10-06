@@ -39,6 +39,17 @@ export class AuthService {
     this.secrets = jwtSecrets(config);
   }
 
+  googleLogin(req: any) {
+    if (!req.user) {
+      throw new UnauthorizedException('No Google User')
+    }
+
+    return {
+      message: 'User information from Google',
+      user: req.user
+    }
+  }
+
   // A new access token and a refresh token, in a new family (sign-in) or an existing one (rotation)
   async issueTokens(user: Pick<User, 'id' | 'role'>, family?: TokenFamily): Promise<IssuedTokens> {
     const now = Date.now();

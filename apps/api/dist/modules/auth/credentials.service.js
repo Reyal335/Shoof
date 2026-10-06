@@ -17,17 +17,16 @@ let CredentialsService = class CredentialsService {
         this.usersService = usersService;
         this.passwordHasher = passwordHasher;
     }
-    async register(email, password, username, lastName, firstName) {
+    async register(username, email, password) {
         if (await this.usersService.findByEmail(email)) {
             throw new ConflictException('Email already registered');
         }
         const passwordHash = await this.passwordHasher.hash(password);
         return this.usersService.create({
+            username,
             email,
             passwordHash,
-            username,
-            lastName,
-            firstName
+            emailVerified: false
         });
     }
     async verify(email, password) {

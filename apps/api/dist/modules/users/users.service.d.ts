@@ -1,4 +1,4 @@
-import { CreateUserDto } from './dto/create-user.dto.js';
+import { CreateUserDto, CreateWithSignIn } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
@@ -7,6 +7,7 @@ export declare class UsersService {
     constructor(usersRepository: Repository<User>);
     private readonly users;
     create(createUserDto: CreateUserDto): Promise<Omit<User, 'passwordHash'>>;
+    createWithEmail(createWithSignIn: CreateWithSignIn): Promise<void>;
     findAll(): Promise<User[]>;
     findOne(id: string): Promise<User | null>;
     findByEmail(email: string): Promise<Omit<User, 'passwordHash'> | null>;
@@ -17,4 +18,6 @@ export declare class UsersService {
     update(id: string, updateUserDto: UpdateUserDto): Promise<User | null>;
     remove(id: string): Promise<void>;
     markEmailVerified(id: string, email: string): Promise<boolean>;
+    findByIdentity(provider: string, subject: string): Promise<User | null>;
+    linkIdentity(id: string, provider: string, subject: string): Promise<void>;
 }

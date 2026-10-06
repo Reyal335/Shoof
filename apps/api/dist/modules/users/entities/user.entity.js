@@ -7,7 +7,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn, OneToOne } from 'typeorm';
+import { User_Identity } from './user-identity.js';
 export var UserRole;
 (function (UserRole) {
     UserRole["GUEST"] = "Guest";
@@ -21,13 +22,12 @@ let User = class User {
     email;
     username;
     passwordHash;
-    firstName;
-    lastName;
     isActive;
     emailVerified;
     role;
     createdAt;
     updatedAt;
+    identity;
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
@@ -54,14 +54,6 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "passwordHash", void 0);
 __decorate([
-    Column(),
-    __metadata("design:type", String)
-], User.prototype, "firstName", void 0);
-__decorate([
-    Column(),
-    __metadata("design:type", String)
-], User.prototype, "lastName", void 0);
-__decorate([
     Column({ default: true }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isActive", void 0);
@@ -85,6 +77,10 @@ __decorate([
     UpdateDateColumn({ type: 'timestamptz' }),
     __metadata("design:type", Date)
 ], User.prototype, "updatedAt", void 0);
+__decorate([
+    OneToOne(() => User_Identity, (user_identity) => user_identity.user),
+    __metadata("design:type", Object)
+], User.prototype, "identity", void 0);
 User = __decorate([
     Entity()
 ], User);

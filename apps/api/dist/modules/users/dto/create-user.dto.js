@@ -7,18 +7,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { IsEmail, IsString, MaxLength, MinLength, IsStrongPassword } from 'class-validator';
+import { IsEmail, IsString, MaxLength, MinLength, IsStrongPassword, IsBoolean } from 'class-validator';
 let max_username_len = 25;
 let min_username_len = 5;
 let max_password_len = 25;
 let min_password_len = 8;
 export class CreateUserDto {
-    email;
-    lastName;
-    firstName;
     username;
+    email;
+    emailVerified;
     passwordHash;
 }
+__decorate([
+    IsString(),
+    __metadata("design:type", String)
+], CreateUserDto.prototype, "username", void 0);
 __decorate([
     IsEmail({}, {
         message: "ts not an email twin"
@@ -26,23 +29,9 @@ __decorate([
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "email", void 0);
 __decorate([
-    IsString(),
-    __metadata("design:type", String)
-], CreateUserDto.prototype, "lastName", void 0);
-__decorate([
-    IsString(),
-    __metadata("design:type", String)
-], CreateUserDto.prototype, "firstName", void 0);
-__decorate([
-    MaxLength(max_username_len, {
-        message: `Can only have up to ${max_username_len} characters`
-    }),
-    MinLength(min_username_len, {
-        message: `Should at least have ${min_username_len} characters`
-    }),
-    IsString(),
-    __metadata("design:type", String)
-], CreateUserDto.prototype, "username", void 0);
+    IsBoolean(),
+    __metadata("design:type", Boolean)
+], CreateUserDto.prototype, "emailVerified", void 0);
 __decorate([
     MaxLength(max_password_len, {
         message: `Can only have up to ${max_password_len} characters`
@@ -54,4 +43,18 @@ __decorate([
     IsString(),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "passwordHash", void 0);
+export class CreateWithSignIn {
+    email;
+    emailVerified;
+}
+__decorate([
+    IsEmail({}, {
+        message: "ts not an email twin"
+    }),
+    __metadata("design:type", String)
+], CreateWithSignIn.prototype, "email", void 0);
+__decorate([
+    IsBoolean(),
+    __metadata("design:type", Boolean)
+], CreateWithSignIn.prototype, "emailVerified", void 0);
 //# sourceMappingURL=create-user.dto.js.map

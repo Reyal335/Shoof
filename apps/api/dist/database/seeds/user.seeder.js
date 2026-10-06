@@ -15,8 +15,6 @@ export default class UserSeeder {
         await users.insert({
             email: DEMO_EMAIL,
             username: 'demo_user',
-            firstName: 'Demo',
-            lastName: 'User',
             passwordHash: await hashSeedPassword(),
             emailVerified: true,
             role: UserRole.MEMBER,

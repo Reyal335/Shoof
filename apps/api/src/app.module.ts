@@ -20,6 +20,7 @@ import { DataSource } from 'typeorm';
 
 // Entities
 import { User } from './modules/users/entities/user.entity.js';
+import { PostsModule } from './posts/posts.module.js';
 
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
@@ -79,7 +80,7 @@ const observeImports = [...(observeAppKey && observeAppSecret
 
 
 @Module({
-  imports: [...observeImports, AuthModule],
+  imports: [...observeImports, AuthModule, PostsModule],
   controllers: [AppController],
   providers: [AppService],
 })

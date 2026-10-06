@@ -1,7 +1,10 @@
 export declare class CreateUserDto {
-    email: string;
-    lastName: string;
-    firstName: string;
     username: string;
+    email: string;
+    emailVerified: false;
     passwordHash: string;
+}
+export declare class CreateWithSignIn {
+    email: string;
+    emailVerified: false;
 }

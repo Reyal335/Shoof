@@ -10,12 +10,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { BadRequestException, Body, ConflictException, Controller, HttpCode, Post } from '@nestjs/common';
-import { CurrentUser, EmailVerificationService, Public } from '@nestjs/authentication';
+import { BadRequestException, Body, ConflictException, Controller, HttpCode, Post, UnauthorizedException } from '@nestjs/common';
+import { EmailVerificationService } from '@nestjs/authentication';
+import { UsersService } from '../users/users.service.js';
+import { Public } from './decorators/public.decorator.js';
+import { CurrentUser } from './decorators/current-user.decorator.js';
 let EmailVerificationController = class EmailVerificationController {
     emailVerificationService;
-    constructor(emailVerificationService) {
+    usersService;
+    constructor(emailVerificationService, usersService) {
         this.emailVerificationService = emailVerificationService;
+        this.usersService = usersService;
     }
     async verify(token) {
         const verified = await this.emailVerificationService.verify(token);
@@ -24,7 +29,11 @@ let EmailVerificationController = class EmailVerificationController {
         }
         return { email: verified.email, emailVerified: true };
     }
-    async resend(user) {
+    async resend(authUser) {
+        const user = await this.usersService.findOne(authUser.id);
+        if (!user) {
+            throw new UnauthorizedException();
+        }
         if (user.emailVerified) {
             throw new ConflictException('Email address already verified');
         }
@@ -45,12 +54,13 @@ __decorate([
     HttpCode(202),
     __param(0, CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Function]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], EmailVerificationController.prototype, "resend", null);
 EmailVerificationController = __decorate([
     Controller('auth/email'),
-    __metadata("design:paramtypes", [EmailVerificationService])
+    __metadata("design:paramtypes", [EmailVerificationService,
+        UsersService])
 ], EmailVerificationController);
 export { EmailVerificationController };
 //# sourceMappingURL=email-verification.controller.js.map

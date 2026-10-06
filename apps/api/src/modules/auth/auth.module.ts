@@ -13,6 +13,7 @@ import { RefreshToken } from './entities/refresh-token.entity.js';
 import { LocalStrategy } from './strategies/local.strategy.js';
 import { AccessTokenStrategy } from './strategies/access-token.strategy.js';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy.js';
+import { GoogleStrategy } from './strategies/google-strategy.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
 
@@ -37,6 +38,7 @@ import { RolesGuard } from './guards/roles.guard.js';
     LocalStrategy,
     AccessTokenStrategy,
     RefreshTokenStrategy,
+    GoogleStrategy,
     // Global guards run in this order: authenticate, then check roles
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },

@@ -12,7 +12,6 @@ import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { UsersModule } from './modules/users/users.module.js';
-import { PostsModule } from './modules/posts/posts.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AuthenticationModule } from '@nestjs/authentication';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -20,6 +19,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { FileTemplateEngine, LogMailTransport, MailModule, SmtpTransport } from '@nestjs/mail';
 import { join } from 'node:path';
 import { DataSource } from 'typeorm';
+import { PostsModule } from './posts/posts.module.js';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const observeAppKey = process.env.OBSERVE_APP_KEY;
 const observeAppSecret = process.env.OBSERVE_APP_SECRET;
@@ -61,27 +61,14 @@ const observeImports = [...(observeAppKey && observeAppSecret
         })
     }),
     AuthenticationModule.forRootAsync({
+        globalGuard: false,
         useFactory: () => ({
-            session: {
-                absoluteTtl: '14d',
-                idleTtl: '3d'
-            },
             emailVerification: { url: `${process.env.APP_URL}/verify-email` },
-            accessToken: {
-                key: process.env.JWT_ACCESS_SECRET,
-                issuer: 'shoof-api',
-                audience: 'shoof-client',
-                ttl: '15m'
-            },
-            refreshToken: {
-                ttl: '30d',
-                absoluteTtl: '90d'
-            }
         })
     }),
     UsersModule,
-    PostsModule,
-    ormModule];
+    ormModule
+];
 let AppModule = class AppModule {
     datasource;
     constructor(datasource) {
@@ -90,7 +77,7 @@ let AppModule = class AppModule {
 };
 AppModule = __decorate([
     Module({
-        imports: [...observeImports, AuthModule],
+        imports: [...observeImports, AuthModule, PostsModule],
         controllers: [AppController],
         providers: [AppService],
     }),

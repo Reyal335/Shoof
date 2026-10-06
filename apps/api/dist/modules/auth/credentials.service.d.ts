@@ -5,6 +5,6 @@ export declare class CredentialsService {
     private readonly usersService;
     private readonly passwordHasher;
     constructor(usersService: UsersService, passwordHasher: PasswordHasher);
-    register(email: string, password: string, username: string, lastName: string, firstName: string): Promise<Omit<User, 'passwordHash'>>;
+    register(username: string, email: string, password: string): Promise<Omit<User, 'passwordHash'>>;
     verify(email: string, password: string): Promise<Omit<User, 'passwordHash'> | null>;
 }

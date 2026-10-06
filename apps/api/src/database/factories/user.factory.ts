@@ -19,8 +19,6 @@ export default setSeederFactory(User, async () => {
     const lastName = faker.person.lastName();
 
     const user = new User();
-    user.firstName = firstName;
-    user.lastName = lastName;
     // exampleEmail() only uses reserved example.* domains, so no real inbox is ever addressed.
     user.email = faker.internet.exampleEmail({ firstName, lastName }).toLowerCase();
     // Usernames are 5-25 characters (see SignUpDto); the suffix keeps them unique.

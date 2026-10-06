@@ -2,6 +2,8 @@ import {
     Controller,
     Body,
     Post,
+    Req,
+    Get,
     HttpCode,
     HttpStatus,
     Res,
@@ -12,8 +14,12 @@ import type { Response } from 'express';
 import { CredentialsService } from './credentials.service.js';
 import { AuthService } from './auth.service.js';
 import { SignUpDto } from './dto/auth.dto.js';
+
+// Guards
 import { LocalAuthGuard } from './guards/local-auth.guard.js';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard.js';
+import { GoogleAuthGuard } from './guards/google-auth.guard.js';
+
 import { Public } from './decorators/public.decorator.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
 import { ACCESS_TOKEN_TTL_SECONDS, REFRESH_COOKIE, REFRESH_COOKIE_PATH } from './auth.constants.js';
@@ -39,6 +45,16 @@ export class AuthController {
 
         // The link in the email proves the customer owns the address
         await this.emailVerificationService.send(user)
+    }
+
+    @Get('google')
+    @UseGuards(GoogleAuthGuard)
+    async googleAuth(@Req() req: any) {}
+
+    @Get('google/redirect')
+    @UseGuards(GoogleAuthGuard)
+    googleAuthRedirect(@Req() req: any) {
+        return this.authService.googleLogin(req)
     }
 
     // LocalAuthGuard checks the email and password before this runs
