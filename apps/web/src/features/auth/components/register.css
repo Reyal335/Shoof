@@ -4,7 +4,8 @@
 body{font-family:'Figtree',system-ui,sans-serif;color:var(--ink)}
 a{color:var(--link)}a:hover{color:#10275e}
 a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--link);outline-offset:2px}
-.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:100vh}
+/* Same split as the login page: hero 3fr (60%), form 2fr (40%), one column at 960px and below. */
+.split{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);min-height:100vh}
 /* hero */
 .hero{background:var(--navy);color:#eef1f8;padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between;gap:36px;overflow:hidden}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
@@ -63,4 +64,4 @@ label.t{font-weight:600;font-size:14px}
 .row .ghost{height:48px;padding:0 22px;font-size:15px}
 .row .quiet{border:0;background:transparent;color:var(--link)}
 .note{font-size:14px;color:var(--muted)}
-@media (max-width:880px){.split{grid-template-columns:minmax(0,1fr)}.hero{display:none}.formside{padding:32px 24px;justify-content:flex-start}.mbrand{display:flex}.mbrand span{color:var(--navy)}}
+@media (max-width:960px){.split{grid-template-columns:minmax(0,1fr)}.hero{display:none}.formside{padding:32px 24px;justify-content:flex-start}.mbrand{display:flex}.mbrand span{color:var(--navy)}}
