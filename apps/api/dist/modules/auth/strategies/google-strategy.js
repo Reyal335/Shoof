@@ -11,8 +11,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
+import { UsersService } from '../../users/users.service.js';
 let GoogleStrategy = class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-    constructor(config) {
+    constructor(config, userService) {
         super({
             clientID: config.getOrThrow('GOOGLE_CLIENT_ID'),
             clientSecret: config.getOrThrow('GOOGLE_CLIENT_SECRET'),
@@ -32,7 +33,8 @@ let GoogleStrategy = class GoogleStrategy extends PassportStrategy(Strategy, 'go
 };
 GoogleStrategy = __decorate([
     Injectable(),
-    __metadata("design:paramtypes", [ConfigService])
+    __metadata("design:paramtypes", [ConfigService,
+        UsersService])
 ], GoogleStrategy);
 export { GoogleStrategy };
 //# sourceMappingURL=google-strategy.js.map

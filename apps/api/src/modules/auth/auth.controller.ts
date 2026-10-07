@@ -47,6 +47,7 @@ export class AuthController {
         await this.emailVerificationService.send(user)
     }
 
+    @Public()    
     @Get('google')
     @UseGuards(GoogleAuthGuard)
     async googleAuth(@Req() req: any) {}

@@ -2,11 +2,11 @@ import { CreateUserDto, CreateWithSignIn } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
-import { Profile } from './entities/profile.entity.js';
+import { User_Identity } from './entities/user-identity.js';
 export declare class UsersService {
     private usersRepository;
-    private profilesRepository;
-    constructor(usersRepository: Repository<User>, profilesRepository: Repository<Profile>);
+    private userIdentityRepository;
+    constructor(usersRepository: Repository<User>, userIdentityRepository: Repository<User_Identity>);
     private readonly users;
     create(createUserDto: CreateUserDto): Promise<Omit<User, 'passwordHash'>>;
     createWithEmail(createWithSignIn: CreateWithSignIn): Promise<void>;

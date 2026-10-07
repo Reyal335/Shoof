@@ -14,7 +14,7 @@ import { CredentialsService } from '../credentials.service.js';
 let LocalStrategy = class LocalStrategy extends PassportStrategy(Strategy) {
     credentialsService;
     constructor(credentialsService) {
-        super({ usernameField: 'email' });
+        super({ usernameField: 'email', passwordField: 'password' });
         this.credentialsService = credentialsService;
     }
     async validate(email, password) {

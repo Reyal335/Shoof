@@ -76,6 +76,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "signUp", null);
 __decorate([
+    Public(),
     Get('google'),
     UseGuards(GoogleAuthGuard),
     __param(0, Req()),

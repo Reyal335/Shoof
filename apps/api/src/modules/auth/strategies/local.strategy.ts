@@ -8,7 +8,7 @@ import type { User } from '../../users/entities/user.entity.js';
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private credentialsService: CredentialsService) {
-    super({ usernameField: 'email' });
+    super({ usernameField: 'email', passwordField: 'password' });
   }
 
   async validate(email: string, password: string): Promise<Omit<User, 'passwordHash'>> {

@@ -7,18 +7,20 @@ import { UpdateUserDto } from './dto/update-user.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
+import { User_Identity } from './entities/user-identity.js';
 import { Profile } from './entities/profile.entity.js';
 import { NotFoundException } from '@nestjs/common';
 import { normalize } from 'node:path';
 import { _normalize } from 'zod/v4/core';
+import { errorMonitor } from 'node:stream';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(Profile)
-    private profilesRepository: Repository<Profile>
+    @InjectRepository(User_Identity)
+    private userIdentityRepository: Repository<User_Identity>
   ) {}
 
   private readonly users = [
@@ -119,11 +121,15 @@ export class UsersService {
   }
 
   async markEmailVerified(id: string, email: string) {
-    const user = await this.usersRepository.findOneBy({ id })
-    if (!user || user.email !== email) {
-      return false
+    try {
+      const result = await this.usersRepository.update([{ id }, { email }], { emailVerified: true});
+      if (result.affected === 0) {
+        return false
+      }
+      return true
+    } catch(err) {
+      throw err
     }
-    return true
   }
 
   async findByIdentity(provider: string, subject: string): Promise<User | null> {

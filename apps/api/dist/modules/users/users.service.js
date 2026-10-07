@@ -14,14 +14,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
+import { User_Identity } from './entities/user-identity.js';
 import { Profile } from './entities/profile.entity.js';
 import { NotFoundException } from '@nestjs/common';
 let UsersService = class UsersService {
     usersRepository;
-    profilesRepository;
-    constructor(usersRepository, profilesRepository) {
+    userIdentityRepository;
+    constructor(usersRepository, userIdentityRepository) {
         this.usersRepository = usersRepository;
-        this.profilesRepository = profilesRepository;
+        this.userIdentityRepository = userIdentityRepository;
     }
     users = [
         {
@@ -91,11 +92,16 @@ let UsersService = class UsersService {
         await this.usersRepository.delete(id);
     }
     async markEmailVerified(id, email) {
-        const user = await this.usersRepository.findOneBy({ id });
-        if (!user || user.email !== email) {
-            return false;
+        try {
+            const result = await this.usersRepository.update([{ id }, { email }], { emailVerified: true });
+            if (result.affected === 0) {
+                return false;
+            }
+            return true;
         }
-        return true;
+        catch (err) {
+            throw err;
+        }
     }
     async findByIdentity(provider, subject) {
         return this.usersRepository.findOneBy({ id: "1" });
@@ -107,7 +113,7 @@ let UsersService = class UsersService {
 UsersService = __decorate([
     Injectable(),
     __param(0, InjectRepository(User)),
-    __param(1, InjectRepository(Profile)),
+    __param(1, InjectRepository(User_Identity)),
     __metadata("design:paramtypes", [Repository,
         Repository])
 ], UsersService);
