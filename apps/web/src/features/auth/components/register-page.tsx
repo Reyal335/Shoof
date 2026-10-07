@@ -4,19 +4,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
+import { useResendVerification } from "../hooks/use-resend-verification";
+import { useSignUp } from "../hooks/use-sign-up";
 import "./register.css";
 
-type Values = { name: string; email: string; password: string; terms: boolean };
+type Values = { username: string; email: string; password: string; terms: boolean };
 type Field = keyof Values;
 type Errors = Partial<Record<Field, string>>;
 
 // In page order, so the first invalid one gets focus.
-const FIELDS: Field[] = ["name", "email", "password", "terms"];
+const FIELDS: Field[] = ["username", "email", "password", "terms"];
 
-// Same rules and messages as design/Register.html. This is a mock: nothing is sent or stored.
-function validate({ name, email, password, terms }: Values): Errors {
+// Same rules as the API's SignUpDto (username length), with the messages from design/Register.html.
+// The API stays the authority: it also requires a strong password and answers 400 when this passes it.
+function validate({ username, email, password, terms }: Values): Errors {
   const errors: Errors = {};
-  if (!name.trim()) errors.name = "Enter a display name.";
+  const handle = username.trim();
+  if (!handle) errors.username = "Choose a username.";
+  else if (handle.length < 5) errors.username = "Use at least 5 characters.";
+  else if (handle.length > 25) errors.username = "Use 25 characters or fewer.";
   if (!email.trim()) errors.email = "Enter your email.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = "Enter a valid email, like you@example.com.";
   if (password.length < 8) errors.password = "Use at least 8 characters.";
@@ -31,13 +37,19 @@ function Check() {
 }
 
 export function RegisterPage() {
-  const [values, setValues] = useState<Values>({ name: "", email: "", password: "", terms: false });
+  const [values, setValues] = useState<Values>({ username: "", email: "", password: "", terms: false });
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<"form" | "sent">("form");
-  const [resent, setResent] = useState(false);
+  const { resend, status: resendStatus, error: resendError } = useResendVerification();
   const formRef = useRef<HTMLFormElement>(null);
   const sentTitleRef = useRef<HTMLHeadingElement>(null);
+  const { submit: createAccount, isPending, failure } = useSignUp({
+    onSuccess() {
+      flushSync(() => setStatus("sent"));
+      sentTitleRef.current?.focus();
+    },
+  });
 
   const focusField = (field: Field) => (formRef.current?.elements.namedItem(field) as HTMLInputElement | null)?.focus();
 
@@ -50,18 +62,16 @@ export function RegisterPage() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isPending) return;
     const found = validate(values);
     const firstInvalid = FIELDS.find((field) => found[field]);
-    // Render the errors (or the sent view) before moving focus, so it lands on an element that is up to date.
-    flushSync(() => {
-      setErrors(found);
-      if (!firstInvalid) {
-        setStatus("sent");
-        setResent(false);
-      }
-    });
-    if (firstInvalid) focusField(firstInvalid);
-    else sentTitleRef.current?.focus();
+    // Render the errors before moving focus, so it lands on an element that is up to date.
+    flushSync(() => setErrors(found));
+    if (firstInvalid) {
+      focusField(firstInvalid);
+      return;
+    }
+    void createAccount({ username: values.username.trim(), email: values.email.trim(), password: values.password });
   }
 
   function backToForm() {
@@ -116,14 +126,14 @@ export function RegisterPage() {
             <p className="lead">It takes less than a minute.</p>
           </div>
           <div className="group">
-            <label className="t" htmlFor="name">Display name</label>
-            <input className="field" id="name" name="name" type="text" placeholder="How you appear on Shoof" autoComplete="nickname" aria-describedby="name-err" aria-invalid={errors.name ? true : undefined} value={values.name} onChange={(e) => update("name", e.target.value)} />
-            <span className="err" id="name-err" hidden={!errors.name}>{errors.name}</span>
+            <label className="t" htmlFor="username">Username</label>
+            <input className="field" id="username" name="username" type="text" placeholder="How you appear on Shoof" autoComplete="username" aria-describedby="username-err" aria-invalid={errors.username ? true : undefined} value={values.username} onChange={(e) => update("username", e.target.value)} />
+            <span className="err" id="username-err" hidden={!errors.username}>{errors.username}</span>
           </div>
           <div className="group">
             <label className="t" htmlFor="email">Email</label>
             <input className="field" id="email" name="email" type="email" placeholder="you@example.com" autoComplete="email" aria-describedby="email-err" aria-invalid={errors.email ? true : undefined} value={values.email} onChange={(e) => update("email", e.target.value)} />
-            <span className="err" id="email-err" hidden={!errors.email}>{errors.email}</span>
+            <span className="err" id="email-err" hidden={!errors.email && failure?.field !== "email"}>{errors.email ?? failure?.message}</span>
           </div>
           <div className="group">
             <label className="t" htmlFor="password">Password</label>
@@ -138,7 +148,8 @@ export function RegisterPage() {
             <label className="terms"><input id="terms" type="checkbox" aria-describedby="terms-err" checked={values.terms} onChange={(e) => update("terms", e.target.checked)} /><span>I agree to the <a href="#terms">Terms</a> and <a href="#privacy">Privacy Policy</a>.</span></label>
             <span className="err" id="terms-err" hidden={!errors.terms}>{errors.terms}</span>
           </div>
-          <button className="btn" type="submit">Create account</button>
+          {failure && !failure.field && <span className="err" role="alert">{failure.message}</span>}
+          <button className="btn" type="submit" disabled={isPending}>{isPending ? "Creating account…" : "Create account"}</button>
           <div className="or"><i></i><span>or</span><i></i></div>
           <button className="ghost" type="button">Sign up with GitHub</button>
           <p className="switch">Already have an account? <Link href="/login">Log in</Link></p>
@@ -150,10 +161,15 @@ export function RegisterPage() {
           <p className="big">We sent a verification link to <strong id="sent-email">{values.email.trim()}</strong>. Open it to finish creating your account.</p>
           <p className="small">Nothing there? Check your spam folder, or send the link again.</p>
           <div className="row">
-            <button className="ghost" type="button" id="resend" onClick={() => setResent(true)}>Resend email</button>
+            <button className="ghost" type="button" id="resend" disabled={resendStatus === "pending"} onClick={() => void resend()}>Resend email</button>
             <button className="ghost quiet" type="button" id="back" onClick={backToForm}>Use a different email</button>
           </div>
-          <p className="note" id="resent" role="status" hidden={!resent}>Sent again. It can take a minute to arrive.</p>
+          <p className="note" id="resent" role="status" hidden={resendStatus === "idle" || resendStatus === "pending"}>
+            {resendStatus === "sent" && "Sent again. It can take a minute to arrive."}
+            {resendStatus === "verified" && "This email is already verified. You can log in."}
+            {resendStatus === "signed-out" && <>We couldn&apos;t send it from here. <Link href="/login">Log in</Link> to get a new link.</>}
+            {resendStatus === "failed" && resendError}
+          </p>
         </div>
       </main>
     </div>

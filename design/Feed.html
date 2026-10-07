@@ -33,7 +33,8 @@ nav a.current{border-bottom-color:var(--yellow)}
 .intro p{margin:8px 0 0;font-size:18px;line-height:27px;color:var(--muted)}
 .filters{display:flex;flex-direction:column;gap:12px}
 .tabs,.stacks{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.tab{height:42px;padding:0 18px;border-radius:21px;font:600 15px 'Figtree',sans-serif;border:1.5px solid var(--input);background:var(--white);color:var(--navy)}
+.tab{display:flex;align-items:center;gap:8px;text-decoration:none;height:42px;padding:0 18px;border-radius:21px;font:600 15px 'Figtree',sans-serif;border:1.5px solid var(--input);background:var(--white);color:var(--navy)}
+.sw{width:12px;height:12px;display:block;box-sizing:border-box}
 .tab.active{background:var(--navy);border-color:var(--navy);color:#fff}
 .stacks .label{font-size:14px;font-weight:600;color:var(--muted);margin-right:4px}
 .stack{height:34px;padding:0 14px;border-radius:8px;font:600 14px 'Figtree',sans-serif;border:1.5px solid #c3cadb;background:var(--white);color:var(--navy)}
@@ -118,7 +119,7 @@ nav a.current{border-bottom-color:var(--yellow)}
     <nav aria-label="Main">
       <a class="current" href="/">Home</a>
       <a href="#explore">Explore</a>
-      <a href="#creators">Creators</a>
+      <a href="Creators.html">Creators</a>
     </nav>
   </div>
   <div class="search">
@@ -136,7 +137,7 @@ nav a.current{border-bottom-color:var(--yellow)}
     <p>See the real thing first. Open any card and the site is live.</p>
   </div>
   <div class="filters">
-    <div class="tabs" role="tablist" aria-label="Categories"><button type="button" role="tab" class="tab active" aria-selected="true" data-cat="All">All</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="Games">Games</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="Portfolios">Portfolios</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="SaaS">SaaS</button><button type="button" role="tab" class="tab" aria-selected="false" data-cat="CSS &amp; UI">CSS &amp; UI</button></div>
+    <nav class="tabs" aria-label="Sections"><a class="tab active" href="Feed.html" aria-current="page">All</a><a class="tab" href="Games.html"><i class="sw" style="background:#0d1226;box-shadow:inset 0 0 0 3px #2ec4b6;border-radius:2px"></i>Games</a><a class="tab" href="Portfolios.html"><i class="sw" style="background:#fff;border:1.5px solid #101b33;border-radius:6px"></i>Portfolios</a><a class="tab" href="Saas.html"><i class="sw" style="background:#1b3a8a;border-radius:3px"></i>SaaS</a><a class="tab" href="CssUi.html"><i class="sw" style="background:#9db4f0;border:1.5px solid #101b33;border-radius:3px"></i>CSS &amp; UI</a><a class="tab" href="Misc.html"><i class="sw" style="background:#dba40c;border-radius:6px"></i>Misc</a></nav>
     <div class="stacks"><span class="label">Stack</span><button type="button" class="stack" aria-pressed="false" data-stack="React">React</button><button type="button" class="stack" aria-pressed="false" data-stack="TypeScript">TypeScript</button><button type="button" class="stack" aria-pressed="false" data-stack="Node.js">Node.js</button><button type="button" class="stack" aria-pressed="false" data-stack="Vue">Vue</button><button type="button" class="stack" aria-pressed="false" data-stack="Next.js">Next.js</button><button type="button" class="stack" aria-pressed="false" data-stack="Tailwind">Tailwind</button><button type="button" class="stack" aria-pressed="false" data-stack="HTML &amp; CSS">HTML &amp; CSS</button></div>
   </div>
   <article class="featured" id="featured">
@@ -311,7 +312,7 @@ nav a.current{border-bottom-color:var(--yellow)}
 <script>
 (function () {
   var cat = 'All', stack = null;
-  var tabs = document.querySelectorAll('.tab'), stacks = document.querySelectorAll('.stack');
+  var stacks = document.querySelectorAll('.stack');
   var cards = document.querySelectorAll('.card'), featured = document.getElementById('featured');
   function render() {
     var shown = 0;
@@ -323,11 +324,6 @@ nav a.current{border-bottom-color:var(--yellow)}
     document.getElementById('count').textContent = shown + (shown === 1 ? ' site' : ' sites');
     document.getElementById('empty').hidden = shown !== 0;
   }
-  tabs.forEach(function (t) { t.addEventListener('click', function () {
-    cat = t.dataset.cat;
-    tabs.forEach(function (x) { var on = x === t; x.classList.toggle('active', on); x.setAttribute('aria-selected', on); });
-    render();
-  }); });
   stacks.forEach(function (s) { s.addEventListener('click', function () {
     stack = stack === s.dataset.stack ? null : s.dataset.stack;
     stacks.forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.stack === stack); });

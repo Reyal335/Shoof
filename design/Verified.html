@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email verified | Shoof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--chip:#e6eaf3;--link:#1b3a8a;--ink:#0f1a33;--body:#1e2a47}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--ground);color:var(--ink);font-family:'Figtree',system-ui,sans-serif}
+h1,p{margin:0}
+a{color:var(--link)}a:hover{color:#10275e}
+[hidden]{display:none !important}
+a:focus-visible,button:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.top{height:68px;display:flex;align-items:center;padding:0 32px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:34px;height:34px}
+.brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:26px;color:var(--navy)}
+main{flex-grow:1;display:flex;align-items:center;justify-content:center;padding:24px 20px 72px}
+.card{width:100%;max-width:480px;background:var(--white);border:1px solid var(--border);border-radius:24px;padding:44px 40px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px}
+.medal{position:relative;width:132px;height:132px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center}
+.medal>img{width:84px;height:83px}
+.badge{position:absolute;right:-4px;bottom:4px;width:40px;height:40px;border-radius:50%;border:4px solid var(--white);box-sizing:content-box;display:flex;align-items:center;justify-content:center}
+.badge.ok{background:var(--yellow)}
+.badge.wait{background:var(--chip)}
+h1{margin-top:8px;font-family:'Outfit',sans-serif;font-weight:600;font-size:36px;line-height:40px;letter-spacing:-0.8px}
+.lead{font-size:17px;line-height:26px;color:var(--body);max-width:360px}
+.btn{margin-top:8px;width:100%;height:54px;display:flex;align-items:center;justify-content:center;border:0;border-radius:12px;background:var(--yellow);color:var(--navy);font:700 17px 'Outfit',sans-serif;text-decoration:none;cursor:pointer}
+.btn:hover{background:#c7950a;color:var(--navy)}
+.btn:disabled{cursor:progress;opacity:.7}
+.alt{font-weight:600;font-size:15px}
+@media (max-width:600px){.card{padding:32px 24px}.top{padding:0 20px}h1{font-size:32px;line-height:36px}}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="Feed.html"><img src="shoof-blob.svg" alt=""><span>Shoof</span></a>
+</header>
+<main>
+  <section class="card" aria-labelledby="title">
+    <div class="medal">
+      <img src="shoof-blob.svg" alt="Shoof mascot">
+      <div class="badge ok"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#101b33" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+    </div>
+    <h1 id="title" tabindex="-1">You are verified</h1>
+    <p class="lead">Thanks for confirming <strong>you@example.com</strong>. Your Shoof account is ready.</p>
+    <a class="btn" href="Feed.html">Continue to Shoof</a>
+    <a class="alt" href="Profile.html">Set up your profile first</a>
+  </section>
+</main>
+</body>
+</html>

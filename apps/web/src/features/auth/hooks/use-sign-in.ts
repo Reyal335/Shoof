@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ApiError, NetworkError } from "@/lib/api-client";
-import { signIn, type SignInCredentials } from "../api";
-import { saveSession } from "../session";
+import { signIn, type SignInCredentials, getUserData } from "../api";
+import { setAccessToken } from "../session";
 
 type SignInInput = SignInCredentials & { remember: boolean };
 
@@ -14,7 +14,9 @@ export function useSignIn({ onSuccess }: { onSuccess: () => void }) {
     setError(null);
     try {
       const tokens = await signIn(credentials);
-      saveSession(tokens, { remember });
+      setAccessToken(tokens);
+
+      await getUserData(tokens.accessToken);
       onSuccess();
     } catch (err) {
       setError(describeError(err));

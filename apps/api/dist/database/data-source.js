@@ -3,6 +3,9 @@ import { config } from 'dotenv';
 import { resolve } from 'node:path';
 import { DataSource } from 'typeorm';
 import { User } from '../modules/users/entities/user.entity.js';
+import { User_Identity } from '../modules/users/entities/user-identity.js';
+import { Profile } from '../modules/users/entities/profile.entity.js';
+import { Follow } from '../modules/follows/entities/follow.entity.js';
 import { RefreshToken } from '../modules/auth/entities/refresh-token.entity.js';
 import { Post } from '../modules/posts/entities/post.entity.js';
 import { Media } from '../modules/posts/entities/media.entity.js';
@@ -16,7 +19,7 @@ const options = {
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    entities: [User, RefreshToken, Post, Media, Comment, Rating],
+    entities: [User, User_Identity, Profile, Follow, RefreshToken, Post, Media, Comment, Rating],
     migrations: ['src/database/migrations/*.ts'],
     synchronize: false,
     seeds: ['src/database/seeds/**/*.ts'],

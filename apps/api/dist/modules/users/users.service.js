@@ -14,11 +14,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity.js';
+import { Profile } from './entities/profile.entity.js';
 import { NotFoundException } from '@nestjs/common';
 let UsersService = class UsersService {
     usersRepository;
-    constructor(usersRepository) {
+    profilesRepository;
+    constructor(usersRepository, profilesRepository) {
         this.usersRepository = usersRepository;
+        this.profilesRepository = profilesRepository;
     }
     users = [
         {
@@ -35,7 +38,11 @@ let UsersService = class UsersService {
     async create(createUserDto) {
         const newUser = this.usersRepository.create(createUserDto);
         try {
-            const savedUser = await this.usersRepository.save(newUser);
+            const savedUser = await this.usersRepository.manager.transaction(async (manager) => {
+                const user = await manager.save(newUser);
+                await manager.insert(Profile, { userId: user.id, displayName: user.username });
+                return user;
+            });
             const { passwordHash, ...result } = savedUser;
             return result;
         }
@@ -100,7 +107,9 @@ let UsersService = class UsersService {
 UsersService = __decorate([
     Injectable(),
     __param(0, InjectRepository(User)),
-    __metadata("design:paramtypes", [Repository])
+    __param(1, InjectRepository(Profile)),
+    __metadata("design:paramtypes", [Repository,
+        Repository])
 ], UsersService);
 export { UsersService };
 //# sourceMappingURL=users.service.js.map

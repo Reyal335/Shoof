@@ -5,15 +5,15 @@ Global social/creator platform. "Shoof" = word play on "show-off". Repo/monorepo
 
 ## Product Vision
 
-A social network centered on **people, skills, creative work, gear, and communities**, not another TikTok/Instagram clone.
-Discovery is driven by *what people create* and *what they use*:
-- "Creators using this guitar" / "posts made with this camera" / "artists using this tablet"
-- Browse by skill, category, interest, gear, hashtag. Geography is only an optional filter.
+A social network centered on **people, skills, creative work, and communities**, not another TikTok/Instagram clone.
+Discovery is driven by *what people create* and *what they build it with*:
+- "Projects built with Next.js" / "games made with Godot" / "portfolios by designers"
+- Browse by skill, category, tech, hashtag. Geography is only an optional filter.
 
-Core capabilities: profiles, skills/interests, gear showcase, posting (images/video/audio), follow, like/comment/share/save,
-search, notifications. Later: messaging, donations, supporter tiers, sponsored challenges, gear affiliate/marketplace.
+Core capabilities: profiles, skills/interests, posting (images/video), follow, like/comment/share/save,
+search, notifications. Later: messaging, donations, supporter tiers, sponsored challenges.
 
-**Differentiator: Gear is first-class structured data**, not free text. Creator -> uses Gear; Post -> made with Gear; Gear -> used by Creators.
+**Differentiator: Tech stack / skills are first-class structured data**, not free text. Creator -> has Skills; Post -> built with Skills; Skill -> used by Creators and Posts.
 
 ## Principles (in priority order)
 
@@ -69,7 +69,7 @@ artist-hub/
 | Data | PostgreSQL (primary), Redis (when needed) |
 | Infra | Docker, object storage, CDN, background workers |
 
-TypeScript end-to-end wherever practical. Next.js is preferred over a plain SPA because public profiles, posts, gear
+TypeScript end-to-end wherever practical. Next.js is preferred over a plain SPA because public profiles, posts
 and skill pages need SEO and social sharing.
 
 ## Backend Module Rules (the most important section)
@@ -88,18 +88,17 @@ Each NestJS module owns its business logic AND its data access:
   identity to the rest of the app. Never duplicate auth logic in other modules.
 
 Candidate modules (create **only** as the MVP needs them, not all upfront):
-`auth, users, profiles, categories, skills, gear, posts, media, comments, likes, follows, feed, search,
+`auth, users, profiles, categories, skills, posts, media, comments, likes, follows, feed, search,
 notifications, messaging, donations, payments, moderation, analytics`
 
 ## Domain Model (core entities)
 
 - Identity: `users, profiles, user_skills, skills, categories`
-- Gear: `gear, gear_brands, gear_models, user_gear`
-- Content: `posts, post_media, post_gear, post_skills`
+- Content: `posts, post_media, post_skills`
 - Social: `comments, likes, follows, bookmarks, notifications`
 - Later: `conversations, messages, donations, payments, payouts`, moderation and analytics entities
 
-Normalize appropriately. Gear is structured (brand -> model), enabling gear pages and "who uses this" discovery.
+Normalize appropriately. Skills/tech are structured (name, slug, kind), enabling skill pages and "who uses this" discovery.
 
 ## Media Architecture
 
@@ -123,17 +122,17 @@ NestJS manages metadata and permissions only. Media processing is treated separa
 
 - REST, versioned from day one: `/api/v1/...`
 - Resource style: `POST /posts/:id/likes`, `DELETE /posts/:id/likes`, `POST /users/:id/follow`,
-  `GET /users/:username/posts`, `GET /users/:username/gear`
+  `GET /users/:username/posts`, `GET /users/:username/skills`
 - WebSockets only for messaging, notifications, typing indicators, live activity. The app is not WebSocket-based.
 
 ## Frontend Conventions
 
 - Organize by **feature**, not by global component/service buckets:
-  `apps/web/src/{app, features/{auth,profile,posts,feed,gear,comments,follows,notifications,messaging,donations,search}, components, hooks, stores, lib, types}`
+  `apps/web/src/{app, features/{auth,profile,posts,feed,skills,comments,follows,notifications,messaging,donations,search}, components, hooks, stores, lib, types}`
 - Data flow: `Component -> React hook -> feature API client -> NestJS API`. No scattered raw `fetch` calls in components.
 - TanStack Query for server state; Zustand only for genuine client state; Zod + React Hook Form for forms.
-- Public routes should be SSR/indexable: `/@username`, `/@username/posts/:id`, `/@username/gear`,
-  `/gear/:brand/:model`, `/skills/:skill`, `/categories/:category`.
+- Public routes should be SSR/indexable: `/@username`, `/@username/posts/:id`,
+  `/skills/:skill`, `/categories/:category`.
 
 ## Payments / Donations
 
@@ -151,14 +150,14 @@ Support per-user country, locale, timezone, preferred currency, and languages. P
 
 ## Discovery
 
-Start with simple, **explainable** signals: follows, matching skills, categories, gear, interests, freshness,
+Start with simple, **explainable** signals: follows, matching skills, categories, interests, freshness,
 engagement. No advanced TikTok-style recommender early; it can be extracted later.
 **Algorithmic visibility is never a paid feature.**
 
 ## Monetization Philosophy
 
-Core social features stay free (account, profile, follow, post, gear profiles, likes, comments, discovery).
-Optional later: donations, memberships, creator pro tools/analytics, gear affiliate/marketplace, sponsorships,
+Core social features stay free (account, profile, follow, post, likes, comments, discovery).
+Optional later: donations, memberships, creator pro tools/analytics, sponsorships,
 sponsored challenges, carefully selected ads.
 Avoid: selling user data, pay-to-win visibility, paywalling basic participation, aggressive monetization.
 

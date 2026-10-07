@@ -1,7 +1,5 @@
 export declare class SignUpDto {
     email: string;
-    lastName: string;
-    firstName: string;
     username: string;
     password: string;
 }

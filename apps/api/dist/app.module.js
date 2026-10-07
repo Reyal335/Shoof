@@ -20,6 +20,7 @@ import { FileTemplateEngine, LogMailTransport, MailModule, SmtpTransport } from 
 import { join } from 'node:path';
 import { DataSource } from 'typeorm';
 import { PostsModule } from './modules/posts/posts.module.js';
+import { FollowsModule } from './modules/follows/follows.module.js';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const observeAppKey = process.env.OBSERVE_APP_KEY;
 const observeAppSecret = process.env.OBSERVE_APP_SECRET;
@@ -57,7 +58,7 @@ const observeImports = [...(observeAppKey && observeAppSecret
             templates: new FileTemplateEngine({
                 dir: join(import.meta.dirname, 'mail/templates'),
             }),
-            from: 'Accounts <accounts@example.com>'
+            from: process.env.MAIL_FROM ?? 'Accounts <accounts@example.com>'
         })
     }),
     AuthenticationModule.forRootAsync({
@@ -77,7 +78,7 @@ let AppModule = class AppModule {
 };
 AppModule = __decorate([
     Module({
-        imports: [...observeImports, AuthModule, PostsModule],
+        imports: [...observeImports, AuthModule, PostsModule, FollowsModule],
         controllers: [AppController],
         providers: [AppService],
     }),

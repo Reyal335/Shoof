@@ -64,7 +64,7 @@ const observeImports = [...(observeAppKey && observeAppSecret
       templates: new FileTemplateEngine({
         dir: join(import.meta.dirname, 'mail/templates'),
       }),
-      from: 'Accounts <accounts@example.com>'})
+      from: process.env.MAIL_FROM ?? 'Accounts <accounts@example.com>'})
   }),
   // Password hashing and email verification only. Authentication is passport's (AuthModule),
   // so this module's own guard stays off.

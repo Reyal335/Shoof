@@ -7,8 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn, OneToOne } from 'typeorm';
+import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
 import { User_Identity } from './user-identity.js';
+import { Profile } from './profile.entity.js';
 export var UserRole;
 (function (UserRole) {
     UserRole["GUEST"] = "Guest";
@@ -27,7 +28,8 @@ let User = class User {
     role;
     createdAt;
     updatedAt;
-    identity;
+    identities;
+    profile;
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
@@ -50,8 +52,8 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "username", void 0);
 __decorate([
-    Column(),
-    __metadata("design:type", String)
+    Column({ type: 'varchar', nullable: true }),
+    __metadata("design:type", Object)
 ], User.prototype, "passwordHash", void 0);
 __decorate([
     Column({ default: true }),
@@ -65,7 +67,7 @@ __decorate([
     Column({
         type: "enum",
         enum: UserRole,
-        default: UserRole.GUEST
+        default: UserRole.MEMBER
     }),
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
@@ -78,9 +80,13 @@ __decorate([
     __metadata("design:type", Date)
 ], User.prototype, "updatedAt", void 0);
 __decorate([
-    OneToOne(() => User_Identity, (user_identity) => user_identity.user),
+    OneToMany(() => User_Identity, (identity) => identity.user),
     __metadata("design:type", Object)
-], User.prototype, "identity", void 0);
+], User.prototype, "identities", void 0);
+__decorate([
+    OneToOne(() => Profile, (profile) => profile.user),
+    __metadata("design:type", Object)
+], User.prototype, "profile", void 0);
 User = __decorate([
     Entity()
 ], User);

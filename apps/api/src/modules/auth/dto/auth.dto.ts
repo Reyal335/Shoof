@@ -19,12 +19,6 @@ export class SignUpDto {
     @IsEmail()
     email: string;
 
-    @IsString()
-    lastName: string;
-
-    @IsString()
-    firstName: string;
-
     // Username
     @MaxLength(max_username_len, {
         message: `Can only have up to ${max_username_len} characters`

@@ -53,6 +53,7 @@ label.t{font-weight:600;font-size:14px}
 .btn{height:54px;border:0;border-radius:12px;background:var(--yellow);color:var(--navy);font:700 17px 'Outfit',sans-serif;cursor:pointer}
 .or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px}.or i{flex-grow:1;height:1px;background:#c3cadb;display:block}
 .ghost{height:52px;border:1.5px solid var(--navy);border-radius:12px;background:#fff;color:var(--navy);font:600 16px 'Figtree',sans-serif;cursor:pointer}
+.btn:disabled,.ghost:disabled{cursor:progress;opacity:.7}
 .switch{margin-top:4px;text-align:center;font-size:15px;color:var(--muted)}.switch a{font-weight:600}
 /* sent state */
 .badge{width:72px;height:72px;border-radius:36px;background:var(--navy);display:flex;align-items:center;justify-content:center}

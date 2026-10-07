@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shoof | Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Outfit:wght@600&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33}
+*{box-sizing:border-box}
+body{margin:0}
+h1,h2,h3,p{margin:0}
+button{cursor:pointer;font-family:inherit}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.top{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;font-family:'Figtree',system-ui,sans-serif;color:var(--ink)}
+.top-left{display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:34px;height:34px}
+.brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:26px;color:var(--navy)}
+.topnav{display:flex;gap:20px}
+.topnav a{font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;padding:4px 0;border-bottom:3px solid transparent}
+.topnav a[aria-current="page"]{border-bottom-color:var(--yellow)}
+.search{flex-grow:1;max-width:420px}
+.search input{width:100%;height:44px;border:1.5px solid var(--input);border-radius:22px;padding:0 20px;font:400 15px 'Figtree',sans-serif;background:var(--ground);color:var(--ink)}
+.top-right{display:flex;align-items:center;gap:14px}
+.post-btn{display:flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:21px;background:var(--yellow);color:var(--navy);font:700 15px 'Outfit',sans-serif;text-decoration:none}
+.me{width:40px;height:40px;border-radius:20px;background:var(--navy);display:block}
+.top a:focus-visible,.top input:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.cells span{border-radius:2px}
+.c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
+@media (max-width:700px){.search{display:none}.topnav{display:none}.top{padding:0 16px}}
+
+body{background:#0d1226;color:#eef1f8;font-family:'Figtree',system-ui,sans-serif;min-height:100vh}
+a{color:#2ec4b6}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid #dba40c;outline-offset:2px}
+.wrap{max-width:1360px;margin:0 auto;padding:24px 32px 72px;display:flex;flex-direction:column;gap:28px}
+.secnav{display:flex;flex-wrap:wrap;gap:6px;font-family:'Silkscreen',monospace;font-size:14px}
+.secnav a{padding:8px 12px;color:#a9b3cf;text-decoration:none;border-radius:4px}
+.secnav a[aria-current="page"]{background:#dba40c;color:#0d1226}
+.ghero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:40px;align-items:center}
+.ghero-l{display:flex;flex-direction:column;gap:20px}
+h1{font-family:'Silkscreen',monospace;font-weight:700;font-size:96px;line-height:92px;color:#dba40c}
+.ghero-l p{font-size:20px;line-height:30px;color:#dfe4f1;max-width:460px}
+.frow{display:flex;align-items:center;gap:16px}
+.follow{height:52px;padding:0 24px;border-radius:6px;font:700 15px 'Silkscreen',monospace;border:2px solid #dba40c;background:#dba40c;color:#0d1226}
+.follow[aria-pressed="true"]{background:transparent;color:#dba40c}
+.hint{font-size:15px;color:#a9b3cf}
+.gotw{background:#151c38;border:2px solid #26335c;border-radius:16px;overflow:hidden}
+.gotw-top{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:2px solid #26335c;font-family:'Silkscreen',monospace}
+.gotw-top b{font-size:13px;color:#dba40c;font-weight:400}.gotw-top span{font-size:12px;color:#a9b3cf}
+.gotw-shot{position:relative;height:300px;padding:16px;display:grid;grid-template-columns:repeat(16,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:4px}
+.playbig{position:absolute;top:50%;left:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:46px;background:#dba40c;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 8px #0d1226}
+.gotw-info{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border-top:2px solid #26335c}
+.gotw-info div{display:flex;flex-direction:column;gap:2px}.gotw-info b{font-size:18px}.gotw-info span{font-size:14px;color:#a9b3cf}
+.ctl{display:flex;gap:6px;flex-wrap:wrap}
+.ctl span,.gcard .ctl span{font-size:12px;font-weight:600;padding:3px 8px;border-radius:4px;border:1px solid #3b4a75;color:#dfe4f1}
+.gcard .ctl .st{border:0;background:#26335c}
+.jam{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 24px;border-radius:12px;background:#dba40c;color:#0d1226}
+.jam-l{display:flex;align-items:center;gap:18px}
+.jam-l b{font-family:'Silkscreen',monospace;font-weight:700;font-size:22px}
+.jam-l span{font-size:17px;font-weight:600}
+.jam-r{display:flex;gap:10px}
+.jam-r a{display:flex;align-items:center;height:44px;text-decoration:none}
+.jam-r .a{padding:0 18px;border-radius:6px;background:#0d1226;color:#dba40c;font:700 14px 'Silkscreen',monospace}
+.jam-r .b{padding:0 16px;border-radius:6px;border:2px solid #0d1226;color:#0d1226;font:700 15px 'Figtree',sans-serif}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{height:40px;padding:0 16px;border-radius:4px;font:700 13px 'Silkscreen',monospace;border:2px solid #3b4a75;background:transparent;color:#dfe4f1}
+.tab[aria-selected="true"]{background:#dba40c;border-color:#dba40c;color:#0d1226}
+#count{font-size:15px;color:#a9b3cf}
+.gmain{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+.ggrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.gcard{background:#151c38;border:2px solid #26335c;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.gshot{position:relative;height:180px;padding:12px;background:#1d1b3a;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:3px}
+.gtag{position:absolute;top:10px;left:10px;font:700 11px 'Silkscreen',monospace;padding:4px 8px;border-radius:4px;background:#2ec4b6;color:#0d1226}
+.gbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex-grow:1}
+.gbody h3{font-weight:700;font-size:18px;line-height:24px}
+.gbody .meta{font-size:14px;color:#a9b3cf;margin-top:2px;display:block}
+.play{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:6px;background:#dba40c;color:#0d1226;font:700 14px 'Silkscreen',monospace;text-decoration:none}
+.top5{background:#151c38;border:2px solid #26335c;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.top5 h2{margin:0 0 8px;font-family:'Silkscreen',monospace;font-weight:700;font-size:18px;color:#dba40c}
+.top5 a{display:flex;align-items:center;gap:14px;padding:10px 6px;border-radius:8px;color:#eef1f8;text-decoration:none;border-bottom:1px solid #26335c}
+.rank{width:28px;font-family:'Silkscreen',monospace;font-weight:700;font-size:22px;color:#7d89a8}
+.top5 li:first-child .rank{color:#dba40c}
+.top5 ol{list-style:none;margin:0;padding:0}
+.top5 .t{display:flex;flex-direction:column;gap:1px;flex-grow:1}.top5 .t b{font-size:15px}.top5 .t span{font-size:13px;color:#a9b3cf}
+.top5 p{margin-top:10px;font-size:13px;line-height:19px;color:#a9b3cf}
+.empty{grid-column:1 / -1;padding:40px;text-align:center;border:2px dashed #3b4a75;border-radius:14px;font-size:17px;color:#a9b3cf}
+@media (max-width:1200px){.gmain{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1000px){.ghero{grid-template-columns:minmax(0,1fr)}.ggrid{grid-template-columns:repeat(2,minmax(0,1fr))}.jam{flex-direction:column;align-items:flex-start}}
+@media (max-width:700px){.ggrid{grid-template-columns:minmax(0,1fr)}.wrap{padding:20px 16px 48px}h1{font-size:56px;line-height:56px}.jam-l{flex-direction:column;align-items:flex-start;gap:6px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-left">
+    <a class="brand" href="Feed.html"><img src="shoof-blob.svg" alt=""><span>Shoof</span></a>
+    <nav class="topnav" aria-label="Main">
+      <a href="Feed.html">Home</a>
+      <a href="#explore">Explore</a>
+      <a href="Creators.html">Creators</a>
+    </nav>
+  </div>
+  <div class="search">
+    <label class="sr" for="q">Search Shoof</label>
+    <input id="q" type="search" placeholder="Search sites, creators, stacks">
+  </div>
+  <div class="top-right">
+    <a class="post-btn" href="#post">Post a site</a>
+    <a class="me" href="#profile" aria-label="Your profile"></a>
+  </div>
+</header>
+<main class="wrap">
+  <nav class="secnav" aria-label="Sections"><a href="Feed.html">All sites</a><a href="Games.html" aria-current="page">Games</a><a href="Portfolios.html">Portfolios</a><a href="Saas.html">SaaS</a><a href="CssUi.html">CSS &amp; UI</a><a href="Misc.html">Misc</a></nav>
+  <section class="ghero">
+    <div class="ghero-l">
+      <h1>GAMES</h1>
+      <p>Browser games you can play right now. No installs, no downloads, no store page.</p>
+      <div class="frow">
+        <button type="button" class="follow" data-follow aria-pressed="false" data-on="FOLLOWING" data-off="FOLLOW GAMES">FOLLOW GAMES</button>
+        <span class="hint" data-on="Games show first on your home feed." data-off="Follow to see games first on your home feed.">Follow to see games first on your home feed.</span>
+      </div>
+    </div>
+    <div class="gotw">
+      <div class="gotw-top"><b>GAME OF THE WEEK</b><span>[yourgame].example.com</span></div>
+      <div class="gotw-shot cells" role="img" aria-label="Preview of the game of the week"><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span>
+        <a class="playbig" href="#play" aria-label="Play the game of the week"><svg width="36" height="36" viewBox="0 0 24 24" fill="#0d1226" aria-hidden="true"><path d="M8 5l12 7-12 7z"/></svg></a>
+      </div>
+      <div class="gotw-info">
+        <div><b>[Game title]</b><span>by [Creator] · Arcade · ~5 min</span></div>
+        <div class="ctl" style="flex-direction:row"><span>Keyboard</span><span>Gamepad</span></div>
+      </div>
+    </div>
+  </section>
+  <section class="jam" aria-label="Current game jam">
+    <div class="jam-l"><b>GAME JAM</b><span>Theme: [Jam theme] · Ends in [3 days] · [24] entries so far</span></div>
+    <div class="jam-r"><a class="a" href="#jam">JOIN THE JAM</a><a class="b" href="#entries">See entries</a></div>
+  </section>
+  <div class="bar">
+    <div class="tabs" role="tablist" aria-label="Genre"><button type="button" class="tab" role="tab" aria-selected="true" data-value="All">ALL</button><button type="button" class="tab" role="tab" aria-selected="false" data-value="Arcade">ARCADE</button><button type="button" class="tab" role="tab" aria-selected="false" data-value="Puzzle">PUZZLE</button><button type="button" class="tab" role="tab" aria-selected="false" data-value="Platformer">PLATFORMER</button><button type="button" class="tab" role="tab" aria-selected="false" data-value="Multiplayer">MULTIPLAYER</button><button type="button" class="tab" role="tab" aria-selected="false" data-value="Game jam">GAME JAM</button></div>
+    <span id="count" aria-live="polite">6 games</span>
+  </div>
+  <div class="gmain">
+    <section class="ggrid" aria-label="Games">
+        <article class="gcard" data-genre="Arcade">
+          <div class="gshot cells" role="img" aria-label="Preview of [Game title]"><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="gtag">Arcade</span></div>
+          <div class="gbody">
+            <div><h3>[Game title]</h3><span class="meta">by [Creator] · ~5 min · 2.4k plays</span></div>
+            <div class="ctl"><span>Keyboard</span><span class="st">TypeScript</span><span class="st">Phaser</span></div>
+            <a class="play" href="#play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0d1226" aria-hidden="true"><path d="M6 4l15 8-15 8z"/></svg>PLAY</a>
+          </div>
+        </article>
+        <article class="gcard" data-genre="Puzzle">
+          <div class="gshot cells" role="img" aria-label="Preview of [Game title]"><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c1"></span><span class="gtag">Puzzle</span></div>
+          <div class="gbody">
+            <div><h3>[Game title]</h3><span class="meta">by [Creator] · ~10 min · 1.1k plays</span></div>
+            <div class="ctl"><span>Mouse</span><span>Touch</span><span class="st">React</span></div>
+            <a class="play" href="#play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0d1226" aria-hidden="true"><path d="M6 4l15 8-15 8z"/></svg>PLAY</a>
+          </div>
+        </article>
+        <article class="gcard" data-genre="Platformer">
+          <div class="gshot cells" role="img" aria-label="Preview of [Game title]"><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="gtag">Platformer</span></div>
+          <div class="gbody">
+            <div><h3>[Game title]</h3><span class="meta">by [Creator] · ~15 min · 860 plays</span></div>
+            <div class="ctl"><span>Keyboard</span><span>Gamepad</span><span class="st">Godot</span></div>
+            <a class="play" href="#play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0d1226" aria-hidden="true"><path d="M6 4l15 8-15 8z"/></svg>PLAY</a>
+          </div>
+        </article>
+        <article class="gcard" data-genre="Multiplayer">
+          <div class="gshot cells" role="img" aria-label="Preview of [Game title]"><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="gtag">Multiplayer</span></div>
+          <div class="gbody">
+            <div><h3>[Game title]</h3><span class="meta">by [Creator] · ~20 min · 3.2k plays</span></div>
+            <div class="ctl"><span>Keyboard</span><span class="st">Node.js</span><span class="st">Canvas</span></div>
+            <a class="play" href="#play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0d1226" aria-hidden="true"><path d="M6 4l15 8-15 8z"/></svg>PLAY</a>
+          </div>
+        </article>
+        <article class="gcard" data-genre="Game jam">
+          <div class="gshot cells" role="img" aria-label="Preview of [Game title]"><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="gtag">Game jam</span></div>
+          <div class="gbody">
+            <div><h3>[Game title]</h3><span class="meta">by [Creator] · ~3 min · 540 plays</span></div>
+            <div class="ctl"><span>Touch</span><span class="st">JavaScript</span></div>
+            <a class="play" href="#play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0d1226" aria-hidden="true"><path d="M6 4l15 8-15 8z"/></svg>PLAY</a>
+          </div>
+        </article>
+        <article class="gcard" data-genre="Puzzle">
+          <div class="gshot cells" role="img" aria-label="Preview of [Game title]"><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="gtag">Puzzle</span></div>
+          <div class="gbody">
+            <div><h3>[Game title]</h3><span class="meta">by [Creator] · ~5 min · 720 plays</span></div>
+            <div class="ctl"><span>Mouse</span><span class="st">Svelte</span></div>
+            <a class="play" href="#play"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0d1226" aria-hidden="true"><path d="M6 4l15 8-15 8z"/></svg>PLAY</a>
+          </div>
+        </article>
+      <div class="empty" id="empty" hidden>No games in this genre yet. Make the first one.</div>
+    </section>
+    <aside class="top5" aria-label="Most played this week">
+      <h2>MOST PLAYED</h2>
+      <ol><li><a href="#play"><span class="rank">1</span><span class="t"><b>[Game title]</b><span>Multiplayer · 3.2k plays</span></span></a></li><li><a href="#play"><span class="rank">2</span><span class="t"><b>[Game title]</b><span>Arcade · 2.4k plays</span></span></a></li><li><a href="#play"><span class="rank">3</span><span class="t"><b>[Game title]</b><span>Puzzle · 1.1k plays</span></span></a></li><li><a href="#play"><span class="rank">4</span><span class="t"><b>[Game title]</b><span>Platformer · 860 plays</span></span></a></li><li><a href="#play"><span class="rank">5</span><span class="t"><b>[Game title]</b><span>Puzzle · 720 plays</span></span></a></li></ol>
+      <p>Counts plays started from Shoof in the last 7 days.</p>
+    </aside>
+  </div>
+</main>
+<script>
+function setupFollow(){
+  document.querySelectorAll('[data-follow]').forEach(function(b){
+    var hint=b.parentElement.querySelector('.hint');
+    b.addEventListener('click',function(){
+      var on=b.getAttribute('aria-pressed')!=='true';
+      b.setAttribute('aria-pressed',on);
+      b.textContent=on?b.dataset.on:b.dataset.off;
+      if(hint)hint.textContent=on?hint.dataset.on:hint.dataset.off;
+    });
+  });
+}
+function setupTabs(sel,onPick){
+  var tabs=document.querySelectorAll(sel);
+  tabs.forEach(function(t){t.addEventListener('click',function(){
+    tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);});
+    onPick(t.dataset.value);
+  });});
+}
+function plural(n,one,many){return n+' '+(n===1?one:many);}
+
+(function(){
+  var cards=document.querySelectorAll('.gcard');
+  setupTabs('.tab',function(g){
+    var n=0;
+    cards.forEach(function(c){var ok=g==='All'||c.dataset.genre===g;c.hidden=!ok;if(ok)n++;});
+    document.getElementById('count').textContent=plural(n,'game','games');
+    document.getElementById('empty').hidden=n!==0;
+  });
+  setupFollow();
+})();
+</script>
+</body>
+</html>

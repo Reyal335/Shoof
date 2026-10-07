@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shoof | SaaS and products</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@600&family=Figtree:wght@400;600&display=swap">
+<style>
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33}
+*{box-sizing:border-box}
+body{margin:0}
+h1,h2,h3,p{margin:0}
+button{cursor:pointer;font-family:inherit}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.top{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;font-family:'Figtree',system-ui,sans-serif;color:var(--ink)}
+.top-left{display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:34px;height:34px}
+.brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:26px;color:var(--navy)}
+.topnav{display:flex;gap:20px}
+.topnav a{font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;padding:4px 0;border-bottom:3px solid transparent}
+.topnav a[aria-current="page"]{border-bottom-color:var(--yellow)}
+.search{flex-grow:1;max-width:420px}
+.search input{width:100%;height:44px;border:1.5px solid var(--input);border-radius:22px;padding:0 20px;font:400 15px 'Figtree',sans-serif;background:var(--ground);color:var(--ink)}
+.top-right{display:flex;align-items:center;gap:14px}
+.post-btn{display:flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:21px;background:var(--yellow);color:var(--navy);font:700 15px 'Outfit',sans-serif;text-decoration:none}
+.me{width:40px;height:40px;border-radius:20px;background:var(--navy);display:block}
+.top a:focus-visible,.top input:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.cells span{border-radius:2px}
+.c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
+@media (max-width:700px){.search{display:none}.topnav{display:none}.top{padding:0 16px}}
+
+body{background:var(--ground);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;min-height:100vh}
+a{color:var(--link)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 32px 72px;display:flex;flex-direction:column;gap:28px}
+.secnav{display:flex;flex-wrap:wrap;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500}
+.secnav a{padding:7px 12px;border-radius:6px;color:var(--muted);text-decoration:none}
+.secnav a[aria-current="page"]{background:var(--navy);color:#fff}
+.hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px}
+.hero>div:first-child{display:flex;flex-direction:column;gap:10px;max-width:640px}
+h1{font-weight:600;font-size:52px;line-height:56px;letter-spacing:-1.5px}
+.hero p{font-size:19px;line-height:29px;color:var(--muted)}
+.frow{display:flex;align-items:center;gap:14px}
+.hint{font-size:14px;color:var(--muted)}
+.follow{height:46px;padding:0 20px;border-radius:10px;font:600 15px 'IBM Plex Sans',sans-serif;border:1.5px solid var(--navy);background:var(--navy);color:#fff}
+.follow[aria-pressed="true"]{background:#fff;color:var(--navy)}
+.launch{display:flex;flex-direction:column;gap:14px}
+.lh{display:flex;align-items:center;gap:10px}.lh i{width:10px;height:10px;border-radius:5px;background:var(--yellow);display:block}
+.lh h2{font-weight:600;font-size:20px}.lh span{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted)}
+.lgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.lcard{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.lshot{height:150px;background:var(--ground);display:flex;border-bottom:1px solid #e1e6f1}
+.lshot .side{width:44px;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:14px}
+.lshot .side i{width:18px;height:5px;border-radius:3px;background:#5b6a92}.lshot .side .sq{height:18px;border-radius:5px;background:var(--yellow)}
+.lshot .main{flex-grow:1;padding:12px;display:flex;flex-direction:column;gap:8px}
+.lshot .tiles{display:flex;gap:8px}.lshot .tiles i{flex-grow:1;height:32px;border-radius:6px;background:#fff}
+.lshot .chart{flex-grow:1;border-radius:6px;background:#fff;display:flex;align-items:flex-end;gap:6px;padding:8px}
+.lshot .chart i{flex-grow:1;border-radius:2px 2px 0 0;background:var(--link)}
+.lbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex-grow:1}.lbody .try{margin-top:auto}
+.lrow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.lrow div{display:flex;flex-direction:column;gap:2px}
+.lrow h3{font-weight:600;font-size:17px}.lrow span.tg{font-size:14px;color:var(--muted)}
+.price{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--chip)}
+.try{display:flex;align-items:center;justify-content:center;height:40px;border-radius:8px;background:var(--navy);color:#fff;font:600 14px 'IBM Plex Sans',sans-serif;text-decoration:none}
+.sbody{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:28px;align-items:start}
+.list{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.list-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #e1e6f1}
+.range{display:flex;gap:4px}
+.range button{padding:6px 12px;border-radius:6px;border:0;background:transparent;color:var(--ink);font:600 14px 'IBM Plex Sans',sans-serif}
+.range button[aria-pressed="true"]{background:var(--navy);color:#fff}
+#count{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted)}
+.prod{display:flex;align-items:center;gap:16px;padding:16px 18px;border-bottom:1px solid #e1e6f1}
+.rk{width:22px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:14px;color:#6a7798;text-align:right}
+.logo{width:52px;height:52px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.logo i{width:20px;height:20px;background:#fff;display:block}
+.logo .circle{border-radius:10px}.logo .square{border-radius:4px}.logo .diamond{border-radius:3px;transform:rotate(45deg)}
+.pinfo{flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.ptop{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+.ptop a{font-weight:600;font-size:17px;color:var(--ink);text-decoration:none}.ptop span{font-size:15px;color:var(--muted)}
+.pmeta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px}
+.pmeta .cat{font-weight:600;color:var(--link)}.pmeta .dotsep{color:var(--input)}
+.pill{font-family:'IBM Plex Mono',monospace;font-weight:600;padding:2px 7px;border-radius:5px;color:var(--ink)}
+.pill.Free{background:#dff5ee}.pill.Freemium{background:var(--tint)}.pill.Paid{background:var(--chip)}
+.stk{display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;color:var(--muted)}
+.vote{flex-shrink:0;width:60px;height:62px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:600 15px 'IBM Plex Mono',monospace;color:var(--ink);border:1.5px solid #c3cadb;background:#fff}
+.vote[aria-pressed="true"]{background:var(--tint);border:2px solid var(--yellow)}
+.vote svg{fill:var(--ink)}
+.empty{padding:40px;text-align:center;font-size:16px;color:var(--muted)}
+aside.side2{display:flex;flex-direction:column;gap:18px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:6px;margin:0}
+.panel h2,.panel legend{font-weight:600;font-size:16px;margin:0 0 6px}
+.panel legend{padding:0 4px;margin:0}
+.cat-btn{height:38px;padding:0 12px;border:0;border-radius:8px;text-align:left;font:500 15px 'IBM Plex Sans',sans-serif;color:var(--ink);background:transparent}
+.cat-btn[aria-pressed="true"]{background:var(--chip)}
+fieldset.panel{gap:10px}
+.radio{display:flex;align-items:center;gap:10px;font-size:15px}.radio input{width:18px;height:18px;accent-color:var(--navy);margin:0}
+.cta{background:var(--navy);color:#eef1f8;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.cta img{width:48px;height:47px}.cta h2{font-weight:600;font-size:19px}.cta p{font-size:14px;line-height:21px;color:#b4bdd6}
+.cta a{display:flex;align-items:center;justify-content:center;height:42px;border-radius:8px;background:var(--yellow);color:var(--navy);font:700 15px 'IBM Plex Sans',sans-serif;text-decoration:none}
+@media (max-width:1100px){.sbody{grid-template-columns:minmax(0,1fr)}.lgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.lgrid{grid-template-columns:minmax(0,1fr)}.stk{display:none}.wrap{padding:20px 16px 48px}h1{font-size:38px;line-height:42px}.prod{gap:10px;padding:14px 12px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-left">
+    <a class="brand" href="Feed.html"><img src="shoof-blob.svg" alt=""><span>Shoof</span></a>
+    <nav class="topnav" aria-label="Main">
+      <a href="Feed.html">Home</a>
+      <a href="#explore">Explore</a>
+      <a href="Creators.html">Creators</a>
+    </nav>
+  </div>
+  <div class="search">
+    <label class="sr" for="q">Search Shoof</label>
+    <input id="q" type="search" placeholder="Search sites, creators, stacks">
+  </div>
+  <div class="top-right">
+    <a class="post-btn" href="#post">Post a site</a>
+    <a class="me" href="#profile" aria-label="Your profile"></a>
+  </div>
+</header>
+<main class="wrap">
+  <nav class="secnav" aria-label="Sections"><a href="Feed.html">all-sites</a><a href="Games.html">games</a><a href="Portfolios.html">portfolios</a><a href="Saas.html" aria-current="page">saas</a><a href="CssUi.html">css-ui</a><a href="Misc.html">misc</a></nav>
+  <section class="hero">
+    <div>
+      <h1>SaaS &amp; products</h1>
+      <p>Tools people built and launched. Try them, upvote the ones you would pay for, and tell the maker what you think.</p>
+    </div>
+    <div class="frow">
+      <span class="hint" data-on="Launches show first on your home feed." data-off="Follow to see launches first.">Follow to see launches first.</span>
+      <button type="button" class="follow" data-follow aria-pressed="false" data-on="Following" data-off="Follow SaaS">Follow SaaS</button>
+    </div>
+  </section>
+  <section class="launch" aria-label="Launching today">
+    <div class="lh"><i></i><h2>Launching today</h2><span>3 products</span></div>
+    <div class="lgrid">
+        <article class="lcard">
+          <div class="lshot" role="img" aria-label="Screenshot of [Product name]">
+            <div class="side" style="background:#101b33"><i class="sq"></i><i></i><i></i></div>
+            <div class="main"><div class="tiles"><i></i><i></i></div><div class="chart"><i style="height:28px"></i><i style="height:43px"></i><i style="height:34px"></i><i style="height:56px"></i><i style="height:46px"></i><i style="height:64px"></i><i style="height:52px"></i><i style="height:41px"></i></div></div>
+          </div>
+          <div class="lbody">
+            <div class="lrow"><div><h3>[Product name]</h3><span class="tg">Uptime checks with plain-English alerts.</span></div><span class="price">Free</span></div>
+            <a class="try" href="#try">Try it ↗</a>
+          </div>
+        </article>
+        <article class="lcard">
+          <div class="lshot" role="img" aria-label="Screenshot of [Product name]">
+            <div class="side" style="background:#1b3a8a"><i class="sq"></i><i></i><i></i></div>
+            <div class="main"><div class="tiles"><i></i><i></i></div><div class="chart"><i style="height:49px"></i><i style="height:38px"></i><i style="height:57px"></i><i style="height:42px"></i><i style="height:63px"></i><i style="height:53px"></i><i style="height:35px"></i><i style="height:48px"></i></div></div>
+          </div>
+          <div class="lbody">
+            <div class="lrow"><div><h3>[Product name]</h3><span class="tg">Book meetings without the back and forth.</span></div><span class="price">Freemium</span></div>
+            <a class="try" href="#try">Try it ↗</a>
+          </div>
+        </article>
+        <article class="lcard">
+          <div class="lshot" role="img" aria-label="Screenshot of [Product name]">
+            <div class="side" style="background:#26335c"><i class="sq"></i><i></i><i></i></div>
+            <div class="main"><div class="tiles"><i></i><i></i></div><div class="chart"><i style="height:21px"></i><i style="height:32px"></i><i style="height:42px"></i><i style="height:36px"></i><i style="height:52px"></i><i style="height:62px"></i><i style="height:45px"></i><i style="height:56px"></i></div></div>
+          </div>
+          <div class="lbody">
+            <div class="lrow"><div><h3>[Product name]</h3><span class="tg">Track subscriptions before they renew.</span></div><span class="price">Paid</span></div>
+            <a class="try" href="#try">Try it ↗</a>
+          </div>
+        </article>
+    </div>
+  </section>
+  <div class="sbody">
+    <section class="list" aria-label="Products">
+      <div class="list-top">
+        <div class="range" role="group" aria-label="Time range"><button type="button" aria-pressed="true">This week</button><button type="button" aria-pressed="false">This month</button><button type="button" aria-pressed="false">All time</button></div>
+        <span id="count" aria-live="polite">7 products</span>
+      </div>
+        <div class="prod" data-cat="Dev tools" data-price="Freemium">
+          <span class="rk">1</span>
+          <div class="logo" style="background:#1b3a8a"><i class="circle"></i></div>
+          <div class="pinfo">
+            <div class="ptop"><a href="#product">[Product name]</a><span>Turns API logs into readable timelines.</span></div>
+            <div class="pmeta"><span class="cat">Dev tools</span><span class="dotsep">·</span><span class="pill Freemium">Freemium</span><span class="stk"><span>React</span><span>Node.js</span></span></div>
+          </div>
+          <button type="button" class="vote" aria-pressed="false" aria-label="Upvote, 312 votes" data-votes="312"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 11H4z"/></svg><span class="n">312</span></button>
+        </div>
+        <div class="prod" data-cat="Productivity" data-price="Free">
+          <span class="rk">2</span>
+          <div class="logo" style="background:#b78500"><i class="square"></i></div>
+          <div class="pinfo">
+            <div class="ptop"><a href="#product">[Product name]</a><span>A to-do list that plans your week for you.</span></div>
+            <div class="pmeta"><span class="cat">Productivity</span><span class="dotsep">·</span><span class="pill Free">Free</span><span class="stk"><span>Vue</span><span>Supabase</span></span></div>
+          </div>
+          <button type="button" class="vote" aria-pressed="false" aria-label="Upvote, 248 votes" data-votes="248"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 11H4z"/></svg><span class="n">248</span></button>
+        </div>
+        <div class="prod" data-cat="Finance" data-price="Paid">
+          <span class="rk">3</span>
+          <div class="logo" style="background:#101b33"><i class="diamond"></i></div>
+          <div class="pinfo">
+            <div class="ptop"><a href="#product">[Product name]</a><span>Invoices and reminders for freelancers.</span></div>
+            <div class="pmeta"><span class="cat">Finance</span><span class="dotsep">·</span><span class="pill Paid">Paid</span><span class="stk"><span>Next.js</span><span>PostgreSQL</span></span></div>
+          </div>
+          <button type="button" class="vote" aria-pressed="false" aria-label="Upvote, 196 votes" data-votes="196"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 11H4z"/></svg><span class="n">196</span></button>
+        </div>
+        <div class="prod" data-cat="Marketing" data-price="Freemium">
+          <span class="rk">4</span>
+          <div class="logo" style="background:#157a70"><i class="circle"></i></div>
+          <div class="pinfo">
+            <div class="ptop"><a href="#product">[Product name]</a><span>Schedule posts across every channel at once.</span></div>
+            <div class="pmeta"><span class="cat">Marketing</span><span class="dotsep">·</span><span class="pill Freemium">Freemium</span><span class="stk"><span>Svelte</span><span>Node.js</span></span></div>
+          </div>
+          <button type="button" class="vote" aria-pressed="false" aria-label="Upvote, 154 votes" data-votes="154"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 11H4z"/></svg><span class="n">154</span></button>
+        </div>
+        <div class="prod" data-cat="Education" data-price="Free">
+          <span class="rk">5</span>
+          <div class="logo" style="background:#c2414b"><i class="square"></i></div>
+          <div class="pinfo">
+            <div class="ptop"><a href="#product">[Product name]</a><span>Flashcards that adapt to what you forget.</span></div>
+            <div class="pmeta"><span class="cat">Education</span><span class="dotsep">·</span><span class="pill Free">Free</span><span class="stk"><span>React</span><span>Firebase</span></span></div>
+          </div>
+          <button type="button" class="vote" aria-pressed="false" aria-label="Upvote, 131 votes" data-votes="131"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 11H4z"/></svg><span class="n">131</span></button>
+        </div>
+        <div class="prod" data-cat="Design" data-price="Paid">
+          <span class="rk">6</span>
+          <div class="logo" style="background:#5b6a92"><i class="diamond"></i></div>
+          <div class="pinfo">
+            <div class="ptop"><a href="#product">[Product name]</a><span>Export brand colours to every format.</span></div>
+            <div class="pmeta"><span class="cat">Design</span><span class="dotsep">·</span><span class="pill Paid">Paid</span><span class="stk"><span>TypeScript</span><span>Rust</span></span></div>
+          </div>
+          <button type="button" class="vote" aria-pressed="false" aria-label="Upvote, 98 votes" data-votes="98"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 11H4z"/></svg><span class="n">98</span></button>
+        </div>
+        <div class="prod" data-cat="Dev tools" data-price="Free">
+          <span class="rk">7</span>
+          <div class="logo" style="background:#3b4f86"><i class="circle"></i></div>
+          <div class="pinfo">
+            <div class="ptop"><a href="#product">[Product name]</a><span>Spin up a mock API from a JSON file.</span></div>
+            <div class="pmeta"><span class="cat">Dev tools</span><span class="dotsep">·</span><span class="pill Free">Free</span><span class="stk"><span>Python</span><span>FastAPI</span></span></div>
+          </div>
+          <button type="button" class="vote" aria-pressed="false" aria-label="Upvote, 87 votes" data-votes="87"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l8 11H4z"/></svg><span class="n">87</span></button>
+        </div>
+      <p class="empty" id="empty" hidden>No products match. Try another category or price.</p>
+    </section>
+    <aside class="side2">
+      <section class="panel"><h2>Category</h2><button type="button" class="cat-btn" aria-pressed="true" data-value="All categories">All categories</button><button type="button" class="cat-btn" aria-pressed="false" data-value="Dev tools">Dev tools</button><button type="button" class="cat-btn" aria-pressed="false" data-value="Productivity">Productivity</button><button type="button" class="cat-btn" aria-pressed="false" data-value="Finance">Finance</button><button type="button" class="cat-btn" aria-pressed="false" data-value="Marketing">Marketing</button><button type="button" class="cat-btn" aria-pressed="false" data-value="Education">Education</button><button type="button" class="cat-btn" aria-pressed="false" data-value="Design">Design</button></section>
+      <fieldset class="panel"><legend>Pricing</legend><label class="radio"><input type="radio" name="price" value="Any" checked> Any</label><label class="radio"><input type="radio" name="price" value="Free"> Free</label><label class="radio"><input type="radio" name="price" value="Freemium"> Freemium</label><label class="radio"><input type="radio" name="price" value="Paid"> Paid</label></fieldset>
+      <section class="cta">
+        <img src="shoof-blob.svg" alt="">
+        <h2>Launching something?</h2>
+        <p>Post it with a live link, pricing and your stack. Launch day gets you a spot at the top of this page.</p>
+        <a href="#post">Submit a product</a>
+      </section>
+    </aside>
+  </div>
+</main>
+<script>
+function setupFollow(){
+  document.querySelectorAll('[data-follow]').forEach(function(b){
+    var hint=b.parentElement.querySelector('.hint');
+    b.addEventListener('click',function(){
+      var on=b.getAttribute('aria-pressed')!=='true';
+      b.setAttribute('aria-pressed',on);
+      b.textContent=on?b.dataset.on:b.dataset.off;
+      if(hint)hint.textContent=on?hint.dataset.on:hint.dataset.off;
+    });
+  });
+}
+function setupTabs(sel,onPick){
+  var tabs=document.querySelectorAll(sel);
+  tabs.forEach(function(t){t.addEventListener('click',function(){
+    tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);});
+    onPick(t.dataset.value);
+  });});
+}
+function plural(n,one,many){return n+' '+(n===1?one:many);}
+
+(function(){
+  var cat='All categories',price='Any';
+  var rows=document.querySelectorAll('.prod');
+  function render(){
+    var n=0;
+    rows.forEach(function(r){
+      var ok=(cat==='All categories'||r.dataset.cat===cat)&&(price==='Any'||r.dataset.price===price);
+      r.hidden=!ok;
+      if(ok){n++;r.querySelector('.rk').textContent=n;}
+    });
+    document.getElementById('count').textContent=plural(n,'product','products');
+    document.getElementById('empty').hidden=n!==0;
+  }
+  var cats=document.querySelectorAll('.cat-btn');
+  cats.forEach(function(b){b.addEventListener('click',function(){
+    cat=b.dataset.value;cats.forEach(function(x){x.setAttribute('aria-pressed',x===b);});render();
+  });});
+  document.querySelectorAll('input[name="price"]').forEach(function(r){r.addEventListener('change',function(){price=r.value;render();});});
+  document.querySelectorAll('.vote').forEach(function(b){b.addEventListener('click',function(){
+    var on=b.getAttribute('aria-pressed')!=='true';
+    var v=+b.dataset.votes+(on?1:0);
+    b.setAttribute('aria-pressed',on);
+    b.setAttribute('aria-label','Upvote, '+v+' votes');
+    b.querySelector('.n').textContent=v;
+  });});
+  /* time-range chips are visual only in the mockup */
+  var rng=document.querySelectorAll('.range button');
+  rng.forEach(function(b){b.addEventListener('click',function(){rng.forEach(function(x){x.setAttribute('aria-pressed',x===b);});});});
+  setupFollow();
+})();
+</script>
+</body>
+</html>

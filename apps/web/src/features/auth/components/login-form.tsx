@@ -3,10 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useSignIn } from "../hooks/use-sign-in";
+import { useSession } from "../hooks/use-session";
 
 const loginSchema = z.object({
   email: z
@@ -29,8 +30,26 @@ const ERROR_ID = "login-error";
 
 export function LoginForm() {
   const router = useRouter();
+  const { status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
-  const { submit, isPending, error } = useSignIn({ onSuccess: () => router.replace("/") });
+  const goNext = useCallback(() => {
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (!next) {
+      router.replace("/");
+      return;
+    }
+
+    const url = new URL(next, window.location.origin);
+    const target = url.origin === window.location.origin
+      ? url.pathname + url.search
+      : "/";
+
+    router.replace(target);
+  }, [router]);
+  const { submit, isPending, error } = useSignIn({ onSuccess: goNext });
+
+
+
   const {
     register,
     handleSubmit,

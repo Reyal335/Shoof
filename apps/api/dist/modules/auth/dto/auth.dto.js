@@ -14,8 +14,6 @@ let max_password_len = 125;
 let min_password_len = 8;
 export class SignUpDto {
     email;
-    lastName;
-    firstName;
     username;
     password;
 }
@@ -23,14 +21,6 @@ __decorate([
     IsEmail(),
     __metadata("design:type", String)
 ], SignUpDto.prototype, "email", void 0);
-__decorate([
-    IsString(),
-    __metadata("design:type", String)
-], SignUpDto.prototype, "lastName", void 0);
-__decorate([
-    IsString(),
-    __metadata("design:type", String)
-], SignUpDto.prototype, "firstName", void 0);
 __decorate([
     MaxLength(max_username_len, {
         message: `Can only have up to ${max_username_len} characters`

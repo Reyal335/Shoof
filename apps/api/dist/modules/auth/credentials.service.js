@@ -31,7 +31,7 @@ let CredentialsService = class CredentialsService {
     }
     async verify(email, password) {
         const found = await this.usersService.findCredentials(email);
-        const valid = await this.passwordHasher.verify(password, found?.passwordHash);
+        const valid = await this.passwordHasher.verify(password, found?.passwordHash ?? undefined);
         if (!valid || !found?.passwordHash) {
             return null;
         }
