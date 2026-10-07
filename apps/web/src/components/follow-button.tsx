@@ -10,13 +10,22 @@ type Props = {
   hint?: { on: string; off: string };
   /** Render the hint before the button instead of after it. */
   hintFirst?: boolean;
+  /** Controlled mode, for pages that show the follow state elsewhere too (e.g. a follower count). */
+  following?: boolean;
+  onFollowingChange?: (following: boolean) => void;
 };
 
-export function FollowButton({ className, on, off, hint, hintFirst = false }: Props) {
-  const [following, setFollowing] = useState(false);
+export function FollowButton({ className, on, off, hint, hintFirst = false, following: controlled, onFollowingChange }: Props) {
+  const [uncontrolled, setUncontrolled] = useState(false);
+  const following = controlled ?? uncontrolled;
+
+  function toggle() {
+    setUncontrolled(!following);
+    onFollowingChange?.(!following);
+  }
 
   const button = (
-    <button type="button" className={className} aria-pressed={following} onClick={() => setFollowing(!following)}>
+    <button type="button" className={className} aria-pressed={following} onClick={toggle}>
       {following ? on : off}
     </button>
   );

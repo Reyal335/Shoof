@@ -19,6 +19,7 @@ button{cursor:pointer;font-family:inherit}
 .top-right{display:flex;align-items:center;gap:14px}
 .post-btn{display:flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:21px;background:var(--yellow);color:var(--navy);font:700 15px 'Outfit',sans-serif;text-decoration:none}
 .me{width:40px;height:40px;border-radius:20px;background:var(--navy);display:block}
+.me[aria-current="page"]{box-shadow:0 0 0 3px var(--yellow)}
 .top a:focus-visible,.top input:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
 .cells span{border-radius:2px}
 .c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
