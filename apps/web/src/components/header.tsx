@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** The shared top bar. `current` marks the matching main-nav link (or the profile avatar) with aria-current. */
-export function Header({ current }: { current?: "home" | "creators" | "profile" }) {
+/** The shared top bar. `current` marks the matching main-nav link (or the profile avatar or post button) with aria-current. */
+export function Header({ current }: { current?: "home" | "creators" | "profile" | "post" }) {
   return (
     <header className="top">
       <div className="top-left">
@@ -21,7 +21,7 @@ export function Header({ current }: { current?: "home" | "creators" | "profile" 
         <input id="q" type="search" placeholder="Search sites, creators, stacks" />
       </div>
       <div className="top-right">
-        <a className="post-btn" href="#post">Post a site</a>
+        <Link className="post-btn" href="/post/new" aria-current={current === "post" ? "page" : undefined}>Post a site</Link>
         <Link className="me" href="/profile" aria-label="Your profile" aria-current={current === "profile" ? "page" : undefined}></Link>
       </div>
     </header>
