@@ -17,6 +17,9 @@ export enum UserTheme {
 
 @Entity()
 export class User_Preference {
+    @PrimaryGeneratedColumn("uuid")
+    preference_id: string
+
     @Column({
         type: "enum",
         enum: UserTheme,

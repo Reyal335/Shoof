@@ -1,0 +1,54 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { Type } from 'class-transformer';
+import { IsEnum, IsIn, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { PostCategory } from '../entities/post.entity.js';
+import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '../posts.constants.js';
+export class PaginationQueryDto {
+    limit = PAGE_SIZE_DEFAULT;
+    offset = 0;
+}
+__decorate([
+    IsOptional(),
+    Type(() => Number),
+    IsInt(),
+    Min(1),
+    Max(PAGE_SIZE_MAX),
+    __metadata("design:type", Number)
+], PaginationQueryDto.prototype, "limit", void 0);
+__decorate([
+    IsOptional(),
+    Type(() => Number),
+    IsInt(),
+    Min(0),
+    __metadata("design:type", Number)
+], PaginationQueryDto.prototype, "offset", void 0);
+export const POST_SORTS = ['new', 'top'];
+export class ListPostsQueryDto extends PaginationQueryDto {
+    category;
+    userId;
+    sort = 'new';
+}
+__decorate([
+    IsOptional(),
+    IsEnum(PostCategory),
+    __metadata("design:type", String)
+], ListPostsQueryDto.prototype, "category", void 0);
+__decorate([
+    IsOptional(),
+    IsUUID(),
+    __metadata("design:type", String)
+], ListPostsQueryDto.prototype, "userId", void 0);
+__decorate([
+    IsOptional(),
+    IsIn(POST_SORTS),
+    __metadata("design:type", String)
+], ListPostsQueryDto.prototype, "sort", void 0);
+//# sourceMappingURL=query.dto.js.map

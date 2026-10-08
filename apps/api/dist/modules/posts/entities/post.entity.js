@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, Column, CreateDateColumn, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Check, Entity, Column, CreateDateColumn, Index, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Media } from './media.entity.js';
 import { Comment } from './comment.entity.js';
 import { Rating } from './rating.entity.js';
@@ -109,7 +109,9 @@ __decorate([
     __metadata("design:type", Date)
 ], Post.prototype, "updatedAt", void 0);
 Post = __decorate([
-    Entity('posts')
+    Entity('posts'),
+    Check(`"rating" BETWEEN 0 AND 5`),
+    Check(`"ratingCount" >= 0 AND "visitCount" >= 0`)
 ], Post);
 export { Post };
 //# sourceMappingURL=post.entity.js.map

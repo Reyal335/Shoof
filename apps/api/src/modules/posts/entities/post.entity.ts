@@ -1,4 +1,5 @@
 import {
+    Check,
     Entity,
     Column,
     CreateDateColumn,
@@ -21,7 +22,10 @@ export enum PostCategory {
     MISC = 'misc'
 }
 
+// The counters and the average are written by PostsService only; the checks keep a bug from storing nonsense
 @Entity('posts')
+@Check(`"rating" BETWEEN 0 AND 5`)
+@Check(`"ratingCount" >= 0 AND "visitCount" >= 0`)
 export class Post {
     @PrimaryGeneratedColumn('uuid')
     id: string
