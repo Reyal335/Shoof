@@ -173,3 +173,4 @@ Avoid: selling user data, pay-to-win visibility, paywalling basic participation,
 8. Design for global use; flag any Philippines- or provider-specific assumption.
 9. Prefer TypeScript end-to-end; keep folder suggestions inside `apps/web`, `apps/api`, `packages/*`.
 10. Build only what the current MVP needs. Introduce new modules and infra incrementally.
+11. Always include an "what's implemented, cannot be implemented, and recommendations" section after each work.

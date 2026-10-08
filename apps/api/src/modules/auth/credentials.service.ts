@@ -1,6 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PasswordHasher } from '@nestjs/authentication';
 import type { User } from '../users/entities/user.entity.js';
+import type { User_Identity } from '../users/entities/user-identity.js';
 import { UsersService } from '../users/users.service.js';
 
 @Injectable()
