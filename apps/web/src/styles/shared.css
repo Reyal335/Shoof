@@ -1,5 +1,5 @@
 /* Shared by every page: brand tokens, base reset, the top bar and the pixel-grid cells. Copied from the design/ files. */
-:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33}
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33;--field:#7d89a8;--track:#7d89a8;--on-tint:#5f4400;--error:#b3261e}
 *{box-sizing:border-box}
 body{margin:0}
 h1,h2,h3,p{margin:0}
