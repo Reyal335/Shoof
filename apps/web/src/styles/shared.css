@@ -24,3 +24,6 @@ button{cursor:pointer;font-family:inherit}
 .cells span{border-radius:2px}
 .c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
 @media (max-width:700px){.search{display:none}.topnav{display:none}.top{padding:0 16px}}
+/* Header fit on phones with the notifications bell; below 420px the word "Shoof" is hidden visually but stays the link's name */
+@media (max-width:700px){.top{gap:12px}.top-right{gap:10px}.post-btn{white-space:nowrap;padding:0 14px}}
+@media (max-width:420px){.brand span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 
 /** The shared top bar. `current` marks the matching main-nav link (or the profile avatar or post button) with aria-current. */
 export function Header({ current }: { current?: "home" | "creators" | "profile" | "post" }) {
@@ -22,6 +23,7 @@ export function Header({ current }: { current?: "home" | "creators" | "profile" 
       </div>
       <div className="top-right">
         <Link className="post-btn" href="/post/new" aria-current={current === "post" ? "page" : undefined}>Post a site</Link>
+        <NotificationBell />
         <Link className="me" href="/profile" aria-label="Your profile" aria-current={current === "profile" ? "page" : undefined}></Link>
       </div>
     </header>

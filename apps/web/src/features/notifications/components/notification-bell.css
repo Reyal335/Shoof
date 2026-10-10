@@ -1,0 +1,9 @@
+/* The header bell, from design/Notifications.html (shoof-bell block). Uses the theme tokens so dark mode restyles it. */
+.bell{position:relative;width:40px;height:40px;flex-shrink:0;border-radius:50%;border:1.5px solid #7d89a8;color:var(--navy,#101b33);display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.bell:hover{border-color:var(--navy,#101b33);color:var(--navy,#101b33)}
+.bell:focus-visible{outline:3px solid var(--link,#1b3a8a);outline-offset:2px}
+.bell[aria-current="page"]{background:var(--navy,#101b33);border-color:var(--navy,#101b33);color:var(--white,#fff)}
+.bell-n{position:absolute;top:-5px;right:-6px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#dba40c;color:#101b33;font:700 12px/20px 'Figtree',system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--white,#fff)}
+.bell-n[hidden]{display:none}
+:root[data-theme="dark"] .bell{border-color:var(--input)}
+:root[data-theme="dark"] .bell[aria-current="page"]{border-color:var(--navy)}
