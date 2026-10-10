@@ -1,0 +1,55 @@
+/* The Notifications page, from design/Notifications.html. The top bar is in styles/shared.css, the bell beside its component. */
+:root{--unread:#f2f6ff;--dot:#1b3a8a}
+body{background:var(--ground);color:var(--ink);font-family:'Figtree',system-ui,sans-serif}
+a{color:var(--link)}a:hover{color:#10275e}
+a:focus-visible,button:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.wrap{max-width:860px;margin:0 auto;padding:32px 32px 72px;display:flex;flex-direction:column;gap:20px}
+.nhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.nhead h1{font:600 40px/44px 'Outfit',sans-serif;letter-spacing:-1px}
+.nhead p{margin-top:6px;font-size:16px;color:var(--muted)}
+.nhead p b{color:var(--ink)}
+.hacts{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:12px;border:1.5px solid var(--navy);background:var(--white);color:var(--navy);font:600 15px 'Figtree',sans-serif;text-decoration:none}
+.btn:hover{background:var(--ground);color:var(--navy)}
+.btn[aria-disabled="true"]{opacity:.55;cursor:not-allowed}.btn[aria-disabled="true"]:hover{background:var(--white)}
+.btn.quiet{border-color:var(--field)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.tab{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:20px;border:1.5px solid var(--field);background:var(--white);color:var(--navy);font:600 14px 'Figtree',sans-serif}
+.tab .n{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--chip);font-size:12px;line-height:22px;text-align:center}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.tab[aria-selected="true"] .n{background:#2b3a63;color:#fff}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.grp h2{padding:14px 22px 8px;font-family:'Figtree',sans-serif;font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--border)}
+.grp:first-child h2{border-top:0}
+.list{margin:0;padding:0;list-style:none}
+.note{position:relative;display:flex;gap:14px;align-items:flex-start;padding:16px 16px 16px 22px;border-top:1px solid var(--border)}
+.note.unread{background:var(--unread)}
+.note .dot{position:absolute;left:8px;top:32px;width:8px;height:8px;border-radius:50%;background:var(--dot);display:none}
+.note.unread .dot{display:block}
+.who{position:relative;width:46px;height:46px;border-radius:50%;flex-shrink:0;display:block}
+.ic{position:absolute;right:-5px;bottom:-5px;width:24px;height:24px;border-radius:50%;border:2px solid var(--white);display:flex;align-items:center;justify-content:center;color:#101b33}
+.note.unread .ic{border-color:var(--unread)}
+.ic.comment{background:#9db4f0}.ic.rating{background:#dba40c}.ic.follow{background:#2ec4b6}.ic.request{background:#ef6f6f}
+.ntext{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.ntext p{font-size:16px;line-height:23px}
+.ntext p a{font-weight:700;color:var(--ink);text-decoration:none}
+.ntext p a:hover{text-decoration:underline}
+.ntext p a.site{font-weight:600;color:var(--link);text-decoration:underline}
+.note.unread .ntext p{font-weight:600}
+.quote{margin:0;padding:8px 12px;border-radius:10px;background:var(--ground);font-size:15px;line-height:22px;color:#1e2a47;overflow-wrap:anywhere}
+.note.unread .quote{background:var(--white)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;color:var(--muted)}
+.nacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.mini{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:18px;border:1.5px solid var(--field);background:var(--white);color:var(--navy);font:600 14px 'Figtree',sans-serif;text-decoration:none}
+.mini:hover{border-color:var(--navy);color:var(--navy)}
+.mini.yellow{background:var(--yellow);border-color:var(--yellow)}
+.mini.yellow[aria-pressed="true"]{background:var(--white);border-color:var(--navy)}
+.mark{flex-shrink:0;width:44px;height:44px;border-radius:22px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.mark:hover{background:var(--chip);color:var(--navy)}
+.empty{padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.empty img{width:72px;height:auto}
+.empty h2{font:600 22px 'Outfit',sans-serif}
+.empty p{font-size:15px;color:var(--muted);max-width:360px}
+.end{padding:16px 22px;border-top:1px solid var(--border);font-size:14px;color:var(--muted);text-align:center}
+@media (max-width:700px){.wrap{padding:24px 16px 56px}.nhead h1{font-size:32px;line-height:36px}.note{padding:14px 10px 14px 20px;gap:12px}.who{width:40px;height:40px}.grp h2{padding:12px 18px 6px}}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
