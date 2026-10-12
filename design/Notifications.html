@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications | Shoof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33}
+*{box-sizing:border-box}
+body{margin:0}
+h1,h2,h3,p{margin:0}
+button{cursor:pointer;font-family:inherit}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.top{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;font-family:'Figtree',system-ui,sans-serif;color:var(--ink)}
+.top-left{display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:34px;height:34px}
+.brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:26px;color:var(--navy)}
+.topnav{display:flex;gap:20px}
+.topnav a{font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;padding:4px 0;border-bottom:3px solid transparent}
+.topnav a[aria-current="page"]{border-bottom-color:var(--yellow)}
+.search{flex-grow:1;max-width:420px}
+.search input{width:100%;height:44px;border:1.5px solid var(--input);border-radius:22px;padding:0 20px;font:400 15px 'Figtree',sans-serif;background:var(--ground);color:var(--ink)}
+.top-right{display:flex;align-items:center;gap:14px}
+.post-btn{display:flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:21px;background:var(--yellow);color:var(--navy);font:700 15px 'Outfit',sans-serif;text-decoration:none}
+.me{width:40px;height:40px;border-radius:20px;background:var(--navy);display:block}
+.top a:focus-visible,.top input:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.cells span{border-radius:2px}
+.c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
+@media (max-width:700px){.search{display:none}.topnav{display:none}.top{padding:0 16px}}
+
+:root{--field:#7d89a8;--unread:#f2f6ff;--dot:#1b3a8a}
+body{background:var(--ground);color:var(--ink);font-family:'Figtree',system-ui,sans-serif}
+a{color:var(--link)}a:hover{color:#10275e}
+a:focus-visible,button:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+.wrap{max-width:860px;margin:0 auto;padding:32px 32px 72px;display:flex;flex-direction:column;gap:20px}
+.nhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.nhead h1{font:600 40px/44px 'Outfit',sans-serif;letter-spacing:-1px}
+.nhead p{margin-top:6px;font-size:16px;color:var(--muted)}
+.nhead p b{color:var(--ink)}
+.hacts{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:12px;border:1.5px solid var(--navy);background:var(--white);color:var(--navy);font:600 15px 'Figtree',sans-serif;text-decoration:none}
+.btn:hover{background:var(--ground);color:var(--navy)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.quiet{border-color:var(--field)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.tab{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:20px;border:1.5px solid var(--field);background:var(--white);color:var(--navy);font:600 14px 'Figtree',sans-serif}
+.tab .n{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--chip);font-size:12px;line-height:22px;text-align:center}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.tab[aria-selected="true"] .n{background:#2b3a63;color:#fff}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.grp h2{padding:14px 22px 8px;font-family:'Figtree',sans-serif;font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--border)}
+.grp:first-child h2{border-top:0}
+.list{margin:0;padding:0;list-style:none}
+.note{position:relative;display:flex;gap:14px;align-items:flex-start;padding:16px 16px 16px 22px;border-top:1px solid var(--border)}
+.note.unread{background:var(--unread)}
+.note .dot{position:absolute;left:8px;top:32px;width:8px;height:8px;border-radius:50%;background:var(--dot);display:none}
+.note.unread .dot{display:block}
+.who{position:relative;width:46px;height:46px;border-radius:50%;flex-shrink:0;display:block}
+.ic{position:absolute;right:-5px;bottom:-5px;width:24px;height:24px;border-radius:50%;border:2px solid var(--white);display:flex;align-items:center;justify-content:center;color:#101b33}
+.note.unread .ic{border-color:var(--unread)}
+.ic.comment{background:#9db4f0}.ic.rating{background:#dba40c}.ic.follow{background:#2ec4b6}.ic.request{background:#ef6f6f}
+.ntext{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.ntext p{font-size:16px;line-height:23px}
+.ntext p a{font-weight:700;color:var(--ink);text-decoration:none}
+.ntext p a:hover{text-decoration:underline}
+.ntext p a.site{font-weight:600;color:var(--link);text-decoration:underline}
+.note.unread .ntext p{font-weight:600}
+.quote{margin:0;padding:8px 12px;border-radius:10px;background:var(--ground);font-size:15px;line-height:22px;color:#1e2a47;overflow-wrap:anywhere}
+.note.unread .quote{background:var(--white)}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;color:var(--muted)}
+.nacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.mini{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:18px;border:1.5px solid var(--field);background:var(--white);color:var(--navy);font:600 14px 'Figtree',sans-serif;text-decoration:none}
+.mini:hover{border-color:var(--navy);color:var(--navy)}
+.mini.yellow{background:var(--yellow);border-color:var(--yellow)}
+.mini.yellow[aria-pressed="true"]{background:var(--white);border-color:var(--navy)}
+.mark{flex-shrink:0;width:44px;height:44px;border-radius:22px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.mark:hover{background:var(--chip);color:var(--navy)}
+.mark .on{display:none}
+.note.unread .mark .on{display:block}.note.unread .mark .off{display:none}
+.empty{padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.empty img{width:72px;height:auto}
+.empty h2{font:600 22px 'Outfit',sans-serif}
+.empty p{font-size:15px;color:var(--muted);max-width:360px}
+.end{padding:16px 22px;border-top:1px solid var(--border);font-size:14px;color:var(--muted);text-align:center}
+@media (max-width:700px){.wrap{padding:24px 16px 56px}.nhead h1{font-size:32px;line-height:36px}.note{padding:14px 10px 14px 20px;gap:12px}.who{width:40px;height:40px}.grp h2{padding:12px 18px 6px}}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+<!--shoof-bell--><style id="shoof-bell">
+.bell{position:relative;width:40px;height:40px;flex-shrink:0;border-radius:50%;border:1.5px solid #7d89a8;color:var(--navy,#101b33);display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.bell:hover{border-color:var(--navy,#101b33);color:var(--navy,#101b33)}
+.bell:focus-visible{outline:3px solid var(--link,#1b3a8a);outline-offset:2px}
+.bell[aria-current="page"]{background:var(--navy,#101b33);border-color:var(--navy,#101b33);color:var(--white,#fff)}
+.bell-n{position:absolute;top:-5px;right:-6px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#dba40c;color:#101b33;font:700 12px/20px 'Figtree',system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--white,#fff)}
+.bell-n[hidden]{display:none}
+:root[data-theme="dark"] .bell{border-color:var(--input)}
+:root[data-theme="dark"] .bell[aria-current="page"]{border-color:var(--navy)}
+@media (max-width:700px){.top{gap:12px}.top-right{gap:10px}.post-btn{white-space:nowrap;padding:0 14px}}
+/* very narrow phones: keep the logo, hide the word "Shoof" visually (it stays the link's name) */
+@media (max-width:420px){.brand span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+</style><!--/shoof-bell-->
+</head>
+<body>
+<header class="top">
+  <div class="top-left">
+    <a class="brand" href="Feed.html"><img src="shoof-blob.svg" alt=""><span>Shoof</span></a>
+    <nav class="topnav" aria-label="Main">
+      <a href="Feed.html">Home</a>
+      <a href="#explore">Explore</a>
+      <a href="Creators.html">Creators</a>
+    </nav>
+  </div>
+  <div class="search">
+    <label class="sr" for="q">Search Shoof</label>
+    <input id="q" type="search" placeholder="Search sites, creators, stacks">
+  </div>
+  <div class="top-right">
+    <a class="post-btn" href="CreatePost.html">Post a site</a>
+    <!--shoof-bell--><a class="bell" href="Notifications.html" aria-label="Notifications, 3 unread" aria-current="page"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2.5h-15z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></svg><span class="bell-n" aria-hidden="true">3</span></a><!--/shoof-bell-->
+    <a class="me" href="Profile.html" aria-label="Your profile"></a>
+  </div>
+</header>
+<main class="wrap">
+  <div class="nhead">
+    <div>
+      <h1>Notifications</h1>
+      <p id="summary">You have <b id="unread-count">3</b> unread.</p>
+    </div>
+    <div class="hacts">
+      <button type="button" class="btn" id="mark-all"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12.5l4.5 4.5L15 8.5M10 16l1 1L21.5 6.5"/></svg> Mark all as read</button>
+      <a class="btn quiet" href="Settings.html#notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg> Notification settings</a>
+    </div>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Show"><button type="button" class="tab" role="tab" id="tab-all" data-filter="all" aria-selected="true" tabindex="0" aria-controls="panel">All <span class="n" data-count="all">0</span></button><button type="button" class="tab" role="tab" id="tab-unread" data-filter="unread" aria-selected="false" tabindex="-1" aria-controls="panel">Unread <span class="n" data-count="unread">0</span></button><button type="button" class="tab" role="tab" id="tab-comment" data-filter="comment" aria-selected="false" tabindex="-1" aria-controls="panel">Comments <span class="n" data-count="comment">0</span></button><button type="button" class="tab" role="tab" id="tab-rating" data-filter="rating" aria-selected="false" tabindex="-1" aria-controls="panel">Ratings <span class="n" data-count="rating">0</span></button><button type="button" class="tab" role="tab" id="tab-follow" data-filter="follow" aria-selected="false" tabindex="-1" aria-controls="panel">Follows <span class="n" data-count="follow">0</span></button><button type="button" class="tab" role="tab" id="tab-request" data-filter="request" aria-selected="false" tabindex="-1" aria-controls="panel">Requests <span class="n" data-count="request">0</span></button></div>
+  <div class="panel" id="panel" role="tabpanel" aria-labelledby="tab-all">
+    <div id="groups"><section class="grp" aria-labelledby="g-today"><h2 id="g-today">Today</h2><ol class="list"><li class="note unread" data-id="n1" data-type="comment"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#6b7ba8" aria-hidden="true"><span class="ic comment"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Commenter]</a> commented on <a class="site" href="Post.html">A tiny arcade game about a blob that can&#39;t stop bouncing</a></p><blockquote class="quote">Level 3 took me a few tries, but it felt fair. The bounce sound is great.</blockquote><div class="meta"><span>Comment</span><time datetime="2026-10-10T19:40">2 hours ago</time><span class="sr state">, unread</span></div><div class="nacts"><a class="mini" href="Post.html#h-comments">Reply</a></div></div><button type="button" class="mark" aria-label="Mark as read" title="Mark as read"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li><li class="note unread" data-id="n2" data-type="rating"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#3b4f86" aria-hidden="true"><span class="ic rating"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Name]</a> and 4 others rated <a class="site" href="Post.html">A tiny arcade game about a blob that can&#39;t stop bouncing</a></p><div class="meta"><span>Rating</span><time datetime="2026-10-10T16:05">5 hours ago</time><span class="sr state">, unread</span></div><div class="nacts"><a class="mini" href="Post.html#h-ratings">See ratings</a></div></div><button type="button" class="mark" aria-label="Mark as read" title="Mark as read"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li><li class="note unread" data-id="n3" data-type="follow"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#dba40c" aria-hidden="true"><span class="ic follow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Name]</a> started following you</p><div class="meta"><span>Follow</span><time datetime="2026-10-10T15:12">6 hours ago</time><span class="sr state">, unread</span></div><div class="nacts"><button type="button" class="mini yellow followback" aria-pressed="false">Follow back</button></div></div><button type="button" class="mark" aria-label="Mark as read" title="Mark as read"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li></ol></section><section class="grp" aria-labelledby="g-this-week"><h2 id="g-this-week">This week</h2><ol class="list"><li class="note" data-id="n4" data-type="request"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#101b33" aria-hidden="true"><span class="ic request"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Name]</a> asked to build something with you</p><blockquote class="quote">Looking for someone to help with the art for a jam game next month.</blockquote><div class="meta"><span>Collaboration request</span><time datetime="2026-10-08T11:20">2 days ago</time><span class="sr state"></span></div><div class="nacts"><a class="mini" href="Profile.html">View profile</a></div></div><button type="button" class="mark" aria-label="Mark as unread" title="Mark as unread"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li><li class="note" data-id="n5" data-type="comment"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#6b7ba8" aria-hidden="true"><span class="ic comment"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Name]</a> replied to your comment on <a class="site" href="Post.html">[Caption of another site]</a></p><blockquote class="quote">Good catch, the grid breaks below 360px. Fixed it.</blockquote><div class="meta"><span>Comment</span><time datetime="2026-10-07T09:02">3 days ago</time><span class="sr state"></span></div><div class="nacts"><a class="mini" href="Post.html#h-comments">Reply</a></div></div><button type="button" class="mark" aria-label="Mark as unread" title="Mark as unread"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li><li class="note" data-id="n6" data-type="rating"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#3b4f86" aria-hidden="true"><span class="ic rating"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Name]</a> rated <a class="site" href="Post.html">[Caption of another site]</a> 5 stars</p><div class="meta"><span>Rating</span><time datetime="2026-10-06T20:45">4 days ago</time><span class="sr state"></span></div></div><button type="button" class="mark" aria-label="Mark as unread" title="Mark as unread"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li></ol></section><section class="grp" aria-labelledby="g-earlier"><h2 id="g-earlier">Earlier</h2><ol class="list"><li class="note" data-id="n7" data-type="follow"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#6b7ba8" aria-hidden="true"><span class="ic follow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Name]</a> started following you</p><div class="meta"><span>Follow</span><time datetime="2026-09-28T13:30">Sep 28</time><span class="sr state"></span></div></div><button type="button" class="mark" aria-label="Mark as unread" title="Mark as unread"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li><li class="note" data-id="n8" data-type="comment"><span class="dot" aria-hidden="true"></span><span class="who" style="background:#3b4f86" aria-hidden="true"><span class="ic comment"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></span></span><div class="ntext"><p><a href="Profile.html">[Commenter]</a> commented on <a class="site" href="Post.html">A tiny arcade game about a blob that can&#39;t stop bouncing</a></p><blockquote class="quote">Works well on my phone. Would love a way to restart a level without going back to the menu.</blockquote><div class="meta"><span>Comment</span><time datetime="2026-09-24T18:10">Sep 24</time><span class="sr state"></span></div><div class="nacts"><a class="mini" href="Post.html#h-comments">Reply</a></div></div><button type="button" class="mark" aria-label="Mark as unread" title="Mark as unread"><svg class="on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><svg class="off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/></svg></button></li></ol></section></div>
+    <div class="empty" id="empty" hidden>
+      <img src="shoof-blob-navy.svg" alt="">
+      <h2 id="empty-title">You&#39;re all caught up</h2>
+      <p id="empty-text">New comments, ratings, follows and requests will show up here.</p>
+    </div>
+    <p class="end" id="end">That&#39;s everything from the last 30 days.</p>
+  </div>
+  <p class="sr" id="live" role="status" aria-live="polite"></p>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var notes = [].slice.call(document.querySelectorAll('.note'));
+  var KEY_READ = 'shoof-read', KEY_UNREAD = 'shoof-unread';
+  var filter = 'all';
+
+  /* read state is kept in this browser so the header bell on every page agrees (mock) */
+  var readIds = null;
+  try { readIds = JSON.parse(localStorage.getItem(KEY_READ) || 'null'); } catch (e) {}
+  if (Array.isArray(readIds)) notes.forEach(function (n) { setRead(n, readIds.indexOf(n.dataset.id) > -1, true); });
+
+  function setRead(n, read, quiet) {
+    n.classList.toggle('unread', !read);
+    var b = n.querySelector('.mark');
+    b.setAttribute('aria-label', read ? 'Mark as unread' : 'Mark as read'); b.title = b.getAttribute('aria-label');
+    n.querySelector('.state').textContent = read ? '' : ', unread';
+    if (!quiet) save();
+  }
+  function unreadCount() { return notes.filter(function (n) { return n.classList.contains('unread'); }).length; }
+  function save() {
+    var ids = notes.filter(function (n) { return !n.classList.contains('unread'); }).map(function (n) { return n.dataset.id; });
+    try { localStorage.setItem(KEY_READ, JSON.stringify(ids)); localStorage.setItem(KEY_UNREAD, String(unreadCount())); } catch (e) {}
+    refresh();
+  }
+  function matches(n, f) {
+    if (f === 'all') return true;
+    if (f === 'unread') return n.classList.contains('unread');
+    return n.dataset.type === f;
+  }
+  function refresh() {
+    var u = unreadCount();
+    $('summary').innerHTML = u ? 'You have <b id="unread-count">' + u + '</b> unread.' : 'You&#39;re all caught up.';
+    $('mark-all').disabled = u === 0;
+    document.querySelectorAll('.tab .n').forEach(function (c) {
+      c.textContent = notes.filter(function (n) { return matches(n, c.dataset.count); }).length;
+    });
+    var shown = 0;
+    notes.forEach(function (n) { var m = matches(n, filter); n.hidden = !m; if (m) shown++; });
+    document.querySelectorAll('.grp').forEach(function (g) { g.hidden = !g.querySelector('.note:not([hidden])'); });
+    $('empty').hidden = shown > 0; $('end').hidden = shown === 0;
+    if (!shown) {
+      $('empty-title').textContent = filter === 'unread' ? 'You\u2019re all caught up' : 'Nothing here yet';
+      $('empty-text').textContent = filter === 'unread' ? 'Nothing new since you last looked.' : 'When you get one, it will show up here.';
+    }
+    if (window.shoofBell) window.shoofBell(u);
+  }
+
+  /* filter tabs: arrow keys move and select */
+  var tabs = [].slice.call(document.querySelectorAll('.tab'));
+  function pick(t) {
+    tabs.forEach(function (x) { var on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; });
+    filter = t.dataset.filter; $('panel').setAttribute('aria-labelledby', t.id); refresh();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { pick(t); });
+    t.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return; e.preventDefault();
+      var n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); pick(n);
+    });
+  });
+
+  /* mark one / mark all; opening a notification marks it read */
+  notes.forEach(function (n) {
+    n.querySelector('.mark').addEventListener('click', function () {
+      var read = n.classList.contains('unread');
+      setRead(n, read); $('live').textContent = read ? 'Marked as read.' : 'Marked as unread.';
+      if (n.hidden) { var next = document.querySelector('.note:not([hidden]) .mark'); (next || $('mark-all')).focus(); }
+    });
+    n.querySelectorAll('.ntext a').forEach(function (a) { a.addEventListener('click', function () { if (n.classList.contains('unread')) setRead(n, true); }); });
+  });
+  $('mark-all').addEventListener('click', function () {
+    notes.forEach(function (n) { setRead(n, true, true); }); save();
+    $('live').textContent = 'All notifications marked as read.';
+  });
+
+  /* follow back */
+  document.querySelectorAll('.followback').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', on); b.textContent = on ? 'Following' : 'Follow back';
+    });
+  });
+
+  refresh();
+})();
+</script>
+<!--shoof-bell--><script>
+/* Notifications bell: shared unread count (mock, kept in this browser) */
+(function () {
+  window.shoofBell = function (n) {
+    document.querySelectorAll('.bell').forEach(function (b) {
+      var c = b.querySelector('.bell-n');
+      c.textContent = n > 9 ? '9+' : n; c.hidden = !n;
+      b.setAttribute('aria-label', n ? 'Notifications, ' + n + ' unread' : 'Notifications');
+    });
+  };
+  var n = 3;
+  try { var s = localStorage.getItem('shoof-unread'); if (s !== null && !isNaN(+s)) n = +s; } catch (e) {}
+  window.shoofBell(n);
+})();
+</script><!--/shoof-bell-->
+</body>
+</html>

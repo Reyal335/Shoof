@@ -34,7 +34,7 @@ const ormModule = TypeOrmModule.forRootAsync({
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
         autoLoadEntities: true,
-        synchronize: true
+        synchronize: false
     })
 });
 const observeImports = [...(observeAppKey && observeAppSecret

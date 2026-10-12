@@ -14,15 +14,15 @@ export type AccessTokenResponse = {
   expiresIn: number;
 };
 
-export type UserProfile = {
-  email: string,
-  username: string,
-  isActive: boolean,
-  emailVerified: boolean,
-  role: string,
-  createdAt: Date,
-  updatedAt: Date
-}
+/** GET /users/me: the signed-in user's own account. Mirrors AccountView in apps/api/src/modules/users/users.service.ts. */
+export type Account = {
+  id: string;
+  email: string;
+  username: string;
+  emailVerified: boolean;
+  role: string;
+  createdAt: string;
+};
 
 /** The login request. The login form reaches it through `useSignIn`; nothing else calls the endpoint. */
 export function signIn(credentials: SignInCredentials): Promise<AccessTokenResponse> {
@@ -48,8 +48,8 @@ export function verifyEmail(token: string): Promise<{ email: string; emailVerifi
 /** Emails a fresh link to the signed-in user. Rejects with 409 when the address is already verified. */
 export const resendVerification = () => authedRequest<void>("/auth/email/verification", { method: "POST" });
 
-export function getUserData<T>(accessToken: string): Promise<T> {
-  return request<T>("/users/me", {
+export function getUserData(accessToken: string): Promise<Account> {
+  return request<Account>("/users/me", {
     method: "GET",
     accessToken,
   });

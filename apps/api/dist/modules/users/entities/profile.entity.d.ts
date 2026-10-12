@@ -4,6 +4,10 @@ export interface ProfileLink {
     label: string;
     url: string;
 }
+export declare const TECH_STACK_GROUPS: readonly ["frontend", "backend", "tools"];
+export type TechStackGroup = (typeof TECH_STACK_GROUPS)[number];
+export type TechStack = Record<TechStackGroup, string[]>;
+export declare const emptyTechStack: () => TechStack;
 export declare class Profile {
     userId: string;
     user: Relation<User>;
@@ -12,6 +16,7 @@ export declare class Profile {
     avatarUrl: string | null;
     websiteUrl: string | null;
     links: ProfileLink[];
+    techStack: TechStack;
     country: string | null;
     locale: string | null;
     timezone: string | null;

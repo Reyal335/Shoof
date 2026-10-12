@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings | Shoof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33}
+*{box-sizing:border-box}
+body{margin:0}
+h1,h2,h3,p{margin:0}
+button{cursor:pointer;font-family:inherit}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.top{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;font-family:'Figtree',system-ui,sans-serif;color:var(--ink)}
+.top-left{display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:34px;height:34px}
+.brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:26px;color:var(--navy)}
+.topnav{display:flex;gap:20px}
+.topnav a{font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;padding:4px 0;border-bottom:3px solid transparent}
+.topnav a[aria-current="page"]{border-bottom-color:var(--yellow)}
+.search{flex-grow:1;max-width:420px}
+.search input{width:100%;height:44px;border:1.5px solid var(--input);border-radius:22px;padding:0 20px;font:400 15px 'Figtree',sans-serif;background:var(--ground);color:var(--ink)}
+.top-right{display:flex;align-items:center;gap:14px}
+.post-btn{display:flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:21px;background:var(--yellow);color:var(--navy);font:700 15px 'Outfit',sans-serif;text-decoration:none}
+.me{width:40px;height:40px;border-radius:20px;background:var(--navy);display:block}
+.top a:focus-visible,.top input:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.cells span{border-radius:2px}
+.c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
+@media (max-width:700px){.search{display:none}.topnav{display:none}.top{padding:0 16px}}
+
+:root{--field:#7d89a8;--track:#7d89a8;--on-tint:#5f4400;--error:#b3261e}
+body{background:var(--ground);color:var(--ink);font-family:'Figtree',system-ui,sans-serif}
+a{color:var(--link)}a:hover{color:#10275e}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+::placeholder{color:var(--muted);opacity:1}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 32px 72px;display:flex;flex-direction:column;gap:28px}
+.pagehead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.pagehead>div{display:flex;flex-direction:column;gap:8px;max-width:640px}
+.pagehead h1{font:600 40px/44px 'Outfit',sans-serif;letter-spacing:-1px}
+.pagehead p{font-size:17px;line-height:26px;color:var(--muted)}
+.saved{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 14px;border-radius:19px;background:var(--white);border:1px solid var(--border);font-size:14px;font-weight:600;transition:background .15s,border-color .15s}
+.saved.on{background:var(--tint);border-color:var(--yellow)}
+.sgrid{display:grid;grid-template-columns:240px minmax(0,1fr);gap:32px;align-items:start}
+.snav{position:sticky;top:92px;display:flex;flex-direction:column;gap:4px}
+.snav a{flex-shrink:0;display:flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;white-space:nowrap;color:var(--ink)}
+.snav a:hover{background:var(--chip);color:var(--ink)}
+.snav a[aria-current="true"]{background:var(--navy);color:#fff}
+.groups{display:flex;flex-direction:column;gap:24px;min-width:0}
+.group{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:6px 28px 12px;scroll-margin-top:88px}
+.group h2{margin-top:20px;font:600 24px/30px 'Outfit',sans-serif}
+.group h3{margin:22px 0 2px;font-family:'Figtree',sans-serif;font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding:18px 0;border-top:1px solid var(--border)}
+.row.col{flex-direction:column;align-items:stretch;justify-content:flex-start;gap:14px}
+.row.col>.rtext{flex:none}
+.rtext{flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.rtitle{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lbl{font-weight:600;font-size:16px;color:var(--ink)}
+.desc{font-size:14px;line-height:20px;color:var(--muted)}
+.soon{font-size:12px;font-weight:700;padding:3px 9px;border-radius:10px;background:var(--tint);color:var(--on-tint)}
+.count{font-size:14px;font-weight:600;color:var(--muted)}
+.rhead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px}
+/* segmented control */
+.seg{display:inline-flex;flex-wrap:wrap;padding:4px;gap:4px;border-radius:12px;background:var(--chip);border:1px solid var(--border)}
+.seg button{min-height:40px;padding:0 16px;border:0;border-radius:9px;font:600 15px 'Figtree',sans-serif;background:transparent;color:var(--ink);transition:background .15s,color .15s}
+.seg button:hover{background:#d5dbe9}
+.seg button[aria-selected="true"]{background:var(--navy);color:#fff}
+/* select */
+select{min-width:210px;height:44px;border:1.5px solid var(--field);border-radius:12px;padding:0 12px;font:500 15px 'Figtree',sans-serif;background:var(--white);color:var(--ink);cursor:pointer}
+select:disabled{opacity:.7;cursor:not-allowed}
+/* switch */
+.switch{flex-shrink:0;width:60px;height:44px;padding:0;border:0;border-radius:22px;background:transparent;display:flex;align-items:center;justify-content:center}
+.switch .track{width:52px;height:30px;padding:3px;border-radius:15px;background:var(--track);display:flex;align-items:center;transition:background .15s}
+.switch .knob{width:24px;height:24px;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.switch[aria-pressed="true"] .track{background:var(--navy)}
+.switch[aria-pressed="true"] .knob{transform:translateX(22px)}
+.switch[aria-disabled="true"]{cursor:not-allowed}
+.switch[aria-disabled="true"] .track{opacity:.5}
+/* radios (disabled for now) */
+.radios{display:flex;flex-wrap:wrap;gap:8px 22px}
+.radios[aria-disabled="true"]{opacity:.7}
+.radio{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600}
+.radio input{width:20px;height:20px;accent-color:var(--navy);margin:0}
+.radio input:disabled{cursor:not-allowed}
+/* same control as the Creators page */
+.check{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:var(--navy);min-height:44px}
+.check input{width:20px;height:20px;accent-color:var(--navy);margin:0}
+/* chip picker */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:10px;border:1.5px solid var(--field);background:var(--chip);color:var(--ink);font:600 14px 'Figtree',sans-serif;transition:background .15s}
+.chip svg{display:none}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.chip[aria-pressed="true"] svg{display:block}
+/* muted tags */
+.addrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+.addrow input{min-width:0;height:44px;border:1.5px solid var(--field);border-radius:12px;padding:0 14px;font:400 15px 'Figtree',sans-serif;background:var(--ground);color:var(--ink)}
+.addrow input[aria-invalid="true"]{border-color:var(--error)}
+.outline{height:44px;padding:0 20px;border-radius:12px;border:1.5px solid var(--navy);background:var(--white);color:var(--navy);font:600 15px 'Figtree',sans-serif}
+.err{font-size:14px;font-weight:600;color:var(--error)}
+.err::before{content:"! ";font-weight:800}
+.empty{display:flex;align-items:center;gap:14px;padding:20px;border-radius:14px;border:1.5px dashed var(--field)}
+.empty svg{color:var(--muted);flex-shrink:0}
+.empty b{display:block;font-size:15px}
+.empty span{font-size:14px;line-height:20px;color:var(--muted)}
+.mlist{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.mlist li{display:inline-flex;align-items:center;gap:4px;padding:4px 4px 4px 12px;border-radius:10px;background:var(--chip);font-size:14px;font-weight:600}
+.mlist button{width:36px;height:36px;border:0;border-radius:8px;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.mlist button:hover{background:#d5dbe9}
+/* reduce motion: the setting, and the device preference */
+.rm *{transition:none !important}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+@media (max-width:960px){.sgrid{grid-template-columns:minmax(0,1fr)}.snav{position:static;flex-direction:row;overflow-x:auto;padding-bottom:6px}.search{display:none}}
+@media (max-width:700px){.wrap{padding:24px 16px 56px}.group{padding:4px 18px 10px}.pagehead h1{font-size:32px;line-height:36px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-left">
+    <a class="brand" href="Feed.html"><img src="shoof-blob.svg" alt=""><span>Shoof</span></a>
+    <nav class="topnav" aria-label="Main">
+      <a href="Feed.html">Home</a>
+      <a href="#explore">Explore</a>
+      <a href="Creators.html">Creators</a>
+    </nav>
+  </div>
+  <div class="search">
+    <label class="sr" for="q">Search Shoof</label>
+    <input id="q" type="search" placeholder="Search sites, creators, stacks">
+  </div>
+  <div class="top-right">
+    <a class="post-btn" href="CreatePost.html">Post a site</a>
+    <a class="me" href="Profile.html" aria-label="Your profile"></a>
+  </div>
+</header>
+<main class="wrap">
+  <div class="pagehead">
+    <div>
+      <h1>Settings</h1>
+      <p>Choose how Shoof looks and behaves for you. Changes save as you make them.</p>
+    </div>
+    <p class="saved" id="saved" role="status" aria-live="polite"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span id="saved-text">All changes saved</span></p>
+  </div>
+  <div class="sgrid">
+    <nav class="snav" aria-label="Settings sections">
+      <a href="#display" aria-current="true">Display &amp; browsing</a>
+      <a href="#profile" aria-current="false">Profile &amp; visibility</a>
+      <a href="#notifications" aria-current="false">Notifications</a>
+      <a href="#accessibility" aria-current="false">Accessibility</a>
+      <a href="#content" aria-current="false">Content</a>
+    </nav>
+    <div class="groups">
+    <section class="group" id="display" aria-labelledby="h-display">
+      <h2 id="h-display">Display &amp; browsing</h2>
+      <h3>Appearance</h3>
+      <div class="row">
+        <div class="rtext"><label class="lbl" id="l-theme">Theme</label><span class="desc" id="d-theme">Light, dark, or match your device. Your choice applies across Shoof.</span></div>
+        <div class="seg" role="tablist" id="theme" data-name="Theme" aria-labelledby="l-theme" aria-describedby="d-theme"><button type="button" role="tab" aria-selected="false" tabindex="-1" data-value="light">Light</button><button type="button" role="tab" aria-selected="false" tabindex="-1" data-value="dark">Dark</button><button type="button" role="tab" aria-selected="true" tabindex="0" data-value="system">System</button></div>
+      </div>
+      <div class="row">
+        <div class="rtext"><label class="lbl" id="l-density">Card density</label><span class="desc" id="d-density">Compact fits more cards on screen.</span></div>
+        <div class="seg" role="tablist" id="density" data-name="Card density" aria-labelledby="l-density" aria-describedby="d-density"><button type="button" role="tab" aria-selected="true" tabindex="0" data-value="comfortable">Comfortable</button><button type="button" role="tab" aria-selected="false" tabindex="-1" data-value="compact">Compact</button></div>
+      </div>
+      <h3>Browsing</h3>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="landing">Default landing section</label><span class="desc" id="d-landing">The page you see first when you open Shoof.</span></div>
+        <select id="landing" data-name="Landing section" aria-describedby="d-landing"><option value="all" selected>All sites</option><option value="games">Games</option><option value="portfolios">Portfolios</option><option value="saas">SaaS</option><option value="css_ui">CSS &amp; UI</option><option value="misc">Misc</option></select>
+      </div>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="sort">Default feed sort</label><span class="desc" id="d-sort">How the home feed is ordered when you open it.</span></div>
+        <select id="sort" data-name="Feed sort" aria-describedby="d-sort"><option value="recent" selected>Recent</option><option value="liked">Most liked</option><option value="trending">Trending</option></select>
+      </div>
+      <div class="row">
+        <div class="rtext"><div class="rtitle"><label class="lbl" for="preview">Preview behavior</label><span class="soon">Coming soon</span></div><span class="desc" id="d-preview">On: live previews play as they scroll into view. Off: they load when you click. Arrives with live embeds.</span></div>
+        <button type="button" class="switch" id="preview" aria-pressed="false" aria-describedby="d-preview" aria-disabled="true" tabindex="-1"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+    </section>
+    <section class="group" id="profile" aria-labelledby="h-profile">
+      <h2 id="h-profile">Profile &amp; visibility</h2>
+      <h3>Profile</h3>
+      <div class="row">
+        <div class="rtext"><div class="rtitle"><label class="lbl" id="l-visibility">Profile visibility</label><span class="soon">Coming soon</span></div><span class="desc" id="d-visibility">Who can see your profile and the sites you post. Arrives with accounts.</span></div>
+        <div class="radios" role="radiogroup" aria-labelledby="l-visibility" aria-describedby="d-visibility" aria-disabled="true"><span class="radio"><input type="radio" name="visibility" id="vis-public" value="public" checked disabled><label for="vis-public">Public</label></span><span class="radio"><input type="radio" name="visibility" id="vis-followers" value="followers" disabled><label for="vis-followers">Followers only</label></span></div>
+      </div>
+      <div class="row">
+        <div class="rtext"><span class="lbl" id="l-collab">Collaboration</span><span class="desc" id="d-collab">Shows the Open to collaborate badge on your profile and cards, and lists you in the Creators filter.</span></div>
+        <label class="check"><input type="checkbox" id="collab" checked aria-describedby="d-collab"> Open to collaborate</label>
+      </div>
+      <h3>Cards</h3>
+      <div class="row col">
+        <div class="rhead"><div class="rtext"><span class="lbl" id="l-stack">Tech stack tags on compact cards</span><span class="desc" id="d-stack">Pick which of your stack tags appear on your cards in compact view.</span></div><span class="count" id="stack-count">3 tags selected</span></div>
+        <div class="chips" role="group" id="stack" aria-labelledby="l-stack" aria-describedby="d-stack"><button type="button" class="chip" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>React</button><button type="button" class="chip" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>TypeScript</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Tailwind</button><button type="button" class="chip" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Next.js</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Node.js</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Express</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>MongoDB</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>PostgreSQL</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Docker</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Git</button><button type="button" class="chip" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Vite</button></div>
+      </div>
+    </section>
+    <section class="group" id="notifications" aria-labelledby="h-notifications">
+      <h2 id="h-notifications">Notifications</h2>
+      <h3>Activity</h3>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="likes">Likes</label><span class="desc" id="d-likes">When someone likes a site you posted.</span></div>
+        <button type="button" class="switch" id="likes" aria-pressed="false" aria-describedby="d-likes" data-name="Like notifications"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="follows">Follows</label><span class="desc" id="d-follows">When someone follows you.</span></div>
+        <button type="button" class="switch" id="follows" aria-pressed="true" aria-describedby="d-follows" data-name="Follow notifications"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="comments">Comments</label><span class="desc" id="d-comments">When someone comments on one of your sites.</span></div>
+        <button type="button" class="switch" id="comments" aria-pressed="true" aria-describedby="d-comments" data-name="Comment notifications"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="requests">Collaboration requests</label><span class="desc" id="d-requests">When someone asks to build something with you.</span></div>
+        <button type="button" class="switch" id="requests" aria-pressed="true" aria-describedby="d-requests" data-name="Collaboration request notifications"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <h3>Email</h3>
+      <div class="row">
+        <div class="rtext"><div class="rtitle"><label class="lbl" for="digest">Digest frequency</label><span class="soon">Coming soon</span></div><span class="desc" id="d-digest">A summary of your activity by email. Arrives with email notifications.</span></div>
+        <select id="digest" data-name="Digest" aria-describedby="d-digest" disabled aria-disabled="true"><option value="immediate">Immediate</option><option value="daily">Daily</option><option value="weekly" selected>Weekly</option><option value="off">Off</option></select>
+      </div>
+    </section>
+    <section class="group" id="accessibility" aria-labelledby="h-accessibility">
+      <h2 id="h-accessibility">Accessibility</h2>
+      <h3>Motion</h3>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="motion">Reduce motion</label><span class="desc" id="d-motion">Turns off animations across Shoof. If your device is already set to reduce motion, Shoof follows that automatically.</span></div>
+        <button type="button" class="switch" id="motion" aria-pressed="false" aria-describedby="d-motion" data-name="Reduce motion"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <h3>Text and contrast</h3>
+      <div class="row">
+        <div class="rtext"><label class="lbl" id="l-fontsize">Font size</label><span class="desc" id="d-fontsize">The size of text across Shoof.</span></div>
+        <div class="seg" role="tablist" id="fontsize" data-name="Font size" aria-labelledby="l-fontsize" aria-describedby="d-fontsize"><button type="button" role="tab" aria-selected="false" tabindex="-1" data-value="small">Small</button><button type="button" role="tab" aria-selected="true" tabindex="0" data-value="default">Default</button><button type="button" role="tab" aria-selected="false" tabindex="-1" data-value="large">Large</button></div>
+      </div>
+      <div class="row">
+        <div class="rtext"><label class="lbl" for="contrast">High contrast mode</label><span class="desc" id="d-contrast">Stronger borders and text colors.</span></div>
+        <button type="button" class="switch" id="contrast" aria-pressed="false" aria-describedby="d-contrast" data-name="High contrast"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+    </section>
+    <section class="group" id="content" aria-labelledby="h-content">
+      <h2 id="h-content">Content</h2>
+      <h3>Filters</h3>
+      <div class="row">
+        <div class="rtext"><div class="rtitle"><label class="lbl" for="mature">Mature content filter</label><span class="soon">Coming soon</span></div><span class="desc" id="d-mature">Hide posts marked as mature. Arrives once the content policy is final.</span></div>
+        <button type="button" class="switch" id="mature" aria-pressed="false" aria-describedby="d-mature" aria-disabled="true" tabindex="-1"><span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <h3>Muted</h3>
+      <div class="row col">
+        <div class="rtext"><label class="lbl" for="mute-input">Muted tags and stacks</label><span class="desc" id="d-mute">Posts that use a muted tag or stack won't show in your feed.</span></div>
+        <div class="addrow">
+          <input id="mute-input" type="text" autocomplete="off" placeholder="Type a tag, like jQuery or Web3" aria-describedby="d-mute mute-err">
+          <button type="button" class="outline" id="mute-add">Mute</button>
+        </div>
+        <span class="err" id="mute-err" hidden></span>
+        <div class="empty" id="mute-empty"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l4 6M21 9l-4 6"/></svg><div><b>No muted tags yet</b><span>Add one above and its posts will stay out of your feed.</span></div></div>
+        <ul class="mlist" id="mute-list" aria-label="Muted tags" hidden></ul>
+      </div>
+    </section>
+    </div>
+  </div>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* save status: settings apply instantly (mock: nothing leaves the page except the theme choice) */
+  var timer, saved = $('saved'), savedText = $('saved-text');
+  function save(msg) {
+    clearTimeout(timer);
+    savedText.textContent = 'Saved: ' + msg;
+    saved.classList.add('on');
+    timer = setTimeout(function () { savedText.textContent = 'All changes saved'; saved.classList.remove('on'); }, 2600);
+  }
+
+  /* theme: the same choice the other Shoof pages read ('shoof-theme'); System clears it */
+  function readTheme() { try { var t = localStorage.getItem('shoof-theme'); return t === 'light' || t === 'dark' ? t : 'system'; } catch (e) { return 'system'; } }
+  function writeTheme(v) { try { if (v === 'system') localStorage.removeItem('shoof-theme'); else localStorage.setItem('shoof-theme', v); } catch (e) {} }
+
+  /* segmented controls: role=tablist, arrow keys move and select */
+  function selectSeg(group, btn, announce) {
+    group.querySelectorAll('[role="tab"]').forEach(function (b) {
+      var on = b === btn;
+      b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1;
+    });
+    if (group.id === 'theme') writeTheme(btn.dataset.value);
+    if (announce) save(group.dataset.name + ' set to ' + btn.textContent);
+  }
+  document.querySelectorAll('.seg').forEach(function (group) {
+    var tabs = [].slice.call(group.querySelectorAll('[role="tab"]'));
+    if (group.id === 'theme') {
+      var cur = readTheme();
+      tabs.forEach(function (b) { if (b.dataset.value === cur) selectSeg(group, b, false); });
+    }
+    tabs.forEach(function (b, i) {
+      b.addEventListener('click', function () { if (b.getAttribute('aria-selected') !== 'true') selectSeg(group, b, true); });
+      b.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var n = tabs[(i + d + tabs.length) % tabs.length];
+        n.focus(); selectSeg(group, n, true);
+      });
+    });
+  });
+
+  /* selects */
+  document.querySelectorAll('select:not([disabled])').forEach(function (s) {
+    s.addEventListener('change', function () { save(s.dataset.name + ' set to ' + s.options[s.selectedIndex].text); });
+  });
+
+  /* switches */
+  document.querySelectorAll('.switch:not([aria-disabled="true"])').forEach(function (sw) {
+    sw.addEventListener('click', function () {
+      var on = sw.getAttribute('aria-pressed') !== 'true';
+      sw.setAttribute('aria-pressed', on);
+      if (sw.id === 'motion') document.body.classList.toggle('rm', on);
+      save(sw.dataset.name + (on ? ' on' : ' off'));
+    });
+  });
+
+  /* open to collaborate */
+  $('collab').addEventListener('change', function () { save(this.checked ? 'Open to collaborate' : 'Not open to collaborate'); });
+
+  /* tech stack chips */
+  var chips = [].slice.call(document.querySelectorAll('#stack .chip'));
+  function countChips() {
+    var n = chips.filter(function (c) { return c.getAttribute('aria-pressed') === 'true'; }).length;
+    $('stack-count').textContent = n + (n === 1 ? ' tag selected' : ' tags selected');
+  }
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () {
+      var on = c.getAttribute('aria-pressed') !== 'true';
+      c.setAttribute('aria-pressed', on); countChips();
+      save(c.textContent + (on ? ' shown on' : ' hidden from') + ' compact cards');
+    });
+  });
+
+  /* muted tags */
+  var muted = [], input = $('mute-input'), err = $('mute-err'), list = $('mute-list'), empty = $('mute-empty');
+  function setErr(msg) { err.textContent = msg || ''; err.hidden = !msg; if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid'); }
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function render() {
+    empty.hidden = muted.length > 0; list.hidden = muted.length === 0;
+    list.innerHTML = muted.map(function (m, i) {
+      return '<li>' + esc(m) + '<button type="button" data-i="' + i + '" aria-label="Unmute ' + esc(m) + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></li>';
+    }).join('');
+  }
+  function add() {
+    var v = input.value.replace(/\s+/g, ' ').trim();
+    if (!v) { setErr('Type a tag or stack to mute.'); return; }
+    if (v.length > 30) { setErr('Keep it under 30 characters.'); return; }
+    if (muted.some(function (m) { return m.toLowerCase() === v.toLowerCase(); })) { setErr(v + ' is already muted.'); return; }
+    setErr(''); muted.push(v); input.value = ''; render(); save(v + ' muted'); input.focus();
+  }
+  $('mute-add').addEventListener('click', add);
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+  input.addEventListener('input', function () { if (!err.hidden) setErr(''); });
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var i = +b.dataset.i, v = muted.splice(i, 1)[0];
+    render(); save(v + ' unmuted');
+    var next = list.querySelectorAll('button')[Math.min(i, muted.length - 1)];
+    (next || input).focus();
+  });
+
+  /* section nav: highlight the section you jumped to, and follow scrolling */
+  var links = [].slice.call(document.querySelectorAll('.snav a'));
+  var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function mark(i) { links.forEach(function (a, j) { a.setAttribute('aria-current', j === i ? 'true' : 'false'); }); }
+  links.forEach(function (a, i) { a.addEventListener('click', function () { mark(i); }); });
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () {
+      ticking = false;
+      var cur = 0;
+      sections.forEach(function (s, i) { if (s.getBoundingClientRect().top <= 140) cur = i; });
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = sections.length - 1;
+      mark(cur);
+    });
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>

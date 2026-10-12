@@ -7,15 +7,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 export var UserTheme;
 (function (UserTheme) {
     UserTheme["DARK"] = "dark";
     UserTheme["LIGHT"] = "light";
 })(UserTheme || (UserTheme = {}));
 let User_Preference = class User_Preference {
+    preference_id;
     role;
 };
+__decorate([
+    PrimaryGeneratedColumn("uuid"),
+    __metadata("design:type", String)
+], User_Preference.prototype, "preference_id", void 0);
 __decorate([
     Column({
         type: "enum",

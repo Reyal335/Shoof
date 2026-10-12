@@ -10,48 +10,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service.js';
-import { CreateUserDto } from './dto/create-user.dto.js';
-import { UpdateUserDto } from './dto/update-user.dto.js';
+import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
         this.usersService = usersService;
     }
-    create(createUserDto) {
-        return this.usersService.create(createUserDto);
-    }
-    findAll() {
-        return this.usersService.findAll();
-    }
     me(user) {
-        return this.usersService.findOne(user.id);
+        return this.usersService.findAccount(user.id);
     }
-    findOne(id) {
-        return this.usersService.findOne(id);
+    myProfile(user) {
+        return this.usersService.findProfile(user.id);
     }
-    update(id, updateUserDto) {
-        return this.usersService.update(id, updateUserDto);
-    }
-    remove(id) {
-        return this.usersService.remove(id);
+    updateMyProfile(user, dto) {
+        return this.usersService.updateProfile(user.id, dto);
     }
 };
-__decorate([
-    Post(),
-    __param(0, Body()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [CreateUserDto]),
-    __metadata("design:returntype", void 0)
-], UsersController.prototype, "create", null);
-__decorate([
-    Get(),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], UsersController.prototype, "findAll", null);
 __decorate([
     Get('me'),
     __param(0, CurrentUser()),
@@ -60,27 +37,21 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "me", null);
 __decorate([
-    Get(':id'),
-    __param(0, Param('id')),
+    Get('me/profile'),
+    __param(0, CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "findOne", null);
+], UsersController.prototype, "myProfile", null);
 __decorate([
-    Patch(':id'),
-    __param(0, Param('id')),
+    Patch('me/profile'),
+    UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })),
+    __param(0, CurrentUser()),
     __param(1, Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, UpdateUserDto]),
+    __metadata("design:paramtypes", [Object, UpdateProfileDto]),
     __metadata("design:returntype", void 0)
-], UsersController.prototype, "update", null);
-__decorate([
-    Delete(':id'),
-    __param(0, Param('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
-], UsersController.prototype, "remove", null);
+], UsersController.prototype, "updateMyProfile", null);
 UsersController = __decorate([
     Controller('users'),
     __metadata("design:paramtypes", [UsersService])

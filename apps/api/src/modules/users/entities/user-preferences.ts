@@ -25,5 +25,5 @@ export class User_Preference {
         enum: UserTheme,
         default: UserTheme.LIGHT
     })
-    role: UserTheme
+    theme: UserTheme
 }

@@ -13,6 +13,7 @@ import { Post } from '../modules/posts/entities/post.entity.js';
 import { Media } from '../modules/posts/entities/media.entity.js';
 import { Comment } from '../modules/posts/entities/comment.entity.js';
 import { Rating } from '../modules/posts/entities/rating.entity.js';
+import { Notification } from '../modules/notifications/entities/notification.entity.js';
 
 config({ path: resolve(import.meta.dirname, '../../../../.env'), quiet: true });
 
@@ -23,7 +24,7 @@ const options: DataSourceOptions & SeederOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: [User, User_Identity, Profile, Follow, RefreshToken, Post, Media, Comment, Rating],
+  entities: [User, User_Identity, Profile, Follow, RefreshToken, Post, Media, Comment, Rating, Notification],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   seeds: ['src/database/seeds/**/*.ts'],

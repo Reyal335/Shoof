@@ -22,6 +22,7 @@ import { DataSource } from 'typeorm';
 import { User } from './modules/users/entities/user.entity.js';
 import { PostsModule } from './modules/posts/posts.module.js';
 import { FollowsModule } from './modules/follows/follows.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
@@ -39,7 +40,9 @@ const ormModule = TypeOrmModule.forRootAsync({
       password: config.get<string>('DB_PASSWORD'),
       database: config.get<string>('DB_DATABASE'),
       autoLoadEntities: true,
-      synchronize: true
+      // The schema comes from src/database/migrations only (npm run migration:run). Never sync from the entities:
+      // a renamed column would be dropped along with its data.
+      synchronize: false
   })
 })
 
@@ -81,7 +84,7 @@ const observeImports = [...(observeAppKey && observeAppSecret
 
 
 @Module({
-  imports: [...observeImports, AuthModule, PostsModule, FollowsModule],
+  imports: [...observeImports, AuthModule, PostsModule, FollowsModule, NotificationsModule],
   controllers: [AppController],
   providers: [AppService],
 })

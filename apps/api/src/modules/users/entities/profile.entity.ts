@@ -15,6 +15,13 @@ export interface ProfileLink {
     url: string
 }
 
+// The groups shown on the profile page. Don't add or rename one without a migration for the stored rows.
+export const TECH_STACK_GROUPS = ['frontend', 'backend', 'tools'] as const
+export type TechStackGroup = (typeof TECH_STACK_GROUPS)[number]
+export type TechStack = Record<TechStackGroup, string[]>
+
+export const emptyTechStack = (): TechStack => ({ frontend: [], backend: [], tools: [] })
+
 // Public-facing data for a user. Kept apart from `user` so auth fields never leak into profile queries.
 @Entity('profiles')
 export class Profile {
@@ -40,6 +47,12 @@ export class Profile {
     // GitHub, Behance, etc.
     @Column({ type: 'jsonb', default: () => `'[]'` })
     links: ProfileLink[]
+
+    // What the creator builds with, grouped for display. Free-text names (like posts.techStack) until a skills
+    // module exists; written by UsersService.updateProfile only, which keeps every group present and deduplicated.
+    // The default is spelled the way Postgres prints jsonb (keys reordered) so migration:generate sees no change.
+    @Column({ type: 'jsonb', default: () => `'{"tools": [], "backend": [], "frontend": []}'` })
+    techStack: TechStack
 
     // ISO 3166-1 alpha-2
     @Column({ type: 'char', length: 2, nullable: true })

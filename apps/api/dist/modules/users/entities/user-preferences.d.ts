@@ -3,5 +3,6 @@ export declare enum UserTheme {
     LIGHT = "light"
 }
 export declare class User_Preference {
+    preference_id: string;
     role: UserTheme;
 }
