@@ -4,11 +4,11 @@ import { Controller,
   Patch, 
   Delete,
   Post,
-  UsePipes, 
+  HttpCode,
+  UsePipes,
   ValidationPipe,
   Param } from '@nestjs/common';
 import { UsersService } from './users.service.js';
-import { FollowService } from '../follows/follows.service.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { AuthUser } from '../auth/auth.types.js';
@@ -22,7 +22,6 @@ import { Public } from '../auth/decorators/public.decorator.js';
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly followService: FollowService
   ) {}
 
   @Get('me')
@@ -50,13 +49,6 @@ export class UsersController {
   }
 
   // User followers and following
-  @Post(':id/follow')
-  followUser(@Param() param: any, @CurrentUser() user: AuthUser) {
-    return this.followService.followUser(param.id, user.id);
-  }
 
-  @Delete(':id/folow')
-  unfollowUser(@Param() param: any, @CurrentUser() user: AuthUser) {
-    return this.followService.unfollowUser(param.id, user.id);
-  }
+  // Whether the signed-in user follows :id, so the follow button starts in the right state
 }

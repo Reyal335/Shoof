@@ -21,6 +21,7 @@ import { join } from 'node:path';
 import { DataSource } from 'typeorm';
 import { PostsModule } from './modules/posts/posts.module.js';
 import { FollowsModule } from './modules/follows/follows.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const observeAppKey = process.env.OBSERVE_APP_KEY;
 const observeAppSecret = process.env.OBSERVE_APP_SECRET;
@@ -78,7 +79,7 @@ let AppModule = class AppModule {
 };
 AppModule = __decorate([
     Module({
-        imports: [...observeImports, AuthModule, PostsModule, FollowsModule],
+        imports: [...observeImports, AuthModule, PostsModule, FollowsModule, NotificationsModule],
         controllers: [AppController],
         providers: [AppService],
     }),

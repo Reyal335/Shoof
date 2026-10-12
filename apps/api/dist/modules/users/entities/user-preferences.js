@@ -15,7 +15,7 @@ export var UserTheme;
 })(UserTheme || (UserTheme = {}));
 let User_Preference = class User_Preference {
     preference_id;
-    role;
+    theme;
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
@@ -28,7 +28,7 @@ __decorate([
         default: UserTheme.LIGHT
     }),
     __metadata("design:type", String)
-], User_Preference.prototype, "role", void 0);
+], User_Preference.prototype, "theme", void 0);
 User_Preference = __decorate([
     Entity()
 ], User_Preference);

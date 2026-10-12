@@ -14,6 +14,10 @@ export interface ProfileView {
     techStack: TechStack;
     updatedAt: Date;
 }
+type PublicProfile = Pick<Profile, 'displayName' | 'bio' | 'avatarUrl' | 'websiteUrl' | 'links' | 'techStack' | 'country'>;
+export type PublicUser = Pick<User, 'id' | 'username'> & {
+    profile: PublicProfile | null;
+};
 export interface AccountView {
     id: string;
     email: string;
@@ -44,6 +48,8 @@ export declare class UsersService {
     findOne(id: string): Promise<Omit<User, 'passwordHash'> | null>;
     findAccount(id: string): Promise<AccountView>;
     findByEmail(email: string): Promise<Omit<User, 'passwordHash'> | null>;
+    findByUsername(username: string): Promise<PublicUser>;
+    findPublicByIds(ids: string[]): Promise<PublicUser[]>;
     findCredentials(email: string): Promise<{
         user: Omit<User, 'passwordHash'>;
         passwordHash: string | null;
@@ -55,5 +61,6 @@ export declare class UsersService {
     findProfile(userId: string): Promise<ProfileView>;
     updateProfile(userId: string, dto: UpdateProfileDto): Promise<ProfileView>;
     private ensureProfile;
+    followUser(): Promise<void>;
 }
 export {};

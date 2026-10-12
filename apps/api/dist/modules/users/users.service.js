@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User } from './entities/user.entity.js';
 import { User_Identity } from './entities/user-identity.js';
 import { Profile, TECH_STACK_GROUPS, emptyTechStack } from './entities/profile.entity.js';
@@ -111,6 +111,52 @@ let UsersService = class UsersService {
         const { passwordHash, ...result } = foundUser;
         return result;
     }
+    async findByUsername(username) {
+        const user = await this.usersRepository.findOne({
+            where: { username },
+            relations: { profile: true },
+            select: {
+                id: true,
+                username: true,
+                profile: {
+                    displayName: true,
+                    bio: true,
+                    avatarUrl: true,
+                    websiteUrl: true,
+                    links: true,
+                    techStack: true,
+                    country: true
+                },
+            }
+        });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return user;
+    }
+    async findPublicByIds(ids) {
+        const users = await this.usersRepository.find({
+            where: {
+                id: In(ids),
+                isActive: true
+            },
+            relations: { profile: true },
+            select: {
+                id: true,
+                username: true,
+                profile: {
+                    displayName: true,
+                    bio: true,
+                    avatarUrl: true,
+                    websiteUrl: true,
+                    links: true,
+                    techStack: true,
+                    country: true
+                },
+            }
+        });
+        return users;
+    }
     async findCredentials(email) {
         const found = await this.usersRepository.findOneBy({ email });
         if (!found) {
@@ -184,6 +230,8 @@ let UsersService = class UsersService {
             .orIgnore()
             .execute();
         return user;
+    }
+    async followUser() {
     }
 };
 UsersService = __decorate([

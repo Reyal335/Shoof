@@ -10,10 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Get, Body, Patch, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UsePipes, ValidationPipe, Param } from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import { Public } from '../auth/decorators/public.decorator.js';
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -21,6 +22,9 @@ let UsersController = class UsersController {
     }
     me(user) {
         return this.usersService.findAccount(user.id);
+    }
+    username(param) {
+        return this.usersService.findByUsername(param.username);
     }
     myProfile(user) {
         return this.usersService.findProfile(user.id);
@@ -36,6 +40,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "me", null);
+__decorate([
+    Public(),
+    Get(':username'),
+    __param(0, Param()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "username", null);
 __decorate([
     Get('me/profile'),
     __param(0, CurrentUser()),

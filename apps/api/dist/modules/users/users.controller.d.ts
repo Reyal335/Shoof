@@ -5,6 +5,7 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     me(user: AuthUser): Promise<import("./users.service.js").AccountView>;
+    username(param: any): Promise<import("./users.service.js").PublicUser>;
     myProfile(user: AuthUser): Promise<import("./users.service.js").ProfileView>;
     updateMyProfile(user: AuthUser, dto: UpdateProfileDto): Promise<import("./users.service.js").ProfileView>;
 }

@@ -4,5 +4,5 @@ export declare enum UserTheme {
 }
 export declare class User_Preference {
     preference_id: string;
-    role: UserTheme;
+    theme: UserTheme;
 }
