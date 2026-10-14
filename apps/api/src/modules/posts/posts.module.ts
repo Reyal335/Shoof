@@ -11,5 +11,7 @@ import { Rating } from './entities/rating.entity.js';
   imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating])],
   controllers: [PostsController],
   providers: [PostsService],
+  // For notifications, which reads post captions and comment text by id
+  exports: [PostsService],
 })
 export class PostsModule {}

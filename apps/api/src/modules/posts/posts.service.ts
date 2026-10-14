@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryFailedError, Repository, type EntityManager, type FindOptionsWhere } from 'typeorm';
+import { In, QueryFailedError, Repository, type EntityManager, type FindOptionsWhere } from 'typeorm';
 import type { AuthUser } from '../auth/auth.types.js';
 import { UserRole } from '../users/entities/user.entity.js';
 import { Post } from './entities/post.entity.js';
@@ -10,6 +10,15 @@ import { Rating } from './entities/rating.entity.js';
 import type { CreatePostDto, MediaItemDto } from './dto/create-post.dto.js';
 import type { UpdatePostDto } from './dto/update-post.dto.js';
 import type { ListPostsQueryDto, PaginationQueryDto } from './dto/query.dto.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  PostEvents,
+  type CommentCreatedEvent,
+  type CommentDeletedEvent,
+  type PostDeletedEvent,
+  type PostRatedEvent,
+  type PostUnratedEvent,
+} from './posts.events.js';
 
 export interface Page<T> {
   items: T[];
@@ -25,6 +34,10 @@ export interface RatingSummary {
   // The caller's own rating, null when they have none
   value: number | null;
 }
+
+// What other modules get from findSummariesByIds / findCommentSummariesByIds: just enough to name and link it
+export type PostSummary = Pick<Post, 'id' | 'userId' | 'caption'>;
+export type CommentSummary = Pick<Comment, 'id' | 'postId' | 'content'>;
 
 // Postgres foreign_key_violation: the referenced post was deleted (or never existed)
 const FOREIGN_KEY_VIOLATION = '23503';
@@ -63,6 +76,7 @@ export class PostsService {
     private readonly posts: Repository<Post>,
     @InjectRepository(Comment)
     private readonly comments: Repository<Comment>,
+    private eventEmitter: EventEmitter2
   ) {}
 
   // ---------- posts ----------
@@ -160,6 +174,20 @@ export class PostsService {
       }
       await manager.delete(Post, { id });
     });
+
+    this.eventEmitter.emit(PostEvents.Deleted, { postId: id } satisfies PostDeletedEvent);
+  }
+
+  /** For other modules (notifications) that hold post ids. Missing ids are left out. */
+  async findSummariesByIds(ids: string[]): Promise<PostSummary[]> {
+    if (!ids.length) return [];
+    return this.posts.find({ where: { id: In(ids) }, select: { id: true, userId: true, caption: true } });
+  }
+
+  /** For other modules (notifications) that hold comment ids. Missing ids are left out. */
+  async findCommentSummariesByIds(ids: string[]): Promise<CommentSummary[]> {
+    if (!ids.length) return [];
+    return this.comments.find({ where: { id: In(ids) }, select: { id: true, postId: true, content: true } });
   }
 
   /** One atomic increment, so concurrent visits are never lost. Leaves updatedAt alone: a visit is not an edit. */
@@ -187,7 +215,7 @@ export class PostsService {
    * totals always match the ratings table. The lock is FOR NO KEY UPDATE, so comments can still be added meanwhile.
    */
   async rate(postId: string, user: AuthUser, value: number): Promise<RatingSummary> {
-    return this.posts.manager.transaction(async (manager) => {
+    const { summary, ownerId } = await this.posts.manager.transaction(async (manager) => {
       const post = await this.lockPost(manager, postId, 'for_no_key_update');
       if (post.userId === user.id) {
         throw new ForbiddenException('You cannot rate your own post');
@@ -199,17 +227,26 @@ export class PostsService {
         .values({ postId, userId: user.id, value })
         .orUpdate(['value'], ['postId', 'userId'])
         .execute();
-      return { postId, ...(await this.refreshRating(manager, postId)), value };
+
+      const summary: RatingSummary = { postId, ...(await this.refreshRating(manager, postId)), value };
+      return { summary, ownerId: post.userId };
     });
+
+    // After the commit, so a rolled-back rating never notifies anyone
+    this.eventEmitter.emit(PostEvents.Rated, { postId, actorId: user.id, recipientId: ownerId } satisfies PostRatedEvent);
+    return summary;
   }
 
   /** Removes the caller's rating if there is one (idempotent) and recomputes the totals, under the same lock. */
   async unrate(postId: string, user: AuthUser): Promise<RatingSummary> {
-    return this.posts.manager.transaction(async (manager) => {
+    const summary = await this.posts.manager.transaction(async (manager): Promise<RatingSummary> => {
       await this.lockPost(manager, postId, 'for_no_key_update');
       await manager.delete(Rating, { postId, userId: user.id });
       return { postId, ...(await this.refreshRating(manager, postId)), value: null };
     });
+
+    this.eventEmitter.emit(PostEvents.Unrated, { postId, actorId: user.id } satisfies PostUnratedEvent);
+    return summary;
   }
 
   // ---------- comments ----------
@@ -227,14 +264,28 @@ export class PostsService {
 
   /** No separate existence check: the foreign key rejects a missing post atomically, even one deleted mid-request. */
   async addComment(postId: string, user: AuthUser, content: string): Promise<Comment> {
+    let comment: Comment;
     try {
-      return await this.comments.save(this.comments.create({ postId, userId: user.id, content }));
+      comment = await this.comments.save(this.comments.create({ postId, userId: user.id, content }));
     } catch (error) {
       if (error instanceof QueryFailedError && (error.driverError as { code?: string }).code === FOREIGN_KEY_VIOLATION) {
         throw new NotFoundException('Post not found');
       }
       throw error;
     }
+
+    // The post's creator is the recipient. Missing only if the post was deleted since the save, and then the
+    // comment went with it (ON DELETE CASCADE), so there is nothing to notify about.
+    const post = await this.posts.findOne({ where: { id: postId }, select: { id: true, userId: true } });
+    if (post && post.userId !== user.id) {
+      this.eventEmitter.emit(PostEvents.CommentCreated, {
+        postId,
+        commentId: comment.id,
+        actorId: user.id,
+        recipientId: post.userId,
+      } satisfies CommentCreatedEvent);
+    }
+    return comment;
   }
 
   /** The author only. */
@@ -261,6 +312,8 @@ export class PostsService {
       }
       await manager.delete(Comment, { id: commentId });
     });
+
+    this.eventEmitter.emit(PostEvents.CommentDeleted, { postId, commentId } satisfies CommentDeletedEvent);
   }
 
   // ---------- helpers ----------

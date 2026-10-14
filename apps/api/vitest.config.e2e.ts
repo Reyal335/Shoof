@@ -7,5 +7,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    // The specs share one test database and each drops or truncates it, so they must not run at the same time
+    fileParallelism: false,
   },
 });

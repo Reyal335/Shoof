@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ValidationPipe, type CanActivate, ty
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { config } from 'dotenv';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
@@ -93,6 +94,7 @@ describe('Posts (e2e)', () => {
           synchronize: true,
           dropSchema: true,
         }),
+        EventEmitterModule.forRoot(),
         PostsModule,
       ],
       providers: [{ provide: APP_GUARD, useClass: HeaderAuthGuard }],

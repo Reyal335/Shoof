@@ -28,6 +28,8 @@ export enum NotificationType {
 @Index(['recipientId', 'createdAt'])
 // The unread badge: only unread rows are indexed, so the count stays cheap as old notifications pile up
 @Index('IDX_notifications_unread', ['recipientId'], { where: `"readAt" IS NULL` })
+// A deleted post takes its notifications with it (withdrawForPost); follow rows have no post and aren't indexed
+@Index('IDX_notifications_post', ['postId'], { where: `"postId" IS NOT NULL` })
 @Index('UQ_notifications_follow', ['recipientId', 'actorId'], { unique: true, where: `"type" = 'follow'` })
 @Index('UQ_notifications_rating', ['postId', 'actorId'], { unique: true, where: `"type" = 'rating'` })
 @Index('UQ_notifications_comment', ['commentId'], { unique: true, where: `"commentId" IS NOT NULL` })

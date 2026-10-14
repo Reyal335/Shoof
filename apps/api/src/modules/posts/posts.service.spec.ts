@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { normalizeTechStack, PostsService } from './posts.service.js';
 import { Post } from './entities/post.entity.js';
 import { Comment } from './entities/comment.entity.js';
@@ -14,6 +15,7 @@ describe('PostsService', () => {
         PostsService,
         { provide: getRepositoryToken(Post), useValue: {} },
         { provide: getRepositoryToken(Comment), useValue: {} },
+        { provide: EventEmitter2, useValue: { emit: vi.fn() } },
       ],
     }).compile();
 
