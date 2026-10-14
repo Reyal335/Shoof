@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import "@/styles/shared.css";
 
 export const siteMetadata: Metadata = {
+  // Makes relative canonical and Open Graph URLs (e.g. /@username) absolute, which link previews need.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: "Shoof",
   description: "Don't describe your site. Show it.",
 };

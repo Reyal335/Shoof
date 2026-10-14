@@ -1,3 +1,4 @@
+import { jwtDecode } from "jwt-decode";
 import { ApiError, request } from "@/lib/api-client";
 import type { AccessTokenResponse } from "./api";
 
@@ -9,6 +10,8 @@ const AUTH_CHANNEL = "shoof:auth";
 
 let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
+// The token's `sub` claim. Kept past the token's expiry: it identifies the session, not a usable credential.
+let userId: string | null = null;
 let status: SessionStatus = "unknown";
 let refreshing: Promise<string | null> | null = null;
 let channel: BroadcastChannel | null = null;
@@ -23,14 +26,20 @@ function setStatus(next: SessionStatus) {
 export function setAccessToken(tokens: AccessTokenResponse) {
   accessToken = tokens.accessToken;
   accessTokenExpiresAt = Date.now() + tokens.expiresIn * 1000;
+  userId = jwtDecode(tokens.accessToken).sub ?? null;
   setStatus("authenticated");
 }
 
 export function clearAccessToken() {
   accessToken = null;
   accessTokenExpiresAt = 0;
+  userId = null;
   setStatus("anonymous");
 }
+
+/** The signed-in user's id, or null when signed out. Read only for display (e.g. "is this my profile?"); the API
+ * decides who the caller is from the token itself. */
+export const getSessionUserId = () => userId;
 
 export function getAccessToken() {
   if (!accessToken || Date.now() >= accessTokenExpiresAt - EXPIRY_MARGIN_MS) return null;

@@ -20,3 +20,25 @@ export interface Profile {
 export type ProfileUpdate = Partial<Pick<Profile, "displayName" | "bio" | "avatarUrl" | "websiteUrl">> & {
   techStack?: Partial<TechStack>;
 };
+
+// What anyone can see at /@username: GET /users/:username. Mirrors PublicUser in apps/api/src/modules/users/users.service.ts.
+export interface ProfileLink {
+  label: string;
+  url: string;
+}
+
+export interface PublicUser {
+  id: string;
+  username: string;
+  /** null until the user first opens or saves their own profile, which is when the row is created. */
+  profile: {
+    displayName: string;
+    bio: string | null;
+    avatarUrl: string | null;
+    websiteUrl: string | null;
+    links: ProfileLink[];
+    techStack: TechStack;
+    /** ISO 3166-1 alpha-2 */
+    country: string | null;
+  } | null;
+}
