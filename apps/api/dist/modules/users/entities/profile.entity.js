@@ -9,8 +9,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Entity, Column, CreateDateColumn, JoinColumn, OneToOne, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 import { User } from './user.entity.js';
-export const TECH_STACK_GROUPS = ['frontend', 'backend', 'tools'];
-export const emptyTechStack = () => ({ frontend: [], backend: [], tools: [] });
 let Profile = class Profile {
     userId;
     user;
@@ -19,7 +17,6 @@ let Profile = class Profile {
     avatarUrl;
     websiteUrl;
     links;
-    techStack;
     country;
     locale;
     timezone;
@@ -56,10 +53,6 @@ __decorate([
     Column({ type: 'jsonb', default: () => `'[]'` }),
     __metadata("design:type", Array)
 ], Profile.prototype, "links", void 0);
-__decorate([
-    Column({ type: 'jsonb', default: () => `'{"tools": [], "backend": [], "frontend": []}'` }),
-    __metadata("design:type", Object)
-], Profile.prototype, "techStack", void 0);
 __decorate([
     Column({ type: 'char', length: 2, nullable: true }),
     __metadata("design:type", Object)

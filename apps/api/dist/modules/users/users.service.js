@@ -10,12 +10,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User } from './entities/user.entity.js';
 import { User_Identity } from './entities/user-identity.js';
-import { Profile, TECH_STACK_GROUPS, emptyTechStack } from './entities/profile.entity.js';
+import { Profile } from './entities/profile.entity.js';
+import { UserSkill } from './entities/user-skill.entity.js';
+import { SkillsService, toSkillSummary } from '../skills/skills.service.js';
 import { NotFoundException } from '@nestjs/common';
 const ACCOUNT_COLUMNS = { id: true, email: true, username: true, emailVerified: true, role: true, createdAt: true };
 export function toAccountView(user) {
@@ -28,35 +30,18 @@ export function toAccountView(user) {
         createdAt: user.createdAt,
     };
 }
-export function normalizeStackNames(names) {
-    const seen = new Set();
-    const result = [];
-    for (const raw of names) {
-        const name = raw.replace(/\s+/g, ' ').trim();
-        const key = name.toLowerCase();
-        if (name && !seen.has(key)) {
-            seen.add(key);
-            result.push(name);
-        }
-    }
-    return result;
-}
-export function mergeTechStack(current, patch) {
-    const merged = emptyTechStack();
-    for (const group of TECH_STACK_GROUPS) {
-        const next = patch[group];
-        merged[group] = next != null ? normalizeStackNames(next) : (current?.[group] ?? []);
-    }
-    return merged;
-}
 let UsersService = class UsersService {
     usersRepository;
     userIdentityRepository;
     profilesRepository;
-    constructor(usersRepository, userIdentityRepository, profilesRepository) {
+    userSkillsRepository;
+    skillsService;
+    constructor(usersRepository, userIdentityRepository, profilesRepository, userSkillsRepository, skillsService) {
         this.usersRepository = usersRepository;
         this.userIdentityRepository = userIdentityRepository;
         this.profilesRepository = profilesRepository;
+        this.userSkillsRepository = userSkillsRepository;
+        this.skillsService = skillsService;
     }
     users = [
         {
@@ -124,7 +109,6 @@ let UsersService = class UsersService {
                     avatarUrl: true,
                     websiteUrl: true,
                     links: true,
-                    techStack: true,
                     country: true
                 },
             }
@@ -133,6 +117,10 @@ let UsersService = class UsersService {
             throw new NotFoundException('User not found');
         }
         return user;
+    }
+    async findPublicProfile(username) {
+        const user = await this.findByUsername(username);
+        return { ...user, skills: await this.findSkills(user.id) };
     }
     async findPublicByIds(ids) {
         const users = await this.usersRepository.find({
@@ -150,7 +138,6 @@ let UsersService = class UsersService {
                     avatarUrl: true,
                     websiteUrl: true,
                     links: true,
-                    techStack: true,
                     country: true
                 },
             }
@@ -187,16 +174,17 @@ let UsersService = class UsersService {
         return;
     }
     async findProfile(userId) {
-        return this.profilesRepository.manager.transaction(async (manager) => {
+        const { user, profile } = await this.profilesRepository.manager.transaction(async (manager) => {
             const user = await this.ensureProfile(manager, userId);
-            const profile = await manager.findOneByOrFail(Profile, { userId });
-            return toProfileView(user, profile);
+            return { user, profile: await manager.findOneByOrFail(Profile, { userId }) };
         });
+        return toProfileView(user, profile, await this.findSkills(userId));
     }
     async updateProfile(userId, dto) {
-        return this.profilesRepository.manager.transaction(async (manager) => {
+        const skillIds = dto.skillIds != null ? await this.checkSkills(dto.skillIds) : null;
+        const { user, profile } = await this.profilesRepository.manager.transaction(async (manager) => {
             const user = await this.ensureProfile(manager, userId);
-            const profile = await manager.findOneOrFail(Profile, {
+            await manager.findOneOrFail(Profile, {
                 where: { userId },
                 lock: { mode: 'pessimistic_write' },
             });
@@ -209,13 +197,31 @@ let UsersService = class UsersService {
                 patch.avatarUrl = dto.avatarUrl || null;
             if (dto.websiteUrl !== undefined)
                 patch.websiteUrl = dto.websiteUrl || null;
-            if (dto.techStack != null)
-                patch.techStack = mergeTechStack(profile.techStack, dto.techStack);
             if (Object.keys(patch).length) {
                 await manager.update(Profile, { userId }, patch);
             }
-            return toProfileView(user, await manager.findOneByOrFail(Profile, { userId }));
+            if (skillIds != null) {
+                await manager.delete(UserSkill, { userId });
+                if (skillIds.length) {
+                    await manager.insert(UserSkill, skillIds.map((skillId) => ({ userId, skillId })));
+                }
+            }
+            return { user, profile: await manager.findOneByOrFail(Profile, { userId }) };
         });
+        return toProfileView(user, profile, await this.findSkills(userId));
+    }
+    async findSkills(userId) {
+        const rows = await this.userSkillsRepository.find({ where: { userId }, select: { skillId: true } });
+        const skills = await this.skillsService.findByIds(rows.map((row) => row.skillId));
+        return skills.map(toSkillSummary);
+    }
+    async checkSkills(ids) {
+        const unique = [...new Set(ids)];
+        const found = await this.skillsService.findByIds(unique);
+        if (found.length !== unique.length) {
+            throw new BadRequestException('One or more skills do not exist');
+        }
+        return unique;
     }
     async ensureProfile(manager, userId) {
         const user = await manager.findOneBy(User, { id: userId });
@@ -231,20 +237,21 @@ let UsersService = class UsersService {
             .execute();
         return user;
     }
-    async followUser() {
-    }
 };
 UsersService = __decorate([
     Injectable(),
     __param(0, InjectRepository(User)),
     __param(1, InjectRepository(User_Identity)),
     __param(2, InjectRepository(Profile)),
+    __param(3, InjectRepository(UserSkill)),
     __metadata("design:paramtypes", [Repository,
         Repository,
-        Repository])
+        Repository,
+        Repository,
+        SkillsService])
 ], UsersService);
 export { UsersService };
-function toProfileView(user, profile) {
+function toProfileView(user, profile, skills) {
     return {
         userId: user.id,
         username: user.username,
@@ -252,7 +259,7 @@ function toProfileView(user, profile) {
         bio: profile.bio,
         avatarUrl: profile.avatarUrl,
         websiteUrl: profile.websiteUrl,
-        techStack: mergeTechStack(profile.techStack, {}),
+        skills,
         updatedAt: profile.updatedAt,
     };
 }

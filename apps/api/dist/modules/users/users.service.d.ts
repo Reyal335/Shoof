@@ -3,7 +3,9 @@ import type { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity.js';
 import { User_Identity } from './entities/user-identity.js';
-import { Profile, type TechStack } from './entities/profile.entity.js';
+import { Profile } from './entities/profile.entity.js';
+import { UserSkill } from './entities/user-skill.entity.js';
+import { SkillsService, type SkillSummary } from '../skills/skills.service.js';
 export interface ProfileView {
     userId: string;
     username: string;
@@ -11,12 +13,15 @@ export interface ProfileView {
     bio: string | null;
     avatarUrl: string | null;
     websiteUrl: string | null;
-    techStack: TechStack;
+    skills: SkillSummary[];
     updatedAt: Date;
 }
-type PublicProfile = Pick<Profile, 'displayName' | 'bio' | 'avatarUrl' | 'websiteUrl' | 'links' | 'techStack' | 'country'>;
+type PublicProfile = Pick<Profile, 'displayName' | 'bio' | 'avatarUrl' | 'websiteUrl' | 'links' | 'country'>;
 export type PublicUser = Pick<User, 'id' | 'username'> & {
     profile: PublicProfile | null;
+};
+export type PublicProfileView = PublicUser & {
+    skills: SkillSummary[];
 };
 export interface AccountView {
     id: string;
@@ -35,13 +40,13 @@ declare const ACCOUNT_COLUMNS: {
     readonly createdAt: true;
 };
 export declare function toAccountView(user: Pick<User, keyof typeof ACCOUNT_COLUMNS>): AccountView;
-export declare function normalizeStackNames(names: string[]): string[];
-export declare function mergeTechStack(current: Partial<TechStack> | null | undefined, patch: Partial<TechStack>): TechStack;
 export declare class UsersService {
     private usersRepository;
     private userIdentityRepository;
     private profilesRepository;
-    constructor(usersRepository: Repository<User>, userIdentityRepository: Repository<User_Identity>, profilesRepository: Repository<Profile>);
+    private userSkillsRepository;
+    private readonly skillsService;
+    constructor(usersRepository: Repository<User>, userIdentityRepository: Repository<User_Identity>, profilesRepository: Repository<Profile>, userSkillsRepository: Repository<UserSkill>, skillsService: SkillsService);
     private readonly users;
     create(createUserDto: CreateUserDto): Promise<Omit<User, 'passwordHash'>>;
     createWithEmail(createWithSignIn: CreateWithSignIn): Promise<void>;
@@ -49,6 +54,7 @@ export declare class UsersService {
     findAccount(id: string): Promise<AccountView>;
     findByEmail(email: string): Promise<Omit<User, 'passwordHash'> | null>;
     findByUsername(username: string): Promise<PublicUser>;
+    findPublicProfile(username: string): Promise<PublicProfileView>;
     findPublicByIds(ids: string[]): Promise<PublicUser[]>;
     findCredentials(email: string): Promise<{
         user: Omit<User, 'passwordHash'>;
@@ -60,7 +66,8 @@ export declare class UsersService {
     linkIdentity(id: string, provider: string, subject: string): Promise<void>;
     findProfile(userId: string): Promise<ProfileView>;
     updateProfile(userId: string, dto: UpdateProfileDto): Promise<ProfileView>;
+    private findSkills;
+    private checkSkills;
     private ensureProfile;
-    followUser(): Promise<void>;
 }
 export {};

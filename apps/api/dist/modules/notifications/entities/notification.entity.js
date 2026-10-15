@@ -66,6 +66,7 @@ Notification = __decorate([
 `),
     Index(['recipientId', 'createdAt']),
     Index('IDX_notifications_unread', ['recipientId'], { where: `"readAt" IS NULL` }),
+    Index('IDX_notifications_post', ['postId'], { where: `"postId" IS NOT NULL` }),
     Index('UQ_notifications_follow', ['recipientId', 'actorId'], { unique: true, where: `"type" = 'follow'` }),
     Index('UQ_notifications_rating', ['postId', 'actorId'], { unique: true, where: `"type" = 'rating'` }),
     Index('UQ_notifications_comment', ['commentId'], { unique: true, where: `"commentId" IS NOT NULL` })

@@ -32,7 +32,7 @@ export class UsersController {
   @Public()
   @Get(':username')
   username(@Param() param: any) {
-    return this.usersService.findByUsername(param.username);
+    return this.usersService.findPublicProfile(param.username);
   }
 
   // The signed-in user's own profile, for the profile page and its edit form

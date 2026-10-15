@@ -1,9 +1,6 @@
-// Mirrors ProfileView in apps/api/src/modules/users/users.service.ts.
+import type { Skill } from "@/features/skills/types";
 
-// Same groups, in the same order, as TECH_STACK_GROUPS in apps/api/src/modules/users/entities/profile.entity.ts.
-export const TECH_STACK_GROUPS = ["frontend", "backend", "tools"] as const;
-export type TechStackGroup = (typeof TECH_STACK_GROUPS)[number];
-export type TechStack = Record<TechStackGroup, string[]>;
+// Mirrors ProfileView in apps/api/src/modules/users/users.service.ts.
 
 export interface Profile {
   userId: string;
@@ -12,16 +9,18 @@ export interface Profile {
   bio: string | null;
   avatarUrl: string | null;
   websiteUrl: string | null;
-  techStack: TechStack;
+  /** Sorted by name; the page groups them by kind. */
+  skills: Skill[];
   updatedAt: string;
 }
 
 // The PATCH body. Every field optional; a blank string or null clears bio, avatarUrl and websiteUrl.
+// skillIds, when sent, replaces the whole set.
 export type ProfileUpdate = Partial<Pick<Profile, "displayName" | "bio" | "avatarUrl" | "websiteUrl">> & {
-  techStack?: Partial<TechStack>;
+  skillIds?: string[];
 };
 
-// What anyone can see at /@username: GET /users/:username. Mirrors PublicUser in apps/api/src/modules/users/users.service.ts.
+// What anyone can see at /@username: GET /users/:username. Mirrors PublicProfileView in apps/api/src/modules/users/users.service.ts.
 export interface ProfileLink {
   label: string;
   url: string;
@@ -37,8 +36,8 @@ export interface PublicUser {
     avatarUrl: string | null;
     websiteUrl: string | null;
     links: ProfileLink[];
-    techStack: TechStack;
     /** ISO 3166-1 alpha-2 */
     country: string | null;
   } | null;
+  skills: Skill[];
 }

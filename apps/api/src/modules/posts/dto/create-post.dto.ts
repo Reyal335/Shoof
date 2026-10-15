@@ -8,7 +8,9 @@ import {
     IsString,
     IsUrl,
     MaxLength,
-    ValidateNested
+    ValidateNested,
+    ArrayUnique,
+    IsUUID
 } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
 import { MediaType } from '../entities/media.entity.js';
@@ -18,6 +20,7 @@ const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? val
 
 // Same rule as the web form: an http(s) address with a real hostname
 const SITE_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: true };
+const MAX_SKILLS = 10;
 
 export class MediaItemDto {
     @IsEnum(MediaType)
@@ -59,11 +62,10 @@ export class CreatePostDto {
 
     @IsOptional()
     @IsArray()
-    @ArrayMaxSize(MAX_TECH_STACK)
-    @IsString({ each: true })
-    @IsNotEmpty({ each: true })
-    @MaxLength(TECH_NAME_MAX, { each: true })
-    techStack?: string[];
+    @ArrayMaxSize(MAX_SKILLS)
+    @ArrayUnique()
+    @IsUUID('all', { each: true })
+    skillIds: string[] = [];
 
     // In display order; the first one is the cover
     @IsOptional()

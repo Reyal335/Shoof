@@ -7,8 +7,9 @@ import { Header } from "@/components/header";
 import { Tabs } from "@/components/tabs";
 import { EditProfileDialog } from "./components/edit-profile-dialog";
 import { useMyProfile } from "./hooks/use-my-profile";
-import { displayHost, GROUP_LABELS } from "./profile-form";
-import { TECH_STACK_GROUPS, type Profile } from "./types";
+import { groupByKind, KIND_LABELS } from "@/features/skills/skills";
+import { displayHost } from "./profile-form";
+import type { Profile } from "./types";
 import "./profile.css";
 
 const SECTIONS = [
@@ -59,7 +60,7 @@ function ProfileContent({ profile, onSaved }: { profile: Profile; onSaved: (prof
   const [section, setSection] = useState("sites");
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState("");
-  const hasStack = TECH_STACK_GROUPS.some((group) => profile.techStack[group].length > 0);
+  const stack = groupByKind(profile.skills);
 
   return (
     <>
@@ -187,11 +188,11 @@ function ProfileContent({ profile, onSaved }: { profile: Profile; onSaved: (prof
         <aside aria-label="Tech stack">
           <section className="stack">
             <h2>Tech stack</h2>
-            {hasStack ? (
-              TECH_STACK_GROUPS.filter((group) => profile.techStack[group].length > 0).map((group) => (
-                <div className="grp" key={group}>
-                  <h3>{GROUP_LABELS[group]}</h3>
-                  <div>{profile.techStack[group].map((name) => <span key={name}>{name}</span>)}</div>
+            {stack.length > 0 ? (
+              stack.map(({ kind, skills }) => (
+                <div className="grp" key={kind}>
+                  <h3>{KIND_LABELS[kind]}</h3>
+                  <div>{skills.map((skill) => <span key={skill.id}>{skill.name}</span>)}</div>
                 </div>
               ))
             ) : (

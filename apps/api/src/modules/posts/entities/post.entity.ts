@@ -47,8 +47,6 @@ export class Post {
     @Column({ type: 'varchar', nullable: true })
     repoUrl: string | null
 
-    @Column('text', { array: true, default: '{}' })
-    techStack: string[]
 
     @Column({ type: 'enum', enum: PostCategory })
     category: PostCategory

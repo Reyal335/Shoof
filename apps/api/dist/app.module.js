@@ -22,6 +22,8 @@ import { DataSource } from 'typeorm';
 import { PostsModule } from './modules/posts/posts.module.js';
 import { FollowsModule } from './modules/follows/follows.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { SkillsModule } from './modules/skills/skills.module.js';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const observeAppKey = process.env.OBSERVE_APP_KEY;
 const observeAppSecret = process.env.OBSERVE_APP_SECRET;
@@ -69,7 +71,16 @@ const observeImports = [...(observeAppKey && observeAppSecret
         })
     }),
     UsersModule,
-    ormModule
+    ormModule,
+    EventEmitterModule.forRoot({
+        wildcard: false,
+        delimiter: '.',
+        newListener: false,
+        removeListener: false,
+        maxListeners: 10,
+        verboseMemoryLeak: false,
+        ignoreErrors: false,
+    })
 ];
 let AppModule = class AppModule {
     datasource;
@@ -79,7 +90,13 @@ let AppModule = class AppModule {
 };
 AppModule = __decorate([
     Module({
-        imports: [...observeImports, AuthModule, PostsModule, FollowsModule, NotificationsModule],
+        imports: [
+            ...observeImports,
+            AuthModule,
+            PostsModule,
+            FollowsModule,
+            NotificationsModule, SkillsModule
+        ],
         controllers: [AppController],
         providers: [AppService],
     }),

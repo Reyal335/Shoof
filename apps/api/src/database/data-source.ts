@@ -14,6 +14,9 @@ import { Media } from '../modules/posts/entities/media.entity.js';
 import { Comment } from '../modules/posts/entities/comment.entity.js';
 import { Rating } from '../modules/posts/entities/rating.entity.js';
 import { Notification } from '../modules/notifications/entities/notification.entity.js';
+import { Skill } from '../modules/skills/entities/skill.entity.js';
+import { PostSkill } from '../modules/posts/entities/post-skill.entity.js';
+import { UserSkill } from '../modules/users/entities/user-skill.entity.js';
 
 config({ path: resolve(import.meta.dirname, '../../../../.env'), quiet: true });
 
@@ -24,7 +27,7 @@ const options: DataSourceOptions & SeederOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: [User, User_Identity, Profile, Follow, RefreshToken, Post, Media, Comment, Rating, Notification],
+  entities: [User, User_Identity, Profile, Follow, RefreshToken, Post, Media, Comment, Rating, Notification, Skill, PostSkill, UserSkill],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   seeds: ['src/database/seeds/**/*.ts'],

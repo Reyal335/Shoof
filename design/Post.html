@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A tiny arcade game about a blob | Shoof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33}
+*{box-sizing:border-box}
+body{margin:0}
+h1,h2,h3,p{margin:0}
+button{cursor:pointer;font-family:inherit}
+[hidden]{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.top{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--border);height:68px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 32px;font-family:'Figtree',system-ui,sans-serif;color:var(--ink)}
+.top-left{display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:34px;height:34px}
+.brand span{font-family:'Outfit',sans-serif;font-weight:600;font-size:26px;color:var(--navy)}
+.topnav{display:flex;gap:20px}
+.topnav a{font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;padding:4px 0;border-bottom:3px solid transparent}
+.topnav a[aria-current="page"]{border-bottom-color:var(--yellow)}
+.search{flex-grow:1;max-width:420px}
+.search input{width:100%;height:44px;border:1.5px solid var(--input);border-radius:22px;padding:0 20px;font:400 15px 'Figtree',sans-serif;background:var(--ground);color:var(--ink)}
+.top-right{display:flex;align-items:center;gap:14px}
+.post-btn{display:flex;align-items:center;justify-content:center;height:42px;padding:0 20px;border-radius:21px;background:var(--yellow);color:var(--navy);font:700 15px 'Outfit',sans-serif;text-decoration:none}
+.me{width:40px;height:40px;border-radius:20px;background:var(--navy);display:block}
+.top a:focus-visible,.top input:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.cells span{border-radius:2px}
+.c0{background:#26335c}.c1{background:#2ec4b6}.c2{background:#dba40c}.c3{background:#ef6f6f}.c4{background:#7d89a8}
+@media (max-width:700px){.search{display:none}.topnav{display:none}.top{padding:0 16px}}
+
+:root{--field:#7d89a8;--error:#b3261e;--star:#dba40c;--star-line:#7d89a8}
+body{background:var(--ground);color:var(--ink);font-family:'Figtree',system-ui,sans-serif}
+a{color:var(--link)}a:hover{color:#10275e}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--link);outline-offset:2px}
+::placeholder{color:var(--muted);opacity:1}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 32px 72px;display:flex;flex-direction:column;gap:22px}
+/* breadcrumb + heading */
+.crumbs ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px;font-size:14px;font-weight:600;color:var(--muted)}
+.crumbs li+li::before{content:"/";margin-right:6px;color:var(--input)}
+.crumbs a{color:var(--muted);text-decoration:none}.crumbs a:hover{color:var(--navy);text-decoration:underline}
+.crumbs [aria-current]{color:var(--ink)}
+.phead{display:flex;flex-direction:column;gap:12px}
+.cat{align-self:flex-start;font-size:13px;font-weight:700;padding:5px 12px;border-radius:13px;background:var(--navy);color:#fff;text-decoration:none}
+.cat:hover{color:#fff;text-decoration:underline}
+.phead h1{font:600 40px/46px 'Outfit',sans-serif;letter-spacing:-1px;max-width:900px}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;font-size:15px;color:var(--muted)}
+.meta b{color:var(--ink)}
+.meta .stars{display:inline-flex;align-items:center;gap:6px}
+/* layout */
+.pgrid{display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-areas:"media side" "body side";gap:28px 32px;align-items:start}
+.media{grid-area:media;min-width:0;display:flex;flex-direction:column;gap:12px}
+.side{grid-area:side;position:sticky;top:92px;display:flex;flex-direction:column;gap:16px}
+.body{grid-area:body;min-width:0;display:flex;flex-direction:column;gap:22px}
+/* viewer */
+.viewer{background:#1a2848;border-radius:18px;overflow:hidden}
+.vbar{height:40px;display:flex;align-items:center;gap:7px;padding:0 10px 0 14px}
+.vbar i{width:10px;height:10px;border-radius:5px;background:#5b6a92;display:block}
+.vbar .url{flex:1;min-width:0;margin-left:8px;height:26px;border-radius:13px;background:#26335c;color:#dfe4f1;font-size:13px;display:flex;align-items:center;padding:0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbar a{display:flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:15px;color:#eef1f8;font-size:13px;font-weight:600;text-decoration:none}
+.vbar a:hover{background:#26335c;color:#fff}
+.vbar a:focus-visible{outline-color:#dba40c}
+.screen{aspect-ratio:16/10;position:relative}
+.screen-item{position:absolute;inset:0}
+.vfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 16px;color:#dfe4f1;font-size:14px}
+.vfoot b{color:#fff;font-weight:600}
+.vnav{display:flex;gap:6px}
+.vnav button{width:40px;height:40px;border-radius:20px;border:1.5px solid #7d89a8;background:transparent;color:#eef1f8;display:flex;align-items:center;justify-content:center}
+.vnav button:hover{background:#26335c}
+.vnav button:focus-visible{outline-color:#dba40c}
+.thumbs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.thumb{padding:0;border:2px solid var(--border);border-radius:12px;overflow:hidden;background:none;aspect-ratio:16/10;position:relative}
+.thumb[aria-pressed="true"]{border-color:var(--navy);box-shadow:0 0 0 2px var(--yellow)}
+.thumb .scr{pointer-events:none}
+/* stand-in screenshots (they draw a posted game, not Shoof) */
+.scr{position:absolute;inset:0;overflow:hidden}
+.s-play{background:#1d1b3a;padding:4%;display:grid;grid-template-columns:repeat(16,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:3px}
+.thumb .s-play{gap:1px}
+.s-play span{border-radius:3px}
+.s-title{background:#1d1b3a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5%}
+.s-title b{display:block;width:58%;height:13%;border-radius:8px;background:#dba40c}
+.s-title b+b{width:40%;height:9%;background:#2ec4b6}
+.s-title i{display:block;width:24%;height:9%;border-radius:999px;background:#ef6f6f;margin-top:4%}
+.s-title u{display:block;width:30%;height:3%;border-radius:4px;background:#5b6a92}
+.s-levels{background:#151c38;padding:7%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5%}
+.s-levels i{border-radius:12%;background:#2ec4b6;display:block}
+.s-levels i:nth-child(2){background:#dba40c}.s-levels i:nth-child(3){background:#9db4f0}
+.s-levels i:nth-child(n+5){background:#26335c}
+.s-scores{background:#1d1b3a;padding:8% 12%;display:flex;flex-direction:column;justify-content:center;gap:6%}
+.s-scores div{display:flex;align-items:center;gap:5%}
+.s-scores em{width:7%;aspect-ratio:1;border-radius:50%;background:#5b6a92;display:block}
+.s-scores div{height:11%}
+.s-scores i{height:100%;border-radius:6px;background:#26335c;display:block}
+.s-scores div:first-child em{background:#dba40c}.s-scores div:first-child i{background:#dba40c}
+/* side card */
+.card{background:var(--white);border:1px solid var(--border);border-radius:20px}
+.sidecard{padding:20px;display:flex;flex-direction:column;gap:16px}
+.creator{display:flex;align-items:center;gap:12px}
+.av{width:48px;height:48px;border-radius:50%;background:var(--navy);flex-shrink:0;display:block}
+.cname{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cname a{font:600 17px 'Outfit',sans-serif;color:var(--navy);text-decoration:none}
+.cname a:hover{text-decoration:underline}
+.cname span{font-size:14px;color:var(--muted)}
+.follow{height:40px;padding:0 18px;border-radius:20px;border:1.5px solid var(--yellow);background:var(--yellow);color:var(--navy);font:600 14px 'Figtree',sans-serif;flex-shrink:0}
+.follow[aria-pressed="true"]{background:var(--white);border-color:var(--navy)}
+.visit{display:flex;align-items:center;justify-content:center;gap:8px;height:54px;border-radius:14px;background:var(--yellow);color:var(--navy);font:700 17px 'Outfit',sans-serif;text-decoration:none}
+.visit:hover{background:#c7950a;color:var(--navy)}
+.host{margin-top:-8px;font-size:13px;color:var(--muted);text-align:center}
+.code{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;border:1.5px solid var(--navy);color:var(--navy);font:600 15px 'Figtree',sans-serif;text-decoration:none}
+.code:hover{background:var(--ground);color:var(--navy)}
+.acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.act{display:flex;align-items:center;justify-content:center;gap:6px;height:44px;border-radius:12px;border:1.5px solid var(--field);background:var(--white);color:var(--navy);font:600 14px 'Figtree',sans-serif;text-decoration:none}
+.act:hover{border-color:var(--navy);color:var(--navy)}
+.act[aria-pressed="true"]{background:var(--tint);border-color:var(--navy)}
+.act[aria-pressed="true"] svg{fill:var(--navy)}
+.facts{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;font-size:14px;border-top:1px solid var(--border);padding-top:14px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-weight:600;text-align:right}
+/* body sections */
+.sec{padding:24px 26px}
+.sec h2{font:600 22px 'Outfit',sans-serif;margin-bottom:12px}
+.sec h2 .n{font:500 18px 'Figtree',sans-serif;color:var(--muted)}
+.prose p{font-size:17px;line-height:27px;color:#1e2a47;max-width:70ch}
+.prose p+p{margin-top:12px}
+.stack{display:flex;flex-wrap:wrap;gap:8px}
+.stack a{font-size:14px;font-weight:600;padding:7px 12px;border-radius:9px;background:var(--chip);color:var(--ink);text-decoration:none}
+.stack a:hover{background:#d5dbe9;color:var(--ink)}
+/* ratings */
+.rgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px 32px;align-items:center}
+.avg{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.avg b{font:600 52px/1 'Outfit',sans-serif;letter-spacing:-1.5px}
+.avg span{font-size:14px;color:var(--muted)}
+.starrow{display:inline-flex;gap:2px}
+.starrow svg{display:block}
+.bars{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.bars li{display:grid;grid-template-columns:56px minmax(0,1fr) 36px;align-items:center;gap:10px;font-size:14px}
+.bars .bar{height:10px;border-radius:5px;background:var(--chip);overflow:hidden}
+.bars .bar i{display:block;height:100%;border-radius:5px;background:var(--navy)}
+.bars .c{text-align:right;color:var(--muted)}
+.yours{grid-column:1 / -1;border:0;margin:0;padding:16px 0 0;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.yours legend{float:left;padding:0;font-weight:600;font-size:16px}
+.rate{display:flex;gap:2px}
+.rate input{position:absolute;opacity:0;width:1px;height:1px}
+.rate label{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer}
+.rate label:hover{background:var(--ground)}
+.rate input:focus-visible+label{outline:3px solid var(--link);outline-offset:1px}
+.rate svg{fill:none;stroke:var(--star-line);stroke-width:1.8}
+.rate label.on svg{fill:var(--star);stroke:#a07600}
+#rate-msg{font-size:14px;color:var(--muted)}
+/* comments */
+.composer{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.composer label{font-weight:600;font-size:15px}
+.composer textarea{width:100%;min-height:96px;resize:vertical;border:1.5px solid var(--field);border-radius:12px;padding:12px 14px;font:400 16px/24px 'Figtree',sans-serif;color:var(--ink);background:var(--white)}
+.composer textarea[aria-invalid="true"]{border-color:var(--error)}
+.crow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.hint{font-size:13px;color:var(--muted)}
+.count{font-size:13px;color:var(--muted)}
+.send{height:44px;padding:0 20px;border-radius:12px;border:0;background:var(--navy);color:#fff;font:600 15px 'Figtree',sans-serif}
+.send:hover{background:#1e2c4f}
+.err{font-size:14px;font-weight:600;color:var(--error)}
+.err::before{content:"! ";font-weight:800}
+.clist{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.clist li{display:flex;gap:12px;padding:16px 0;border-top:1px solid var(--border)}
+.clist .av{width:40px;height:40px}
+.cbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.chead{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px}
+.chead a{font-weight:700;color:var(--ink);text-decoration:none}
+.chead a:hover{text-decoration:underline}
+.chead time{color:var(--muted)}
+.badge{font-size:12px;font-weight:700;padding:2px 8px;border-radius:9px;background:var(--tint);color:#5f4400}
+.cbody p{font-size:16px;line-height:24px;overflow-wrap:anywhere}
+/* more from */
+.more h2{font:600 24px 'Outfit',sans-serif;margin-bottom:14px}
+.mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.mcard{background:var(--white);border:1px solid var(--border);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.mprev{height:150px;position:relative}
+.mbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px}
+.mbody h3{font:600 18px/23px 'Outfit',sans-serif}
+.mbody h3 a{color:var(--ink);text-decoration:none}
+.mbody h3 a:hover{text-decoration:underline}
+.mbody p{font-size:14px;line-height:20px;color:var(--muted)}
+.mbody .r{font-size:13px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:4px}
+.m-css{background:#dfe5f2;padding:14px;display:flex;flex-direction:column;gap:10px;height:100%}
+.m-css div{display:flex;gap:10px;flex:1}.m-css i{display:block;border-radius:8px;flex:1}
+.m-port{background:#fbfbfd;padding:16px 18px;display:flex;flex-direction:column;gap:10px;height:100%}
+.m-port b{display:block;height:12px;border-radius:5px;background:#101b33}
+.m-port em{display:block;width:44px;height:18px;border-radius:9px;background:#dba40c;margin-top:4px}
+.m-saas{background:#f3f5fa;display:flex;height:100%}
+.m-saas .sd{width:36px;background:#101b33}
+.m-saas .mn{flex:1;padding:12px;display:flex;align-items:flex-end;gap:6px}
+.m-saas .mn i{flex:1;border-radius:3px 3px 0 0;background:#1b3a8a;display:block}
+@media (max-width:1000px){.pgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"media" "side" "body"}.side{position:static}.search{display:none}}
+@media (max-width:700px){.wrap{padding:16px 16px 56px}.phead h1{font-size:30px;line-height:36px}.sec{padding:20px 18px}.mgrid{grid-template-columns:minmax(0,1fr)}.rgrid{grid-template-columns:minmax(0,1fr)}.thumbs{gap:6px}.vfoot{padding-left:12px}}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-left">
+    <a class="brand" href="Feed.html"><img src="shoof-blob.svg" alt=""><span>Shoof</span></a>
+    <nav class="topnav" aria-label="Main">
+      <a href="Feed.html">Home</a>
+      <a href="#explore">Explore</a>
+      <a href="Creators.html">Creators</a>
+    </nav>
+  </div>
+  <div class="search">
+    <label class="sr" for="q">Search Shoof</label>
+    <input id="q" type="search" placeholder="Search sites, creators, stacks">
+  </div>
+  <div class="top-right">
+    <a class="post-btn" href="CreatePost.html">Post a site</a>
+    <a class="me" href="Profile.html" aria-label="Your profile"></a>
+  </div>
+</header>
+<main class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="Feed.html">All sites</a></li><li><a href="Games.html">Games</a></li><li aria-current="page">This post</li></ol></nav>
+  <div class="phead">
+    <a class="cat" href="Games.html">Games</a>
+    <h1>A tiny arcade game about a blob that can&#39;t stop bouncing</h1>
+    <div class="meta">
+      <span class="stars"><span class="starrow" role="img" aria-label="4.6 out of 5 stars"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#e6eaf3"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></span> <b id="meta-avg">4.6</b><span>(<span id="meta-count">128</span> ratings)</span></span>
+      <span><b id="meta-visits">3,412</b> visits</span>
+      <span>Posted <time datetime="2026-10-03">Oct 3, 2026</time></span>
+    </div>
+  </div>
+
+  <div class="pgrid">
+    <section class="media" aria-label="Screenshots">
+      <div class="viewer">
+        <div class="vbar">
+          <i></i><i></i><i></i>
+          <span class="url">yourgame.example.com</span>
+          <a href="https://yourgame.example.com" target="_blank" rel="noopener noreferrer" class="vopen" aria-label="Open yourgame.example.com in a new tab">Open <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        </div>
+        <div class="screen"><div class="screen-item" data-i="0" role="img" aria-label="Screenshot 1 of 4: Gameplay"><div class="scr s-play cells"><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span></div></div><div class="screen-item" data-i="1" hidden role="img" aria-label="Screenshot 2 of 4: Title screen"><div class="scr s-title"><b></b><b></b><i></i><u></u></div></div><div class="screen-item" data-i="2" hidden role="img" aria-label="Screenshot 3 of 4: Level select"><div class="scr s-levels"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="screen-item" data-i="3" hidden role="img" aria-label="Screenshot 4 of 4: High scores"><div class="scr s-scores"><div><em></em><i style="width:90%"></i></div><div><em></em><i style="width:76%"></i></div><div><em></em><i style="width:64%"></i></div><div><em></em><i style="width:52%"></i></div><div><em></em><i style="width:40%"></i></div></div></div></div>
+        <div class="vfoot">
+          <span aria-live="polite"><b id="shot-name">Gameplay</b> &middot; <span id="shot-pos">1 of 4</span></span>
+          <span class="vnav"><button type="button" id="prev" aria-label="Previous screenshot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><button type="button" id="next" aria-label="Next screenshot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></span>
+        </div>
+      </div>
+      <div class="thumbs" role="group" aria-label="Choose a screenshot"><button type="button" class="thumb" data-i="0" aria-pressed="true" aria-label="Show screenshot 1: Gameplay"><div aria-hidden="true" class="scr s-play cells"><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c0"></span><span class="c2"></span><span class="c0"></span><span class="c1"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c1"></span><span class="c2"></span><span class="c0"></span><span class="c0"></span><span class="c2"></span><span class="c1"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span><span class="c0"></span><span class="c0"></span><span class="c0"></span><span class="c3"></span></div></button><button type="button" class="thumb" data-i="1" aria-pressed="false" aria-label="Show screenshot 2: Title screen"><div aria-hidden="true" class="scr s-title"><b></b><b></b><i></i><u></u></div></button><button type="button" class="thumb" data-i="2" aria-pressed="false" aria-label="Show screenshot 3: Level select"><div aria-hidden="true" class="scr s-levels"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></button><button type="button" class="thumb" data-i="3" aria-pressed="false" aria-label="Show screenshot 4: High scores"><div aria-hidden="true" class="scr s-scores"><div><em></em><i style="width:90%"></i></div><div><em></em><i style="width:76%"></i></div><div><em></em><i style="width:64%"></i></div><div><em></em><i style="width:52%"></i></div><div><em></em><i style="width:40%"></i></div></div></button></div>
+    </section>
+
+    <aside class="side" aria-label="About this post">
+      <div class="card sidecard">
+        <div class="creator">
+          <a class="av" href="Profile.html" aria-label="[Creator name]'s profile" tabindex="-1"></a>
+          <div class="cname"><a href="Profile.html">[Creator name]</a><span>@handle &middot; Game developer</span></div>
+          <button type="button" class="follow" id="follow" aria-pressed="false">Follow</button>
+        </div>
+        <a class="visit" id="visit" href="https://yourgame.example.com" target="_blank" rel="noopener noreferrer">Visit live site <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg></a>
+        <p class="host">Opens yourgame.example.com in a new tab</p>
+        <a class="code" href="https://github.com/[you]/[project]" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg> View the code</a>
+        <div class="acts">
+          <button type="button" class="act" id="save" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg> <span>Save</span></button>
+          <button type="button" class="act" id="share"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg> <span>Share</span></button>
+          <a class="act" href="#report"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg> <span>Report</span></a>
+        </div>
+        <dl class="facts">
+          <dt>Category</dt><dd>Games</dd>
+          <dt>Rating</dt><dd><span id="side-avg">4.6</span> from <span id="side-count">128</span></dd>
+          <dt>Visits</dt><dd id="side-visits">3,412</dd>
+          <dt>Posted</dt><dd><time datetime="2026-10-03">Oct 3, 2026</time></dd>
+          <dt>Updated</dt><dd><time datetime="2026-10-08">Oct 8, 2026</time></dd>
+        </dl>
+      </div>
+    </aside>
+
+    <div class="body">
+      <section class="card sec prose" aria-labelledby="h-about">
+        <h2 id="h-about">About this site</h2>
+        <p>A one-button arcade game. You are a blob that bounces on its own: tap the screen or press Space to change direction, and collect the yellow cells before the timer runs out.</p>
+        <p>I built it in a week for a game jam to learn Phaser&#39;s physics. Each level adds one new idea: moving walls, then sticky floors, then cells that run away from you.</p>
+        <p>Feedback I&#39;d love: does level 3 feel too hard, and does the bounce feel fair on a phone?</p>
+      </section>
+
+      <section class="card sec" aria-labelledby="h-stack">
+        <h2 id="h-stack">Built with</h2>
+        <div class="stack"><a href="Feed.html">TypeScript</a><a href="Feed.html">Phaser</a><a href="Feed.html">Vite</a></div>
+      </section>
+
+      <section class="card sec" aria-labelledby="h-ratings">
+        <h2 id="h-ratings">Ratings</h2>
+        <div class="rgrid">
+          <div class="avg"><b id="avg">4.6</b><span id="avg-stars"><span class="starrow" role="img" aria-label="4.6 out of 5 stars"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="#e6eaf3"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></span></span><span><span id="count">128</span> ratings</span></div>
+          <ol class="bars" id="bars" aria-label="Ratings by stars"><li data-star="5"><span>5 stars</span><span class="bar"><i style="width:71.9%"></i></span><span class="c">92</span></li><li data-star="4"><span>4 stars</span><span class="bar"><i style="width:18.8%"></i></span><span class="c">24</span></li><li data-star="3"><span>3 stars</span><span class="bar"><i style="width:6.2%"></i></span><span class="c">8</span></li><li data-star="2"><span>2 stars</span><span class="bar"><i style="width:2.3%"></i></span><span class="c">3</span></li><li data-star="1"><span>1 star</span><span class="bar"><i style="width:0.8%"></i></span><span class="c">1</span></li></ol>
+          <fieldset class="yours">
+            <legend>Your rating</legend>
+            <div class="rate" id="rate"><input type="radio" name="rate" id="rate-1" value="1"><label for="rate-1"><span class="sr">1 star</span><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></label><input type="radio" name="rate" id="rate-2" value="2"><label for="rate-2"><span class="sr">2 stars</span><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></label><input type="radio" name="rate" id="rate-3" value="3"><label for="rate-3"><span class="sr">3 stars</span><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></label><input type="radio" name="rate" id="rate-4" value="4"><label for="rate-4"><span class="sr">4 stars</span><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></label><input type="radio" name="rate" id="rate-5" value="5"><label for="rate-5"><span class="sr">5 stars</span><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></label></div>
+            <span id="rate-msg" role="status" aria-live="polite">Pick a number of stars.</span>
+          </fieldset>
+        </div>
+      </section>
+
+      <section class="card sec" aria-labelledby="h-comments">
+        <h2 id="h-comments">Comments <span class="n">(<span id="ccount">3</span>)</span></h2>
+        <form class="composer" id="composer" novalidate>
+          <label for="comment">Add a comment</label>
+          <textarea id="comment" maxlength="500" placeholder="What did you like? What would you change?" aria-describedby="comment-hint comment-err"></textarea>
+          <span class="err" id="comment-err" hidden></span>
+          <div class="crow">
+            <span class="hint" id="comment-hint">Be kind and specific. Up to 500 characters.</span>
+            <span style="display:flex;align-items:center;gap:12px"><span class="count" id="ccounter" aria-hidden="true">0 / 500</span><button type="submit" class="send">Post comment</button></span>
+          </div>
+        </form>
+        <ol class="clist" id="clist" aria-label="Comments"><li><span class="av" aria-hidden="true" style="background:#6b7ba8"></span><div class="cbody"><div class="chead"><a href="Profile.html">[Commenter]</a><time datetime="2026-10-07">2 days ago</time></div><p>Level 3 took me a few tries, but it felt fair. The bounce sound is great.</p></div></li><li><span class="av" aria-hidden="true" style="background:#101b33"></span><div class="cbody"><div class="chead"><a href="Profile.html">[Creator name]</a><span class="badge">Creator</span><time datetime="2026-10-07">2 days ago</time></div><p>Thanks! Level 3 gets a gentler start in the next update.</p></div></li><li><span class="av" aria-hidden="true" style="background:#6b7ba8"></span><div class="cbody"><div class="chead"><a href="Profile.html">[Commenter]</a><time datetime="2026-10-04">5 days ago</time></div><p>Works well on my phone. Would love a way to restart a level without going back to the menu.</p></div></li></ol>
+      </section>
+    </div>
+  </div>
+
+  <section class="more" aria-labelledby="h-more">
+    <h2 id="h-more">More from [Creator name]</h2>
+    <div class="mgrid"><article class="mcard"><div class="mprev" role="img" aria-label="Screenshot of [Caption of another site]"><div class="m-css"><div><i style="background:#101b33"></i><i style="background:#dba40c;flex:2"></i></div><div><i style="background:#9db4f0"></i><i style="background:#fff;flex:2"></i></div></div></div><div class="mbody"><h3><a href="Post.html">[Caption of another site]</a></h3><p>A layout study built with flex and grid.</p><span class="r"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c" stroke="#a07600" stroke-width="1.2"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg> 4.4</span></div></article><article class="mcard"><div class="mprev" role="img" aria-label="Screenshot of [Caption of another site]"><div class="m-port"><b style="width:40px;height:7px"></b><b style="width:80%;margin-top:10px"></b><b style="width:55%"></b><em></em></div></div><div class="mbody"><h3><a href="Post.html">[Caption of another site]</a></h3><p>Personal portfolio with case studies.</p><span class="r"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c" stroke="#a07600" stroke-width="1.2"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg> 4.7</span></div></article><article class="mcard"><div class="mprev" role="img" aria-label="Screenshot of [Caption of another site]"><div class="m-saas"><span class="sd"></span><div class="mn"><i style="height:40px"></i><i style="height:62px"></i><i style="height:48px"></i><i style="height:80px"></i><i style="height:66px"></i><i style="height:92px"></i><i style="height:74px"></i></div></div></div><div class="mbody"><h3><a href="Post.html">[Caption of another site]</a></h3><p>A tool that solves one problem well.</p><span class="r"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c" stroke="#a07600" stroke-width="1.2"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg> 4.2</span></div></article></div>
+  </section>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* gallery */
+  var shots = [].slice.call(document.querySelectorAll('.screen-item')),
+      thumbs = [].slice.call(document.querySelectorAll('.thumb')),
+      names = ["Gameplay", "Title screen", "Level select", "High scores"], cur = 0;
+  function show(i) {
+    cur = (i + shots.length) % shots.length;
+    shots.forEach(function (s, j) { s.hidden = j !== cur; });
+    thumbs.forEach(function (t, j) { t.setAttribute('aria-pressed', j === cur); });
+    $('shot-name').textContent = names[cur];
+    $('shot-pos').textContent = (cur + 1) + ' of ' + shots.length;
+  }
+  thumbs.forEach(function (t, i) { t.addEventListener('click', function () { show(i); }); });
+  $('prev').addEventListener('click', function () { show(cur - 1); });
+  $('next').addEventListener('click', function () { show(cur + 1); });
+
+  /* follow, save, share */
+  $('follow').addEventListener('click', function () {
+    var on = this.getAttribute('aria-pressed') !== 'true';
+    this.setAttribute('aria-pressed', on); this.textContent = on ? 'Following' : 'Follow';
+  });
+  $('save').addEventListener('click', function () {
+    var on = this.getAttribute('aria-pressed') !== 'true';
+    this.setAttribute('aria-pressed', on); this.querySelector('span').textContent = on ? 'Saved' : 'Save';
+  });
+  var shareTimer;
+  $('share').addEventListener('click', function () {
+    var b = this, label = b.querySelector('span');
+    function done(t) { label.textContent = t; clearTimeout(shareTimer); shareTimer = setTimeout(function () { label.textContent = 'Share'; }, 1600); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(function () { done('Link copied'); }, function () { done('Copy failed'); });
+    else done('Copy failed');
+  });
+
+  /* visits (mock: the count goes up once per page view) */
+  var visits = 3412, counted = false;
+  function fmt(n) { return n.toLocaleString('en-US'); }
+  [$('visit'), document.querySelector('.vopen')].forEach(function (a) {
+    a.addEventListener('click', function () {
+      if (counted) return; counted = true; visits++;
+      $('meta-visits').textContent = fmt(visits); $('side-visits').textContent = fmt(visits);
+    });
+  });
+
+  /* rating (mock: one rating per person, kept on this page only) */
+  var dist = { 5: 92, 4: 24, 3: 8, 2: 3, 1: 1 }, mine = 0;
+  function stats() {
+    var n = 0, sum = 0;
+    for (var s in dist) { n += dist[s]; sum += s * dist[s]; }
+    return { n: n, avg: Math.round(sum / n * 10) / 10 };
+  }
+  function paint() {
+    var st = stats(), avg = st.avg.toFixed(1);
+    ['avg', 'meta-avg', 'side-avg'].forEach(function (id) { $(id).textContent = avg; });
+    ['count', 'meta-count', 'side-count'].forEach(function (id) { $(id).textContent = st.n; });
+    document.querySelectorAll('#bars li').forEach(function (li) {
+      var s = +li.dataset.star;
+      li.querySelector('.bar i').style.width = (dist[s] / st.n * 100).toFixed(1) + '%';
+      li.querySelector('.c').textContent = dist[s];
+    });
+    document.querySelectorAll('.starrow').forEach(function (row) {
+      row.setAttribute('aria-label', avg + ' out of 5 stars');
+      row.querySelectorAll('svg').forEach(function (svg, i) { svg.setAttribute('fill', st.avg >= i + 1 - 0.25 ? '#dba40c' : '#e6eaf3'); });
+    });
+  }
+  var labels = [].slice.call(document.querySelectorAll('#rate label'));
+  document.querySelectorAll('#rate input').forEach(function (inp) {
+    inp.addEventListener('change', function () {
+      var v = +inp.value;
+      if (mine) dist[mine]--;
+      dist[v]++; mine = v;
+      labels.forEach(function (l, i) { l.classList.toggle('on', i < v); });
+      $('rate-msg').textContent = 'You rated this ' + v + ' out of 5. Thanks!';
+      paint();
+    });
+  });
+
+  /* comments (mock: added on this page only) */
+  var ta = $('comment'), err = $('comment-err'), n = 3;
+  function setErr(m) { err.textContent = m || ''; err.hidden = !m; if (m) ta.setAttribute('aria-invalid', 'true'); else ta.removeAttribute('aria-invalid'); }
+  ta.addEventListener('input', function () { $('ccounter').textContent = ta.value.length + ' / 500'; if (!err.hidden) setErr(''); });
+  $('composer').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = ta.value.trim();
+    if (!v) { setErr('Write something before posting.'); ta.focus(); return; }
+    setErr('');
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="av" aria-hidden="true" style="background:#3b4f86"></span><div class="cbody"><div class="chead"><a href="Profile.html">You</a><time datetime="' + new Date().toISOString().slice(0, 10) + '">Just now</time></div><p></p></div>';
+    li.querySelector('p').textContent = v;
+    $('clist').insertBefore(li, $('clist').firstChild);
+    n++; $('ccount').textContent = n;
+    ta.value = ''; $('ccounter').textContent = '0 / 500';
+  });
+})();
+</script>
+</body>
+</html>

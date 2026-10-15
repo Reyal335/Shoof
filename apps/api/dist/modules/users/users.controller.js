@@ -24,7 +24,7 @@ let UsersController = class UsersController {
         return this.usersService.findAccount(user.id);
     }
     username(param) {
-        return this.usersService.findByUsername(param.username);
+        return this.usersService.findPublicProfile(param.username);
     }
     myProfile(user) {
         return this.usersService.findProfile(user.id);

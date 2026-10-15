@@ -10,39 +10,38 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QueryFailedError, Repository } from 'typeorm';
+import { In, QueryFailedError, Repository } from 'typeorm';
 import { UserRole } from '../users/entities/user.entity.js';
 import { Post } from './entities/post.entity.js';
 import { Media } from './entities/media.entity.js';
 import { Comment } from './entities/comment.entity.js';
 import { Rating } from './entities/rating.entity.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SkillsService } from '../skills/skills.service.js';
+import { PostSkill } from './entities/post-skill.entity.js';
+import { PostEvents, } from './posts.events.js';
 const FOREIGN_KEY_VIOLATION = '23503';
-export function normalizeTechStack(names) {
-    const seen = new Set();
-    const result = [];
-    for (const raw of names) {
-        const name = raw.replace(/\s+/g, ' ').trim();
-        const key = name.toLowerCase();
-        if (name && !seen.has(key)) {
-            seen.add(key);
-            result.push(name);
-        }
-    }
-    return result;
-}
 function canModerate(user) {
     return user.roles.includes(UserRole.MODERATOR) || user.roles.includes(UserRole.ADMIN);
 }
 let PostsService = class PostsService {
     posts;
     comments;
-    constructor(posts, comments) {
+    eventEmitter;
+    skillService;
+    constructor(posts, comments, eventEmitter, skillService) {
         this.posts = posts;
         this.comments = comments;
+        this.eventEmitter = eventEmitter;
+        this.skillService = skillService;
     }
     async create(userId, dto) {
+        const skills = await this.validSkills(dto.skillIds);
+        const skillsIds = skills.map((skill) => {
+            return skill.id;
+        });
         return this.posts.manager.transaction(async (manager) => {
             const post = await manager.save(manager.create(Post, {
                 userId,
@@ -51,9 +50,9 @@ let PostsService = class PostsService {
                 repoUrl: dto.repoUrl || null,
                 caption: dto.caption,
                 description: dto.description,
-                techStack: normalizeTechStack(dto.techStack ?? []),
             }));
             post.media = await this.insertMedia(manager, post.id, dto.media ?? []);
+            await this.insertSkills(manager, post.id, skillsIds);
             return post;
         });
     }
@@ -103,8 +102,6 @@ let PostsService = class PostsService {
                 patch.caption = dto.caption;
             if (dto.description != null)
                 patch.description = dto.description;
-            if (dto.techStack != null)
-                patch.techStack = normalizeTechStack(dto.techStack);
             if (Object.keys(patch).length) {
                 await manager.update(Post, { id }, patch);
             }
@@ -127,6 +124,17 @@ let PostsService = class PostsService {
             }
             await manager.delete(Post, { id });
         });
+        this.eventEmitter.emit(PostEvents.Deleted, { postId: id });
+    }
+    async findSummariesByIds(ids) {
+        if (!ids.length)
+            return [];
+        return this.posts.find({ where: { id: In(ids) }, select: { id: true, userId: true, caption: true } });
+    }
+    async findCommentSummariesByIds(ids) {
+        if (!ids.length)
+            return [];
+        return this.comments.find({ where: { id: In(ids) }, select: { id: true, postId: true, content: true } });
     }
     async recordVisit(id) {
         const [rows] = await this.posts.query(`UPDATE "posts" SET "visitCount" = "visitCount" + 1 WHERE "id" = $1 RETURNING "id"`, [id]);
@@ -140,7 +148,7 @@ let PostsService = class PostsService {
         return { postId, rating: post.rating, ratingCount: post.ratingCount, value: mine?.value ?? null };
     }
     async rate(postId, user, value) {
-        return this.posts.manager.transaction(async (manager) => {
+        const { summary, ownerId } = await this.posts.manager.transaction(async (manager) => {
             const post = await this.lockPost(manager, postId, 'for_no_key_update');
             if (post.userId === user.id) {
                 throw new ForbiddenException('You cannot rate your own post');
@@ -152,15 +160,20 @@ let PostsService = class PostsService {
                 .values({ postId, userId: user.id, value })
                 .orUpdate(['value'], ['postId', 'userId'])
                 .execute();
-            return { postId, ...(await this.refreshRating(manager, postId)), value };
+            const summary = { postId, ...(await this.refreshRating(manager, postId)), value };
+            return { summary, ownerId: post.userId };
         });
+        this.eventEmitter.emit(PostEvents.Rated, { postId, actorId: user.id, recipientId: ownerId });
+        return summary;
     }
     async unrate(postId, user) {
-        return this.posts.manager.transaction(async (manager) => {
+        const summary = await this.posts.manager.transaction(async (manager) => {
             await this.lockPost(manager, postId, 'for_no_key_update');
             await manager.delete(Rating, { postId, userId: user.id });
             return { postId, ...(await this.refreshRating(manager, postId)), value: null };
         });
+        this.eventEmitter.emit(PostEvents.Unrated, { postId, actorId: user.id });
+        return summary;
     }
     async findComments(postId, query) {
         await this.findPostRow(postId);
@@ -173,8 +186,9 @@ let PostsService = class PostsService {
         return { items, total, limit: query.limit, offset: query.offset };
     }
     async addComment(postId, user, content) {
+        let comment;
         try {
-            return await this.comments.save(this.comments.create({ postId, userId: user.id, content }));
+            comment = await this.comments.save(this.comments.create({ postId, userId: user.id, content }));
         }
         catch (error) {
             if (error instanceof QueryFailedError && error.driverError.code === FOREIGN_KEY_VIOLATION) {
@@ -182,6 +196,16 @@ let PostsService = class PostsService {
             }
             throw error;
         }
+        const post = await this.posts.findOne({ where: { id: postId }, select: { id: true, userId: true } });
+        if (post && post.userId !== user.id) {
+            this.eventEmitter.emit(PostEvents.CommentCreated, {
+                postId,
+                commentId: comment.id,
+                actorId: user.id,
+                recipientId: post.userId,
+            });
+        }
+        return comment;
     }
     async updateComment(postId, commentId, user, content) {
         return this.comments.manager.transaction(async (manager) => {
@@ -204,6 +228,7 @@ let PostsService = class PostsService {
             }
             await manager.delete(Comment, { id: commentId });
         });
+        this.eventEmitter.emit(PostEvents.CommentDeleted, { postId, commentId });
     }
     async findPostRow(id) {
         const post = await this.posts.findOneBy({ id });
@@ -232,6 +257,17 @@ let PostsService = class PostsService {
         }
         return manager.save(Media, items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.url, sortOrder })));
     }
+    async validSkills(ids) {
+        const skills = await this.skillService.findByIds(ids);
+        if (skills.length !== ids.length)
+            throw new BadRequestException('Unknown Skill');
+        return skills;
+    }
+    insertSkills(manager, postId, skillIds) {
+        if (!skillIds.length)
+            return Promise.resolve();
+        return manager.insert(PostSkill, skillIds.map((skillId) => ({ postId, skillId })));
+    }
     async refreshRating(manager, postId) {
         const [rows] = await manager.query(`UPDATE "posts" AS p
           SET "rating" = COALESCE(s.avg, 0), "ratingCount" = s.count
@@ -246,7 +282,9 @@ PostsService = __decorate([
     __param(0, InjectRepository(Post)),
     __param(1, InjectRepository(Comment)),
     __metadata("design:paramtypes", [Repository,
-        Repository])
+        Repository,
+        EventEmitter2,
+        SkillsService])
 ], PostsService);
 export { PostsService };
 //# sourceMappingURL=posts.service.js.map

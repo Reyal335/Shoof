@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 // DTO
 import { CreateUserDto, CreateWithSignIn } from './dto/create-user.dto.js';
@@ -8,7 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, type EntityManager, In } from 'typeorm';
 import { User, UserRole } from './entities/user.entity.js';
 import { User_Identity } from './entities/user-identity.js';
-import { Profile, TECH_STACK_GROUPS, emptyTechStack, type TechStack } from './entities/profile.entity.js';
+import { Profile } from './entities/profile.entity.js';
+import { UserSkill } from './entities/user-skill.entity.js';
+import { SkillsService, toSkillSummary, type SkillSummary } from '../skills/skills.service.js';
 import { NotFoundException } from '@nestjs/common';
 import { normalize } from 'node:path';
 import { _normalize } from 'zod/v4/core';
@@ -22,14 +24,18 @@ export interface ProfileView {
   bio: string | null;
   avatarUrl: string | null;
   websiteUrl: string | null;
-  techStack: TechStack;
+  /** From user_skills, sorted by name. The web app groups them by kind. */
+  skills: SkillSummary[];
   updatedAt: Date;
 }
 
-type PublicProfile = Pick<Profile, 'displayName' | 'bio' | 'avatarUrl' | 'websiteUrl' | 'links' | 'techStack' | 'country'>;
+type PublicProfile = Pick<Profile, 'displayName' | 'bio' | 'avatarUrl' | 'websiteUrl' | 'links' | 'country'>;
 export type PublicUser = Pick<User, 'id' | 'username'> & {
   profile: PublicProfile | null;
 };
+
+/** GET /users/:username: the public user plus their skills, which only the profile page needs. */
+export type PublicProfileView = PublicUser & { skills: SkillSummary[] };
 
 /**
  * What GET /users/me sends: the signed-in user's own account. Built field by field, so a column added to `user`
@@ -58,31 +64,6 @@ export function toAccountView(user: Pick<User, keyof typeof ACCOUNT_COLUMNS>): A
   };
 }
 
-/** Collapses whitespace, drops blanks and case-insensitive duplicates, keeps the first spelling and the order. */
-export function normalizeStackNames(names: string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const raw of names) {
-    const name = raw.replace(/\s+/g, ' ').trim();
-    const key = name.toLowerCase();
-    if (name && !seen.has(key)) {
-      seen.add(key);
-      result.push(name);
-    }
-  }
-  return result;
-}
-
-/** Applies the groups that were sent onto the stored stack. Rows written before a group existed get it as []. */
-export function mergeTechStack(current: Partial<TechStack> | null | undefined, patch: Partial<TechStack>): TechStack {
-  const merged = emptyTechStack();
-  for (const group of TECH_STACK_GROUPS) {
-    const next = patch[group];
-    merged[group] = next != null ? normalizeStackNames(next) : (current?.[group] ?? []);
-  }
-  return merged;
-}
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -91,7 +72,10 @@ export class UsersService {
     @InjectRepository(User_Identity)
     private userIdentityRepository: Repository<User_Identity>,
     @InjectRepository(Profile)
-    private profilesRepository: Repository<Profile>
+    private profilesRepository: Repository<Profile>,
+    @InjectRepository(UserSkill)
+    private userSkillsRepository: Repository<UserSkill>,
+    private readonly skillsService: SkillsService
   ) {}
 
   private readonly users = [
@@ -179,7 +163,6 @@ export class UsersService {
           avatarUrl: true,
           websiteUrl: true,
           links: true,
-          techStack: true, 
           country: true
         },
       }
@@ -190,6 +173,12 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  /** GET /users/:username. findByUsername stays lean for callers that only need the id (user posts). */
+  async findPublicProfile(username: string): Promise<PublicProfileView> {
+    const user = await this.findByUsername(username);
+    return { ...user, skills: await this.findSkills(user.id) };
   }
 
   // Batch find IDs
@@ -209,7 +198,6 @@ export class UsersService {
           avatarUrl: true,
           websiteUrl: true,
           links: true,
-          techStack: true, 
           country: true
         },
       }      
@@ -259,22 +247,24 @@ export class UsersService {
 
   /** The signed-in user's own profile. A missing row (seeded or older accounts) is created on first read. */
   async findProfile(userId: string): Promise<ProfileView> {
-    return this.profilesRepository.manager.transaction(async (manager) => {
+    const { user, profile } = await this.profilesRepository.manager.transaction(async (manager) => {
       const user = await this.ensureProfile(manager, userId);
-      const profile = await manager.findOneByOrFail(Profile, { userId });
-      return toProfileView(user, profile);
+      return { user, profile: await manager.findOneByOrFail(Profile, { userId }) };
     });
+    return toProfileView(user, profile, await this.findSkills(userId));
   }
 
   /**
    * Owner only: the id comes from the access token. Fields are picked one by one so a request body can never set
    * userId, links or timestamps. null clears bio, avatarUrl and websiteUrl; it is ignored for displayName.
-   * The row is locked while the tech stack is merged so two saves can't drop each other's groups.
+   * skillIds, when sent, replaces the whole set. The profile row is locked so two saves apply one after the other
+   * instead of interleaving their user_skills deletes and inserts.
    */
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<ProfileView> {
-    return this.profilesRepository.manager.transaction(async (manager) => {
+    const skillIds = dto.skillIds != null ? await this.checkSkills(dto.skillIds) : null;
+    const { user, profile } = await this.profilesRepository.manager.transaction(async (manager) => {
       const user = await this.ensureProfile(manager, userId);
-      const profile = await manager.findOneOrFail(Profile, {
+      await manager.findOneOrFail(Profile, {
         where: { userId },
         lock: { mode: 'pessimistic_write' },
       });
@@ -284,13 +274,36 @@ export class UsersService {
       if (dto.bio !== undefined) patch.bio = dto.bio || null;
       if (dto.avatarUrl !== undefined) patch.avatarUrl = dto.avatarUrl || null;
       if (dto.websiteUrl !== undefined) patch.websiteUrl = dto.websiteUrl || null;
-      if (dto.techStack != null) patch.techStack = mergeTechStack(profile.techStack, dto.techStack);
 
       if (Object.keys(patch).length) {
         await manager.update(Profile, { userId }, patch);
       }
-      return toProfileView(user, await manager.findOneByOrFail(Profile, { userId }));
+      if (skillIds != null) {
+        await manager.delete(UserSkill, { userId });
+        if (skillIds.length) {
+          await manager.insert(UserSkill, skillIds.map((skillId) => ({ userId, skillId })));
+        }
+      }
+      return { user, profile: await manager.findOneByOrFail(Profile, { userId }) };
     });
+    return toProfileView(user, profile, await this.findSkills(userId));
+  }
+
+  /** The skills on a user's profile. user_skills holds ids only; names and kinds come from the skills module. */
+  private async findSkills(userId: string): Promise<SkillSummary[]> {
+    const rows = await this.userSkillsRepository.find({ where: { userId }, select: { skillId: true } });
+    const skills = await this.skillsService.findByIds(rows.map((row) => row.skillId));
+    return skills.map(toSkillSummary);
+  }
+
+  /** Skills are owned by the skills module, so ask it whether the picked ids exist. Returns them deduplicated. */
+  private async checkSkills(ids: string[]): Promise<string[]> {
+    const unique = [...new Set(ids)];
+    const found = await this.skillsService.findByIds(unique);
+    if (found.length !== unique.length) {
+      throw new BadRequestException('One or more skills do not exist');
+    }
+    return unique;
   }
 
   /** Inserts the profile row if it is missing, named after the username. Returns the user. */
@@ -309,13 +322,9 @@ export class UsersService {
     return user;
   }
 
-  // Follow services
-  public async followUser() {
-    
-  }
 }
 
-function toProfileView(user: User, profile: Profile): ProfileView {
+function toProfileView(user: User, profile: Profile, skills: SkillSummary[]): ProfileView {
   return {
     userId: user.id,
     username: user.username,
@@ -323,7 +332,7 @@ function toProfileView(user: User, profile: Profile): ProfileView {
     bio: profile.bio,
     avatarUrl: profile.avatarUrl,
     websiteUrl: profile.websiteUrl,
-    techStack: mergeTechStack(profile.techStack, {}),
+    skills,
     updatedAt: profile.updatedAt,
   };
 }

@@ -16,37 +16,48 @@ import { Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { UsersService } from "../users/users.service.js";
 import { NotFoundException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { FollowEvents } from "./follows.events.js";
 let FollowService = class FollowService {
     followRepository;
     usersService;
-    constructor(followRepository, usersService) {
+    eventEmitter;
+    constructor(followRepository, usersService, eventEmitter) {
         this.followRepository = followRepository;
         this.usersService = usersService;
+        this.eventEmitter = eventEmitter;
     }
     async followUser(followingId, followerId) {
-        const user = this.usersService.findOne(followingId);
+        const user = await this.usersService.findOne(followingId);
         if (!user) {
             throw new NotFoundException('User does not exist');
         }
-        await this.followRepository
+        const result = await this.followRepository
             .createQueryBuilder()
             .insert()
             .into(Follow)
             .values({ followingId, followerId })
             .orIgnore()
+            .returning(['followerId'])
             .execute();
+        if (result.raw.length) {
+            this.eventEmitter.emit(FollowEvents.Followed, { followerId, followingId });
+        }
     }
     async unfollowUser(followingId, followerId) {
-        const user = this.usersService.findOne(followingId);
+        const user = await this.usersService.findOne(followingId);
         if (!user) {
             throw new NotFoundException('User does not exist');
         }
-        await this.followRepository
+        const result = await this.followRepository
             .createQueryBuilder()
             .delete()
             .from(Follow)
             .where({ followingId, followerId })
             .execute();
+        if (result.affected) {
+            this.eventEmitter.emit(FollowEvents.Unfollowed, { followerId, followingId });
+        }
     }
     isFollowing(followingId, followerId) {
         return this.followRepository.existsBy({ followingId, followerId });
@@ -56,7 +67,8 @@ FollowService = __decorate([
     Injectable(),
     __param(0, InjectRepository(Follow)),
     __metadata("design:paramtypes", [Repository,
-        UsersService])
+        UsersService,
+        EventEmitter2])
 ], FollowService);
 export { FollowService };
 //# sourceMappingURL=follows.service.js.map

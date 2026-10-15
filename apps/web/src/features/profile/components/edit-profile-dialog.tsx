@@ -4,9 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useUpdateProfile } from "../hooks/use-update-profile";
-import { BIO_MAX, isHttpsUrl, profileSchema, type ProfileFormValues } from "../profile-form";
-import { TECH_STACK_GROUPS, type Profile, type TechStack } from "../types";
-import { StackGroupInput } from "./stack-group-input";
+import { SkillPicker } from "@/features/skills/components/skill-picker";
+import type { Skill } from "@/features/skills/types";
+import { BIO_MAX, isHttpsUrl, MAX_PROFILE_SKILLS, profileSchema, type ProfileFormValues } from "../profile-form";
+import type { Profile } from "../types";
 
 type Props = {
   profile: Profile;
@@ -29,7 +30,7 @@ const ERROR_ID = "edit-error";
 /** The edit form, in a modal so the profile stays visible behind it. Nothing is saved until Save; Cancel or Esc discards. */
 export function EditProfileDialog({ profile, open, onClose, onSaved }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [stack, setStack] = useState<TechStack>(profile.techStack);
+  const [skills, setSkills] = useState<Skill[]>(profile.skills);
   const [announcement, setAnnouncement] = useState("");
   const { submit, isPending, error, clearError } = useUpdateProfile({ onSuccess: onSaved });
 
@@ -52,7 +53,7 @@ export function EditProfileDialog({ profile, open, onClose, onSaved }: Props) {
     if (!dialog) return;
     if (open && !dialog.open) {
       reset(formValues(profile));
-      setStack(profile.techStack);
+      setSkills(profile.skills);
       setAnnouncement("");
       clearError();
       dialog.showModal();
@@ -65,7 +66,7 @@ export function EditProfileDialog({ profile, open, onClose, onSaved }: Props) {
 
   const onSubmit = handleSubmit((values) =>
     // Blank bio, avatar and website are sent as "" and stored as null
-    submit({ ...values, techStack: stack }),
+    submit({ ...values, skillIds: skills.map((skill) => skill.id) }),
   );
 
   return (
@@ -156,18 +157,21 @@ export function EditProfileDialog({ profile, open, onClose, onSaved }: Props) {
 
           <fieldset className="stackset">
             <legend>Tech stack</legend>
-            <span className="hint" id="stack-hint">Press Enter or comma to add. Backspace removes the last one.</span>
-            {TECH_STACK_GROUPS.map((group) => (
-              <StackGroupInput
-                key={group}
-                group={group}
-                names={stack[group]}
-                onChange={(names, message) => {
-                  setStack((s) => ({ ...s, [group]: names }));
-                  if (message) setAnnouncement(message);
-                }}
-              />
-            ))}
+            <span className="hint" id="stack-hint">
+              Languages, frameworks, platforms and disciplines. Type to search, Enter adds the first match, Backspace
+              removes the last one.
+            </span>
+            <SkillPicker
+              id="skills"
+              label="Skills"
+              selected={skills}
+              max={MAX_PROFILE_SKILLS}
+              hintId="stack-hint"
+              onChange={(next, message) => {
+                setSkills(next);
+                setAnnouncement(message);
+              }}
+            />
             <div className="sr" role="status" aria-live="polite">{announcement}</div>
           </fieldset>
         </div>

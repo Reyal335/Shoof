@@ -10,6 +10,6 @@ export declare class CreatePostDto {
     repoUrl?: string | null;
     caption: string;
     description: string;
-    techStack?: string[];
+    skillIds: string[];
     media?: MediaItemDto[];
 }

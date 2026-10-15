@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { Header } from "@/components/header";
 import { UserFollowButton } from "@/features/follows/components/user-follow-button";
-import { displayHost, GROUP_LABELS, isSiteUrl } from "./profile-form";
-import { TECH_STACK_GROUPS, type PublicUser } from "./types";
+import { groupByKind, KIND_LABELS } from "@/features/skills/skills";
+import { displayHost, isSiteUrl } from "./profile-form";
+import type { PublicUser } from "./types";
 import "./profile.css";
 
 // Anyone's profile at /@username. A Server Component: everything is in the first HTML response, and only the follow
@@ -10,8 +11,7 @@ import "./profile.css";
 export function PublicProfilePage({ user }: { user: PublicUser }) {
   const profile = user.profile;
   const name = profile?.displayName || user.username;
-  const techStack = profile?.techStack;
-  const stack = TECH_STACK_GROUPS.filter((group) => (techStack?.[group].length ?? 0) > 0);
+  const stack = groupByKind(user.skills);
   // Only http(s): these are user-supplied and end up in href.
   const links = (profile?.links ?? []).filter((link) => isSiteUrl(link.url));
 
@@ -60,10 +60,10 @@ export function PublicProfilePage({ user }: { user: PublicUser }) {
             <section className="stack">
               <h2>Tech stack</h2>
               {stack.length > 0 ? (
-                stack.map((group) => (
-                  <div className="grp" key={group}>
-                    <h3>{GROUP_LABELS[group]}</h3>
-                    <div>{techStack?.[group].map((tech) => <span key={tech}>{tech}</span>)}</div>
+                stack.map(({ kind, skills }) => (
+                  <div className="grp" key={kind}>
+                    <h3>{KIND_LABELS[kind]}</h3>
+                    <div>{skills.map((skill) => <span key={skill.id}>{skill.name}</span>)}</div>
                   </div>
                 ))
               ) : (

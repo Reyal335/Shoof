@@ -7,11 +7,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity.js';
+import { UsersModule } from '../users/users.module.js';
+import { PostsModule } from '../posts/posts.module.js';
+import { NotificationsService } from './notifications.service.js';
+import { NotificationsController } from './notifications.controller.js';
+import { NotificationsListener } from './listeners/notifications.listener.js';
 let NotificationsModule = class NotificationsModule {
 };
 NotificationsModule = __decorate([
     Module({
-        imports: [TypeOrmModule.forFeature([Notification])],
+        imports: [
+            TypeOrmModule.forFeature([Notification]),
+            UsersModule,
+            PostsModule
+        ],
+        controllers: [NotificationsController],
+        providers: [NotificationsService, NotificationsListener]
     })
 ], NotificationsModule);
 export { NotificationsModule };

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, QueryFailedError, Repository, type EntityManager, type FindOptionsWhere } from 'typeorm';
 import type { AuthUser } from '../auth/auth.types.js';
@@ -11,6 +11,9 @@ import type { CreatePostDto, MediaItemDto } from './dto/create-post.dto.js';
 import type { UpdatePostDto } from './dto/update-post.dto.js';
 import type { ListPostsQueryDto, PaginationQueryDto } from './dto/query.dto.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SkillsService } from '../skills/skills.service.js';
+import { Skill } from '../skills/entities/skill.entity.js';
+import { PostSkill } from './entities/post-skill.entity.js';
 import {
   PostEvents,
   type CommentCreatedEvent,
@@ -42,20 +45,6 @@ export type CommentSummary = Pick<Comment, 'id' | 'postId' | 'content'>;
 // Postgres foreign_key_violation: the referenced post was deleted (or never existed)
 const FOREIGN_KEY_VIOLATION = '23503';
 
-/** Collapses whitespace, drops blanks and case-insensitive duplicates, keeps the first spelling and the order. */
-export function normalizeTechStack(names: string[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const raw of names) {
-    const name = raw.replace(/\s+/g, ' ').trim();
-    const key = name.toLowerCase();
-    if (name && !seen.has(key)) {
-      seen.add(key);
-      result.push(name);
-    }
-  }
-  return result;
-}
 
 function canModerate(user: AuthUser) {
   return user.roles.includes(UserRole.MODERATOR) || user.roles.includes(UserRole.ADMIN);
@@ -76,13 +65,18 @@ export class PostsService {
     private readonly posts: Repository<Post>,
     @InjectRepository(Comment)
     private readonly comments: Repository<Comment>,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
+    private readonly skillService: SkillsService
   ) {}
 
   // ---------- posts ----------
 
   /** The post and its media are inserted together: either both exist afterwards or neither does. */
   async create(userId: string, dto: CreatePostDto): Promise<Post> {
+    const skills = await this.validSkills(dto.skillIds);
+    const skillsIds = skills.map((skill) => {
+      return skill.id
+    })
     return this.posts.manager.transaction(async (manager) => {
       const post = await manager.save(
         manager.create(Post, {
@@ -92,10 +86,10 @@ export class PostsService {
           repoUrl: dto.repoUrl || null,
           caption: dto.caption,
           description: dto.description,
-          techStack: normalizeTechStack(dto.techStack ?? []),
         }),
       );
       post.media = await this.insertMedia(manager, post.id, dto.media ?? []);
+      await this.insertSkills(manager, post.id, skillsIds);
       return post;
     });
   }
@@ -147,7 +141,6 @@ export class PostsService {
       if (dto.repoUrl !== undefined) patch.repoUrl = dto.repoUrl || null;
       if (dto.caption != null) patch.caption = dto.caption;
       if (dto.description != null) patch.description = dto.description;
-      if (dto.techStack != null) patch.techStack = normalizeTechStack(dto.techStack);
       if (Object.keys(patch).length) {
         await manager.update(Post, { id }, patch);
       }
@@ -351,6 +344,17 @@ export class PostsService {
       Media,
       items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.url, sortOrder })),
     );
+  }
+
+  private async validSkills(ids: string[]): Promise<Skill[]> {
+    const skills = await this.skillService.findByIds(ids)
+    if (skills.length !== ids.length) throw new BadRequestException('Unknown Skill');
+    return skills
+  }
+
+  private insertSkills(manager: EntityManager, postId: string, skillIds: string[]): Promise<unknown> {
+    if (!skillIds.length) return Promise.resolve();
+    return manager.insert(PostSkill, skillIds.map((skillId) => ({postId, skillId})))
   }
 
   // Recomputes the average (one decimal) and count from the ratings table. Must run under the post lock.

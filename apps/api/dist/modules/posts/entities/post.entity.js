@@ -26,7 +26,6 @@ let Post = class Post {
     description;
     link;
     repoUrl;
-    techStack;
     category;
     rating;
     ratingCount;
@@ -62,10 +61,6 @@ __decorate([
     Column({ type: 'varchar', nullable: true }),
     __metadata("design:type", Object)
 ], Post.prototype, "repoUrl", void 0);
-__decorate([
-    Column('text', { array: true, default: '{}' }),
-    __metadata("design:type", Array)
-], Post.prototype, "techStack", void 0);
 __decorate([
     Column({ type: 'enum', enum: PostCategory }),
     __metadata("design:type", String)

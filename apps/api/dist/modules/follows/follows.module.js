@@ -8,12 +8,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Follow } from './entities/follow.entity.js';
 import { FollowService } from './follows.service.js';
+import { FollowsController } from './follows.controller.js';
 import { UsersModule } from '../users/users.module.js';
 let FollowsModule = class FollowsModule {
 };
 FollowsModule = __decorate([
     Module({
         imports: [TypeOrmModule.forFeature([Follow]), UsersModule],
+        controllers: [FollowsController],
         providers: [FollowService],
         exports: [FollowService]
     })

@@ -1,45 +1,22 @@
-import { applyDecorators } from '@nestjs/common';
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
     ArrayMaxSize,
+    ArrayUnique,
     IsArray,
     IsNotEmpty,
-    IsObject,
     IsOptional,
     IsString,
     IsUrl,
-    MaxLength,
-    ValidateNested
+    IsUUID,
+    MaxLength
 } from 'class-validator';
-import { BIO_MAX, DISPLAY_NAME_MAX, MAX_STACK_PER_GROUP, STACK_NAME_MAX, URL_MAX } from '../users.constants.js';
+import { BIO_MAX, DISPLAY_NAME_MAX, MAX_PROFILE_SKILLS, URL_MAX } from '../users.constants.js';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 // Blank means "remove it", stored as null
 const trimOrNull = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() || null : value);
 
 const SITE_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: true };
-
-const StackGroup = () =>
-    applyDecorators(
-        IsOptional(),
-        IsArray(),
-        ArrayMaxSize(MAX_STACK_PER_GROUP),
-        IsString({ each: true }),
-        IsNotEmpty({ each: true }),
-        MaxLength(STACK_NAME_MAX, { each: true }),
-    );
-
-// A group that is left out keeps what it has; a group that is sent replaces its whole list.
-export class TechStackDto {
-    @StackGroup()
-    frontend?: string[];
-
-    @StackGroup()
-    backend?: string[];
-
-    @StackGroup()
-    tools?: string[];
-}
 
 // Every field optional: only what is sent changes. The user id always comes from the access token, never the body.
 export class UpdateProfileDto {
@@ -69,9 +46,12 @@ export class UpdateProfileDto {
     @MaxLength(URL_MAX)
     websiteUrl?: string | null;
 
+    // Picked from GET /skills. Left out keeps the current skills; sent (even []) replaces the whole set.
+    // UsersService checks each id exists in the catalog.
     @IsOptional()
-    @IsObject()
-    @ValidateNested()
-    @Type(() => TechStackDto)
-    techStack?: TechStackDto;
+    @IsArray()
+    @ArrayMaxSize(MAX_PROFILE_SKILLS)
+    @ArrayUnique()
+    @IsUUID('all', { each: true })
+    skillIds?: string[];
 }

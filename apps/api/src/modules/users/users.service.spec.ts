@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { mergeTechStack, normalizeStackNames, toAccountView, UsersService } from './users.service.js';
+import { toAccountView, UsersService } from './users.service.js';
 import { User, UserRole } from './entities/user.entity.js';
 import { User_Identity } from './entities/user-identity.js';
 import { Profile } from './entities/profile.entity.js';
+import { UserSkill } from './entities/user-skill.entity.js';
+import { SkillsService } from '../skills/skills.service.js';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -16,6 +18,8 @@ describe('UsersService', () => {
         { provide: getRepositoryToken(User), useValue: {} },
         { provide: getRepositoryToken(User_Identity), useValue: {} },
         { provide: getRepositoryToken(Profile), useValue: {} },
+        { provide: getRepositoryToken(UserSkill), useValue: {} },
+        { provide: SkillsService, useValue: {} },
       ],
     }).compile();
 
@@ -24,29 +28,6 @@ describe('UsersService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('normalizeStackNames', () => {
-    it('collapses whitespace, drops blanks and case-insensitive duplicates, keeping the first spelling', () => {
-      expect(normalizeStackNames(['  Next.js ', 'next.js', 'Node   JS', '   ', 'Vite'])).toEqual(['Next.js', 'Node JS', 'Vite']);
-    });
-  });
-
-  describe('mergeTechStack', () => {
-    const current = { frontend: ['React'], backend: ['Node.js'], tools: ['Git'] };
-
-    it('replaces only the groups that were sent', () => {
-      expect(mergeTechStack(current, { backend: ['Go', 'go'] })).toEqual({ frontend: ['React'], backend: ['Go'], tools: ['Git'] });
-    });
-
-    it('lets a group be emptied', () => {
-      expect(mergeTechStack(current, { tools: [] })).toEqual({ frontend: ['React'], backend: ['Node.js'], tools: [] });
-    });
-
-    it('fills in groups missing from an older row', () => {
-      expect(mergeTechStack({ frontend: ['Vue'] }, {})).toEqual({ frontend: ['Vue'], backend: [], tools: [] });
-      expect(mergeTechStack(null, {})).toEqual({ frontend: [], backend: [], tools: [] });
-    });
   });
 
   describe('toAccountView', () => {

@@ -16,7 +16,6 @@ export declare class Post {
     description: string;
     link: string;
     repoUrl: string | null;
-    techStack: string[];
     category: PostCategory;
     rating: number;
     ratingCount: number;

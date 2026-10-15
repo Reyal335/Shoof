@@ -8,12 +8,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Transform, Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, ValidateNested, ArrayUnique, IsUUID } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
 import { MediaType } from '../entities/media.entity.js';
-import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, MAX_TECH_STACK, TECH_NAME_MAX, URL_MAX } from '../posts.constants.js';
+import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, URL_MAX } from '../posts.constants.js';
 const trim = ({ value }) => (typeof value === 'string' ? value.trim() : value);
 const SITE_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: true };
+const MAX_SKILLS = 10;
 export class MediaItemDto {
     type;
     url;
@@ -33,7 +34,7 @@ export class CreatePostDto {
     repoUrl;
     caption;
     description;
-    techStack;
+    skillIds = [];
     media;
 }
 __decorate([
@@ -70,12 +71,11 @@ __decorate([
 __decorate([
     IsOptional(),
     IsArray(),
-    ArrayMaxSize(MAX_TECH_STACK),
-    IsString({ each: true }),
-    IsNotEmpty({ each: true }),
-    MaxLength(TECH_NAME_MAX, { each: true }),
+    ArrayMaxSize(MAX_SKILLS),
+    ArrayUnique(),
+    IsUUID('all', { each: true }),
     __metadata("design:type", Array)
-], CreatePostDto.prototype, "techStack", void 0);
+], CreatePostDto.prototype, "skillIds", void 0);
 __decorate([
     IsOptional(),
     IsArray(),
