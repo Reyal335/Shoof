@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cloneElement, useState } from "react";
 import { FollowButton } from "@/components/follow-button";
 import { Header } from "@/components/header";
@@ -60,49 +61,49 @@ const cards: Card[] = [
   <article key="1" className="pcard" data-group="Developers" data-open="true">
     <a className="plink" href="#visit" aria-label="Visit [Name]"><div role="img" aria-label="Screenshot of [Name]'s portfolio" style={{ display: 'flex', flexGrow: '1' }}><div className="sh dark"><div className="r1"><i className="y" /><span><i /><i /></span></div><div className="mid"><b style={{ width: '80%', background: '#eef1f8' }} /><b style={{ width: '56%', background: '#dba40c' }} /><u style={{ width: '70%' }} /><u style={{ width: '50%' }} /></div><div className="r3"><i /><i /><i /></div></div></div></a>
     <div className="pmeta">
-      <div><span className="spot">Spotlight</span><h3>[Name]</h3><span className="role">Full-stack developer · [City]</span><span className="opn"><i />Open to work</span></div>
+      <div><span className="spot">Spotlight</span><h3><Link className="title-link" href="/post/demo">[Name]</Link></h3><span className="role">Full-stack developer · [City]</span><span className="opn"><i />Open to work</span></div>
       <a className="visit" href="#visit">Visit ↗</a>
     </div>
   </article>,
   <article key="2" className="pcard" data-group="Designers" data-open="false">
     <a className="plink" href="#visit" aria-label="Visit [Name]"><div role="img" aria-label="Screenshot of [Name]'s portfolio" style={{ display: 'flex', flexGrow: '1' }}><div className="sh light"><div className="r1"><i className="n" /><span><i /><i /></span></div><div className="mid"><div className="t"><b style={{ width: '92%' }} /><b style={{ width: '64%' }} /><em /></div><i className="dot" /></div></div></div></a>
     <div className="pmeta">
-      <div><span className="spot">Spotlight</span><h3>[Name]</h3><span className="role">Product designer · [City]</span></div>
+      <div><span className="spot">Spotlight</span><h3><Link className="title-link" href="/post/demo">[Name]</Link></h3><span className="role">Product designer · [City]</span></div>
       <a className="visit" href="#visit">Visit ↗</a>
     </div>
   </article>,
   <article key="3" className="pcard" data-group="Illustrators" data-open="true">
     <a className="plink" href="#visit" aria-label="Visit [Name]"><div role="img" aria-label="Screenshot of [Name]'s portfolio" style={{ display: 'flex', flexGrow: '1' }}><div className="sh gal"><i className="n" /><div className="g"><i style={{ gridRow: '1 / span 2', background: '#9db4f0' }} /><i style={{ background: '#dba40c' }} /><i style={{ background: '#26335c' }} /><i style={{ background: '#e6eaf3' }} /><i style={{ background: '#7d89a8' }} /></div></div></div></a>
     <div className="pmeta">
-      <div><span className="spot">Spotlight</span><h3>[Name]</h3><span className="role">Illustrator · [City]</span><span className="opn"><i />Open to work</span></div>
+      <div><span className="spot">Spotlight</span><h3><Link className="title-link" href="/post/demo">[Name]</Link></h3><span className="role">Illustrator · [City]</span><span className="opn"><i />Open to work</span></div>
       <a className="visit" href="#visit">Visit ↗</a>
     </div>
   </article>,
   <article key="4" className="pcard" data-group="Developers" data-open="true">
     <a className="plink" href="#visit" aria-label="Visit [Name]"><div role="img" aria-label="Screenshot of [Name]'s portfolio" style={{ display: 'flex', flexGrow: '1' }}><div className="sh split"><div className="l"><i /></div><div className="r"><b style={{ width: '90%' }} /><b style={{ width: '70%' }} /><u style={{ width: '80%' }} /><u style={{ width: '60%' }} /></div></div></div></a>
     <div className="pmeta">
-      <div><span className="spot">Spotlight</span><h3>[Name]</h3><span className="role">Frontend developer · [City]</span><span className="opn"><i />Open to work</span></div>
+      <div><span className="spot">Spotlight</span><h3><Link className="title-link" href="/post/demo">[Name]</Link></h3><span className="role">Frontend developer · [City]</span><span className="opn"><i />Open to work</span></div>
       <a className="visit" href="#visit">Visit ↗</a>
     </div>
   </article>,
   <article key="5" className="pcard" data-group="Motion" data-open="false">
     <a className="plink" href="#visit" aria-label="Visit [Name]"><div role="img" aria-label="Screenshot of [Name]'s portfolio" style={{ display: 'flex', flexGrow: '1' }}><div className="sh dark"><div className="r1"><i className="y" /><span><i /><i /></span></div><div className="mid"><b style={{ width: '80%', background: '#eef1f8' }} /><b style={{ width: '56%', background: '#dba40c' }} /><u style={{ width: '70%' }} /><u style={{ width: '50%' }} /></div><div className="r3"><i /><i /><i /></div></div></div></a>
     <div className="pmeta">
-      <div><span className="spot">Spotlight</span><h3>[Name]</h3><span className="role">Motion designer · [City]</span></div>
+      <div><span className="spot">Spotlight</span><h3><Link className="title-link" href="/post/demo">[Name]</Link></h3><span className="role">Motion designer · [City]</span></div>
       <a className="visit" href="#visit">Visit ↗</a>
     </div>
   </article>,
   <article key="6" className="pcard" data-group="Writers" data-open="true">
     <a className="plink" href="#visit" aria-label="Visit [Name]"><div role="img" aria-label="Screenshot of [Name]'s portfolio" style={{ display: 'flex', flexGrow: '1' }}><div className="sh type"><span>Essays &amp; notes</span><hr /><u style={{ width: '92%' }} /><u style={{ width: '86%' }} /><u style={{ width: '74%' }} /><u style={{ width: '88%' }} /></div></div></a>
     <div className="pmeta">
-      <div><span className="spot">Spotlight</span><h3>[Name]</h3><span className="role">Technical writer · [City]</span><span className="opn"><i />Open to work</span></div>
+      <div><span className="spot">Spotlight</span><h3><Link className="title-link" href="/post/demo">[Name]</Link></h3><span className="role">Technical writer · [City]</span><span className="opn"><i />Open to work</span></div>
       <a className="visit" href="#visit">Visit ↗</a>
     </div>
   </article>,
   <article key="7" className="pcard" data-group="Designers" data-open="false">
     <a className="plink" href="#visit" aria-label="Visit [Name]"><div role="img" aria-label="Screenshot of [Name]'s portfolio" style={{ display: 'flex', flexGrow: '1' }}><div className="sh gal"><i className="n" /><div className="g"><i style={{ gridRow: '1 / span 2', background: '#9db4f0' }} /><i style={{ background: '#dba40c' }} /><i style={{ background: '#26335c' }} /><i style={{ background: '#e6eaf3' }} /><i style={{ background: '#7d89a8' }} /></div></div></div></a>
     <div className="pmeta">
-      <div><span className="spot">Spotlight</span><h3>[Name]</h3><span className="role">Brand designer · [City]</span></div>
+      <div><span className="spot">Spotlight</span><h3><Link className="title-link" href="/post/demo">[Name]</Link></h3><span className="role">Brand designer · [City]</span></div>
       <a className="visit" href="#visit">Visit ↗</a>
     </div>
   </article>

@@ -5,7 +5,8 @@ export const metadata: Metadata = {
   title: "Post | Shoof",
 };
 
-// Stands in for the post page (not built yet) so notification links have somewhere to land.
+// /post/:postId. Every id renders the same mock until posts are fetched; /post/new (the (post) group) wins over this
+// dynamic segment because Next.js ranks static segments first.
 export default function Page() {
   return <PostPlaceholderPage />;
 }

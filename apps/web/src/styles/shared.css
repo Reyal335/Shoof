@@ -27,3 +27,7 @@ button{cursor:pointer;font-family:inherit}
 /* Header fit on phones with the notifications bell; below 420px the word "Shoof" is hidden visually but stays the link's name */
 @media (max-width:700px){.top{gap:12px}.top-right{gap:10px}.post-btn{white-space:nowrap;padding:0 14px}}
 @media (max-width:420px){.brand span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+/* Card title links to the post page; each card keeps its own title type */
+.title-link{color:inherit;text-decoration:none}
+.title-link:hover{text-decoration:underline}
+.title-link:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}

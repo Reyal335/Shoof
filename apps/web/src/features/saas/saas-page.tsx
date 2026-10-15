@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { cloneElement, createContext, useContext, useState } from "react";
 import { FollowButton } from "@/components/follow-button";
@@ -77,7 +78,7 @@ export function SaasPage() {
                   <div className="main"><div className="tiles"><i /><i /></div><div className="chart"><i style={{ height: '28px' }} /><i style={{ height: '43px' }} /><i style={{ height: '34px' }} /><i style={{ height: '56px' }} /><i style={{ height: '46px' }} /><i style={{ height: '64px' }} /><i style={{ height: '52px' }} /><i style={{ height: '41px' }} /></div></div>
                 </div>
                 <div className="lbody">
-                  <div className="lrow"><div><h3>[Product name]</h3><span className="tg">Uptime checks with plain-English alerts.</span></div><span className="price">Free</span></div>
+                  <div className="lrow"><div><h3><Link className="title-link" href="/post/demo">[Product name]</Link></h3><span className="tg">Uptime checks with plain-English alerts.</span></div><span className="price">Free</span></div>
                   <a className="try" href="#try">Try it ↗</a>
                 </div>
               </article>
@@ -87,7 +88,7 @@ export function SaasPage() {
                   <div className="main"><div className="tiles"><i /><i /></div><div className="chart"><i style={{ height: '49px' }} /><i style={{ height: '38px' }} /><i style={{ height: '57px' }} /><i style={{ height: '42px' }} /><i style={{ height: '63px' }} /><i style={{ height: '53px' }} /><i style={{ height: '35px' }} /><i style={{ height: '48px' }} /></div></div>
                 </div>
                 <div className="lbody">
-                  <div className="lrow"><div><h3>[Product name]</h3><span className="tg">Book meetings without the back and forth.</span></div><span className="price">Freemium</span></div>
+                  <div className="lrow"><div><h3><Link className="title-link" href="/post/demo">[Product name]</Link></h3><span className="tg">Book meetings without the back and forth.</span></div><span className="price">Freemium</span></div>
                   <a className="try" href="#try">Try it ↗</a>
                 </div>
               </article>
@@ -97,7 +98,7 @@ export function SaasPage() {
                   <div className="main"><div className="tiles"><i /><i /></div><div className="chart"><i style={{ height: '21px' }} /><i style={{ height: '32px' }} /><i style={{ height: '42px' }} /><i style={{ height: '36px' }} /><i style={{ height: '52px' }} /><i style={{ height: '62px' }} /><i style={{ height: '45px' }} /><i style={{ height: '56px' }} /></div></div>
                 </div>
                 <div className="lbody">
-                  <div className="lrow"><div><h3>[Product name]</h3><span className="tg">Track subscriptions before they renew.</span></div><span className="price">Paid</span></div>
+                  <div className="lrow"><div><h3><Link className="title-link" href="/post/demo">[Product name]</Link></h3><span className="tg">Track subscriptions before they renew.</span></div><span className="price">Paid</span></div>
                   <a className="try" href="#try">Try it ↗</a>
                 </div>
               </article>

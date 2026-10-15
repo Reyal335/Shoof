@@ -124,7 +124,7 @@ function ProfileContent({ profile, onSaved }: { profile: Profile; onSaved: (prof
                   <a className="go" href="#visit" aria-label="Visit [Project name] (a SaaS product)"><Arrow /></a>
                 </div>
                 <div className="lbody">
-                  <h3>[Project name]</h3>
+                  <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
                   <p>A tool that solves one problem well.</p>
                   <div className="chips"><span>React</span><span>Node.js</span><span>PostgreSQL</span></div>
                 </div>
@@ -136,7 +136,7 @@ function ProfileContent({ profile, onSaved }: { profile: Profile; onSaved: (prof
                   <a className="go" href="#visit" aria-label="Visit [Project name] (a game)"><Arrow /></a>
                 </div>
                 <div className="lbody">
-                  <h3>[Project name]</h3>
+                  <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
                   <p>A browser game made for a game jam.</p>
                   <div className="chips"><span>TypeScript</span><span>Phaser</span></div>
                 </div>
@@ -152,7 +152,7 @@ function ProfileContent({ profile, onSaved }: { profile: Profile; onSaved: (prof
                   <a className="go" href="#visit" aria-label="Visit [Project name] (a portfolio)"><Arrow /></a>
                 </div>
                 <div className="lbody">
-                  <h3>[Project name]</h3>
+                  <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
                   <p>Personal portfolio with case studies.</p>
                   <div className="chips"><span>Next.js</span><span>Tailwind</span></div>
                 </div>
@@ -167,7 +167,7 @@ function ProfileContent({ profile, onSaved }: { profile: Profile; onSaved: (prof
                   <a className="go" href="#visit" aria-label="Visit [Project name] (a CSS and UI piece)"><Arrow /></a>
                 </div>
                 <div className="lbody">
-                  <h3>[Project name]</h3>
+                  <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
                   <p>A layout study built with flex and grid.</p>
                   <div className="chips"><span>HTML &amp; CSS</span></div>
                 </div>

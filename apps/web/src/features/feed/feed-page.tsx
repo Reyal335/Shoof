@@ -57,7 +57,7 @@ export function FeedPage() {
             <div className="feat-by"><span className="avatar" /><b style={{ fontSize: '15px' }}>[Creator]</b><span>with 2 collaborators</span></div>
             <div className="feat-btns">
               <a className="btn-dark" href="#visit">Visit live site <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17L17 7" /><path d="M8 7h9v9" /></svg></a>
-              <a className="btn-line" href="#details">Details</a>
+              <Link className="btn-line" href="/post/demo">Details</Link>
             </div>
           </div>
         </article>
@@ -84,7 +84,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>A browser game. One line on what it is and how you play.</p>
       </div>
       <div className="chips"><span className="chip">TypeScript</span><span className="chip">Phaser</span><span className="chip">Vite</span></div>
@@ -102,7 +102,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>Personal portfolio with case studies and a contact form.</p>
       </div>
       <div className="chips"><span className="chip">Next.js</span><span className="chip">Tailwind</span><span className="chip">React</span></div>
@@ -120,7 +120,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>A layout study built with flex and grid, no JavaScript.</p>
       </div>
       <div className="chips"><span className="chip">HTML &amp; CSS</span></div>
@@ -138,7 +138,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>A tool that solves one problem well. Say who it is for.</p>
       </div>
       <div className="chips"><span className="chip">React</span><span className="chip">Node.js</span><span className="chip">PostgreSQL</span></div>
@@ -156,7 +156,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>A small puzzle game made in a weekend for a game jam.</p>
       </div>
       <div className="chips"><span className="chip">React</span><span className="chip">TypeScript</span></div>
@@ -174,7 +174,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>Illustrator portfolio with a fast image gallery.</p>
       </div>
       <div className="chips"><span className="chip">Vue</span><span className="chip">Tailwind</span></div>
@@ -192,7 +192,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>Dashboard for tracking something people actually need to track.</p>
       </div>
       <div className="chips"><span className="chip">Vue</span><span className="chip">Node.js</span><span className="chip">TypeScript</span></div>
@@ -210,7 +210,7 @@ const cards: Card[] = [
     </div>
     <div className="card-body">
       <div>
-        <h3>[Project name]</h3>
+        <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
         <p>Animated components collection with copy-paste snippets.</p>
       </div>
       <div className="chips"><span className="chip">HTML &amp; CSS</span><span className="chip">TypeScript</span></div>

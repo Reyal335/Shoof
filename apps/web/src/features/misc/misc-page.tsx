@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { cloneElement, createContext, useContext, useRef, useState } from "react";
 import { FollowButton } from "@/components/follow-button";
@@ -97,7 +98,7 @@ const cards: Card[] = [
     <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-gen"><i style={{ width: '48px', height: '48px', background: '#dba40c' }} /><i style={{ width: '22px', height: '22px', background: '#9db4f0' }} /><i style={{ width: '34px', height: '34px', background: '#ef6f6f' }} /><i style={{ width: '60px', height: '60px', background: '#2ec4b6' }} /><i style={{ width: '18px', height: '18px', background: '#eef1f8' }} /><i style={{ width: '40px', height: '40px', background: '#dba40c' }} /><i style={{ width: '26px', height: '26px', background: '#9db4f0' }} /><i style={{ width: '52px', height: '52px', background: '#ef6f6f' }} /><i style={{ width: '30px', height: '30px', background: '#2ec4b6' }} /><i style={{ width: '20px', height: '20px', background: '#eef1f8' }} /><i style={{ width: '44px', height: '44px', background: '#dba40c' }} /><i style={{ width: '28px', height: '28px', background: '#9db4f0' }} /><i style={{ width: '36px', height: '36px', background: '#ef6f6f' }} /><i style={{ width: '24px', height: '24px', background: '#2ec4b6' }} /></div><PickedTag /></div>
     <div className="mbody">
       <span className="kind">Generative art</span>
-      <h3>[Project name]</h3>
+      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
       <p>A new pattern every time you load the page. Click to freeze one.</p>
       <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
     </div>
@@ -106,7 +107,7 @@ const cards: Card[] = [
     <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-tool"><div className="in">paste something here</div><div className="ar"><b>↓</b><i /></div><div className="out"><i style={{ width: '80%', background: '#eef1f8' }} /><i style={{ width: '56%', background: '#9db4f0' }} /></div></div><PickedTag /></div>
     <div className="mbody">
       <span className="kind">Tools</span>
-      <h3>[Project name]</h3>
+      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
       <p>Paste messy text, get a clean table back.</p>
       <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
     </div>
@@ -115,7 +116,7 @@ const cards: Card[] = [
     <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-ext"><div className="tb"><i className="u" /><i className="a" /><i className="y" /></div><div className="pop"><div><i style={{ width: '60px', background: '#101b33' }} /><i className="sw" style={{ background: '#101b33' }} /></div><div><i style={{ width: '72px', background: '#9aa5c0' }} /><i className="sw" style={{ background: '#c3cadb' }} /></div></div></div><PickedTag /></div>
     <div className="mbody">
       <span className="kind">Extensions</span>
-      <h3>[Project name]</h3>
+      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
       <p>A browser extension that hides what distracts you.</p>
       <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
     </div>
@@ -124,7 +125,7 @@ const cards: Card[] = [
     <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-ai"><div className="usr"><i style={{ width: '120px' }} /><i style={{ width: '80px' }} /></div><div className="bot"><i style={{ width: '140px' }} /><i style={{ width: '100px', background: '#9aa5c0' }} /></div><div className="typing"><i /><i style={{ background: '#5b6a92' }} /><i style={{ background: '#9aa5c0' }} /></div></div><PickedTag /></div>
     <div className="mbody">
       <span className="kind">AI demos</span>
-      <h3>[Project name]</h3>
+      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
       <p>Talk to a recipe book that only knows soup.</p>
       <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
     </div>
@@ -133,7 +134,7 @@ const cards: Card[] = [
     <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-toy"><span className="btn">PRESS</span><span className="ct">pressed [1,204] times</span></div><PickedTag /></div>
     <div className="mbody">
       <span className="kind">Toys</span>
-      <h3>[Project name]</h3>
+      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
       <p>One button. Everyone on the site presses the same one.</p>
       <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
     </div>
@@ -142,7 +143,7 @@ const cards: Card[] = [
     <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-exp"><span>SCROLL</span><span className="o">SCROLL</span><span style={{ paddingLeft: '60px' }}>SCROLL</span></div><PickedTag /></div>
     <div className="mbody">
       <span className="kind">Experiments</span>
-      <h3>[Project name]</h3>
+      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
       <p>A page that changes its typography as you scroll.</p>
       <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
     </div>
@@ -151,7 +152,7 @@ const cards: Card[] = [
     <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-tool"><div className="in">paste something here</div><div className="ar"><b>↓</b><i /></div><div className="out"><i style={{ width: '80%', background: '#eef1f8' }} /><i style={{ width: '56%', background: '#9db4f0' }} /></div></div><PickedTag /></div>
     <div className="mbody">
       <span className="kind">Tools</span>
-      <h3>[Project name]</h3>
+      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
       <p>Turn a long URL into a QR code you can print.</p>
       <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
     </div>
