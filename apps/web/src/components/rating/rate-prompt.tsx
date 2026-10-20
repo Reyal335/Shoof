@@ -25,7 +25,14 @@ function storeDismissed(postId: string) {
   }
 }
 
-const CLOSE_ICON = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>;
+/** A hostname that may wrap after each dot ("yourgame.<wbr>example.<wbr>com"), so a long one breaks between its parts. */
+function withBreaks(host: string): ReactNode {
+  return host.split(".").map((part, i, parts) => (
+    <span key={i}>{part}{i < parts.length - 1 && <>.<wbr /></>}</span>
+  ));
+}
+
+const CLOSE_ICON =<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>;
 
 type Props = {
   ratings: RatingsController;
@@ -120,7 +127,7 @@ export function RatePrompt({ ratings, host, thumb, visitedAt, loginHref }: Props
       <div className="rt-trow">
         <span className="rt-thumb" aria-hidden="true">{thumb}</span>
         <div className="rt-ttext">
-          <p className="rt-tt">How was {host}?</p>
+          <p className="rt-tt">How was {withBreaks(host)}?</p>
           <p className="rt-muted">You just tried it. A rating helps other people find good sites.</p>
         </div>
         <button type="button" className="rt-x" aria-label="Close" onClick={dismiss}>{CLOSE_ICON}</button>

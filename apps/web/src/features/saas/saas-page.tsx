@@ -7,7 +7,7 @@ import { FollowButton } from "@/components/follow-button";
 import { Header } from "@/components/header";
 import { SectionNav, type Section } from "@/components/section-nav";
 import { ListStatus, MoreButton } from "@/features/posts/components/list-states";
-import { RatingChip } from "@/features/posts/components/rating-chip";
+import { RatingChip } from "@/components/rating/rating-chip";
 import { usePostList } from "@/features/posts/hooks/use-post-list";
 import { ALL, skillFilter, useSkillTabs } from "@/features/posts/hooks/use-skill-tabs";
 import { useVisit } from "@/features/posts/hooks/use-visit";
@@ -85,7 +85,7 @@ function ProductRow({ post, rank }: { post: Post; rank: number }) {
           {post.skills.length > 0 && <><span className="dotsep">·</span><span className="stk">{post.skills.slice(0, 3).map((skill) => <span key={skill.id}>{skill.name}</span>)}</span></>}
         </div>
       </div>
-      <RatingChip rating={post.rating} count={post.ratingCount} />
+      <RatingChip value={post.rating} count={post.ratingCount} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { UserSummary } from "@/features/profile/types";
+import type { RatingDistribution } from "@/features/ratings/types";
 import type { Skill } from "@/features/skills/types";
 
 // Mirrors the views in apps/api/src/modules/posts/posts.service.ts. Dates arrive as ISO strings.
@@ -36,22 +37,9 @@ export interface Post {
   author: UserSummary | null;
 }
 
-export type StarValue = 1 | 2 | 3 | 4 | 5;
-export type RatingDistribution = Record<StarValue, number>;
-
-/** GET /posts/:id */
+/** GET /posts/:id: the server-rendered post page also draws the ratings bars from it. */
 export interface PostDetail extends Post {
   ratingDistribution: RatingDistribution;
-}
-
-/** GET|PUT|DELETE /posts/:id/rating */
-export interface RatingSummary {
-  postId: string;
-  rating: number;
-  ratingCount: number;
-  /** The caller's own rating. */
-  value: StarValue | null;
-  distribution: RatingDistribution;
 }
 
 export interface PostComment {

@@ -96,27 +96,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
 .stack a{font-size:14px;font-weight:600;padding:7px 12px;border-radius:9px;background:var(--chip);color:var(--ink);text-decoration:none}
 .stack a:hover{background:#d5dbe9;color:var(--ink)}
 /* ratings */
-.rgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px 32px;align-items:center}
-.avg{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
-.avg b{font:600 52px/1 'Outfit',sans-serif;letter-spacing:-1.5px}
-.avg span{font-size:14px;color:var(--muted)}
-.starrow{display:inline-flex;gap:2px}
-.starrow svg{display:block}
-.bars{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
-.bars li{display:grid;grid-template-columns:56px minmax(0,1fr) 36px;align-items:center;gap:10px;font-size:14px}
-.bars .bar{height:10px;border-radius:5px;background:var(--chip);overflow:hidden}
-.bars .bar i{display:block;height:100%;border-radius:5px;background:var(--navy)}
-.bars .c{text-align:right;color:var(--muted)}
-.yours{grid-column:1 / -1;border:0;margin:0;padding:16px 0 0;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
-.yours legend{float:left;padding:0;font-weight:600;font-size:16px}
-.rate{display:flex;gap:2px}
-.rate input{position:absolute;opacity:0;width:1px;height:1px}
-.rate label{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer}
-.rate label:hover{background:var(--ground)}
-.rate input:focus-visible+label{outline:3px solid var(--link);outline-offset:1px}
-.rate svg{fill:none;stroke:var(--star-line);stroke-width:1.8}
-.rate label.on svg{fill:var(--star);stroke:#a07600}
-#rate-msg{font-size:14px;color:var(--muted)}
 /* comments */
 .composer{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
 .composer label{font-weight:600;font-size:15px}
@@ -160,7 +139,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
 .m-saas .mn{flex:1;padding:12px;display:flex;align-items:flex-end;gap:6px}
 .m-saas .mn i{flex:1;border-radius:3px 3px 0 0;background:#1b3a8a;display:block}
 @media (max-width:1000px){.pgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"media" "side" "body"}.side{position:static}.search{display:none}}
-@media (max-width:700px){.wrap{padding:16px 16px 56px}.phead h1{font-size:30px;line-height:36px}.sec{padding:20px 18px}.mgrid{grid-template-columns:minmax(0,1fr)}.rgrid{grid-template-columns:minmax(0,1fr)}.thumbs{gap:6px}.vfoot{padding-left:12px}}
+@media (max-width:700px){.wrap{padding:16px 16px 56px}.phead h1{font-size:30px;line-height:36px}.sec{padding:20px 18px}.mgrid{grid-template-columns:minmax(0,1fr)}.thumbs{gap:6px}.vfoot{padding-left:12px}}
 @media (prefers-reduced-motion:reduce){*{transition:none !important}}
 /* Not in the design: keeps anchored headings (/post/demo#h-comments) clear of the 68px sticky header */
 [id^="h-"]{scroll-margin-top:92px}
@@ -170,10 +149,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
 .s-misc{background:#fdf3d3;display:flex;align-items:center;justify-content:center}
 .s-misc img{width:28%;height:auto}
 .composer-note{margin:0 0 18px;font-size:15px}
-.composer-note a,.yours a{color:var(--link);font-weight:700}
+.composer-note a{color:var(--link);font-weight:700}
 .send:disabled{opacity:.7;cursor:progress}
 .chead .cdel{margin-left:auto;font-size:13px}
 .follow-err{margin:6px 0 0;font-size:13px;font-weight:600;color:var(--error)}
 .linkbtn{border:0;padding:0;background:none;color:var(--link);font:inherit;font-weight:600;text-decoration:underline}
 .linkbtn:disabled{opacity:.6}
 a.follow{display:inline-flex;align-items:center;text-decoration:none}
+/* The rate prompt's thumbnail when the post has no cover: nine cells */
+.pthumb{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;width:100%;height:100%;padding:7px;background:#1d1b3a}
+.pthumb i{border-radius:2px}
+.r .rt-chip{height:26px}

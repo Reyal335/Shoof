@@ -43,7 +43,3 @@ button{cursor:pointer;font-family:inherit}
 .more-btn{height:44px;padding:0 24px;border-radius:22px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);font:600 15px 'Figtree',sans-serif}
 .more-btn:disabled{opacity:.6;cursor:default}
 .more-btn:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
-/* A post's average rating where a design had a like or vote count */
-.rating-chip{display:inline-flex;align-items:center;gap:5px;font:600 14px 'Figtree',sans-serif;color:var(--navy);white-space:nowrap}
-.rating-chip svg{fill:var(--star);stroke:#a07600;stroke-width:1.2}
-.rating-chip .none{color:var(--muted);font-weight:500}

@@ -7,7 +7,7 @@ import { Avatar } from "@/components/avatar";
 import { Header } from "@/components/header";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { ListStatus, MoreButton } from "@/features/posts/components/list-states";
-import { RatingChip } from "@/features/posts/components/rating-chip";
+import { RatingChip } from "@/components/rating/rating-chip";
 import { usePostList } from "@/features/posts/hooks/use-post-list";
 import { useTopSkills } from "@/features/posts/hooks/use-top-skills";
 import { useVisit } from "@/features/posts/hooks/use-visit";
@@ -79,7 +79,7 @@ function FeedCard({ post, onVisit }: { post: Post; onVisit: (id: string) => void
         {post.skills.length > 0 && <div className="chips">{post.skills.slice(0, 4).map((skill) => <span key={skill.id} className="chip">{skill.name}</span>)}</div>}
         <div className="card-foot">
           <div className="creator"><Creator post={post} /></div>
-          <RatingChip rating={post.rating} count={post.ratingCount} />
+          <RatingChip value={post.rating} count={post.ratingCount} />
         </div>
       </div>
     </article>
@@ -111,7 +111,7 @@ function Featured({ onVisit }: { onVisit: (id: string) => void }) {
         <h2>{post.caption}</h2>
         <p>{firstLine(post.description, 220)}</p>
         {post.skills.length > 0 && <div className="chips">{post.skills.slice(0, 5).map((skill) => <span key={skill.id} className="chip">{skill.name}</span>)}</div>}
-        <div className="feat-by"><Creator post={post} featured /><RatingChip rating={post.rating} count={post.ratingCount} /></div>
+        <div className="feat-by"><Creator post={post} featured /><RatingChip value={post.rating} count={post.ratingCount} /></div>
         <div className="feat-btns">
           <a className="btn-dark" href={post.link} target="_blank" rel="noopener noreferrer nofollow ugc" onClick={() => onVisit(post.id)}>Visit live site <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17L17 7" /><path d="M8 7h9v9" /></svg></a>
           <Link className="btn-line" href={postHref(post)}>Details</Link>

@@ -9,9 +9,7 @@ import type {
   PostCategory,
   PostFilters,
   PostScope,
-  RatingSummary,
   SkillUsage,
-  StarValue,
 } from "./types";
 
 /** "?a=1&b=x", leaving out unset values. */
@@ -51,13 +49,6 @@ export const createPost = (input: CreatePostInput) => authedRequest<Post>("/post
 
 /** Counted when someone opens the live site from Shoof. Public: signed-out visits count too. */
 export const recordVisit = (id: string) => request<void>(`${postPath(id)}/visits`, { method: "POST" });
-
-// ---------- ratings ----------
-
-export const getMyRating = (id: string) => authedRequest<RatingSummary>(`${postPath(id)}/rating`);
-export const ratePost = (id: string, value: StarValue) =>
-  authedRequest<RatingSummary>(`${postPath(id)}/rating`, { method: "PUT", body: { value } });
-export const unratePost = (id: string) => authedRequest<RatingSummary>(`${postPath(id)}/rating`, { method: "DELETE" });
 
 // ---------- comments ----------
 

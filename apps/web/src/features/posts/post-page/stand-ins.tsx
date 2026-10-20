@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { chartBars, gameCells, seedOf } from "@/lib/stand-ins";
+import { chartBars, gameCells, pick, seedOf } from "@/lib/stand-ins";
+import { coverUrl } from "../paths";
 import type { Post } from "../types";
 
 // Drawn previews for a post with no screenshots, one look per section, varied by the post id. They draw someone
@@ -44,4 +45,21 @@ export function PostStandIn({ post, thumb }: { post: Pick<Post, "id" | "category
         </div>
       );
   }
+}
+
+const THUMB_COLORS = ["#2ec4b6", "#26335c", "#dba40c", "#ef6f6f"];
+
+/** The rate prompt's 44px thumbnail: the cover, or nine cells in the design's colours, varied by the post id. */
+export function PromptThumb({ post }: { post: Pick<Post, "id" | "media"> }) {
+  const cover = coverUrl(post);
+  if (cover) {
+    // eslint-disable-next-line @next/next/no-img-element -- media can sit on any https host
+    return <img className="cover-img" src={cover} alt="" />;
+  }
+  const seed = seedOf(post.id);
+  return (
+    <span className="pthumb">
+      {Array.from({ length: 9 }, (_, i) => <i key={i} style={{ background: i % 2 ? "#26335c" : pick(seed + i, THUMB_COLORS) }} />)}
+    </span>
+  );
 }

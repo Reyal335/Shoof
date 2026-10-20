@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { firstLine } from "@/lib/text";
-import { RatingChip } from "../components/rating-chip";
+import { RatingChip } from "@/components/rating/rating-chip";
 import { usePostList } from "../hooks/use-post-list";
 import { coverUrl, postHref } from "../paths";
 import type { Post } from "../types";
@@ -30,7 +30,7 @@ export function MoreFrom({ post }: { post: Post }) {
               <div className="mbody">
                 <h3><Link href={postHref(other)}>{other.caption}</Link></h3>
                 <p>{firstLine(other.description)}</p>
-                <span className="r"><RatingChip rating={other.rating} count={other.ratingCount} /></span>
+                <span className="r"><RatingChip value={other.rating} count={other.ratingCount} /></span>
               </div>
             </article>
           );

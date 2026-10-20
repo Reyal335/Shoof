@@ -13,7 +13,19 @@ import type { Post, PostComment } from "../types";
 const MAX = 500;
 
 /** Composer and comment list, oldest first. You can delete your own comments, and any comment on your own post. */
-export function Comments({ post }: { post: Post }) {
+export function Comments({ post, demo = false }: { post: Post; demo?: boolean }) {
+  if (demo) {
+    return (
+      <section className="card sec" aria-labelledby="h-comments">
+        <h2 id="h-comments">Comments</h2>
+        <p className="hint">The demo post has no comments. Open a real post to read and write them.</p>
+      </section>
+    );
+  }
+  return <PostComments post={post} />;
+}
+
+function PostComments({ post }: { post: Post }) {
   const session = useSession();
   const me = session.isAuthenticated ? getSessionUserId() : null;
   const { comments, total, isPending, isError, refetch, hasMore, isLoadingMore, loadMore, add, remove } = useComments(post.id);
