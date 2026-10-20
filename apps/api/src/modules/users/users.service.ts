@@ -38,6 +38,26 @@ export type PublicUser = Pick<User, 'id' | 'username'> & {
 export type PublicProfileView = PublicUser & { skills: SkillSummary[] };
 
 /**
+ * Who made something, as other modules show it next to a post, comment or follower: a name, an avatar and the
+ * username for the /@username link. displayName falls back to the username for users without a profile row.
+ */
+export interface UserSummary {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export function toUserSummary(user: PublicUser): UserSummary {
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.profile?.displayName || user.username,
+    avatarUrl: user.profile?.avatarUrl ?? null,
+  };
+}
+
+/**
  * What GET /users/me sends: the signed-in user's own account. Built field by field, so a column added to `user`
  * later stays server-side until it is listed here.
  */
@@ -181,9 +201,26 @@ export class UsersService {
     return { ...user, skills: await this.findSkills(user.id) };
   }
 
+  /** The id behind a username, for routes such as /users/:username/posts. 404 for an unknown or deactivated user. */
+  async findIdByUsername(username: string): Promise<string> {
+    const user = await this.usersRepository.findOne({ where: { username, isActive: true }, select: { id: true } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.id;
+  }
+
+  /** For other modules that hold user ids (post authors, commenters, followers). Unknown or deactivated ids are left out. */
+  async findSummariesByIds(ids: string[]): Promise<UserSummary[]> {
+    const users = await this.findPublicByIds([...new Set(ids)]);
+    return users.map(toUserSummary);
+  }
+
   // Batch find IDs
   async findPublicByIds(ids: string[]): Promise<PublicUser[]> {
-    const users = await this.usersRepository.find({ 
+    // Callers with nothing to look up (an empty page) skip the query instead of sending IN ()
+    if (!ids.length) return [];
+    const users = await this.usersRepository.find({
       where: { 
         id: In(ids), 
         isActive: true 

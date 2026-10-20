@@ -164,3 +164,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
 @media (prefers-reduced-motion:reduce){*{transition:none !important}}
 /* Not in the design: keeps anchored headings (/post/demo#h-comments) clear of the 68px sticky header */
 [id^="h-"]{scroll-margin-top:92px}
+/* Real data: photo avatars fill the circle, Share is the one action, and the drawn preview for Misc posts */
+.av{overflow:hidden}
+.acts.one{grid-template-columns:minmax(0,1fr)}
+.s-misc{background:#fdf3d3;display:flex;align-items:center;justify-content:center}
+.s-misc img{width:28%;height:auto}
+.composer-note{margin:0 0 18px;font-size:15px}
+.composer-note a,.yours a{color:var(--link);font-weight:700}
+.send:disabled{opacity:.7;cursor:progress}
+.chead .cdel{margin-left:auto;font-size:13px}
+.follow-err{margin:6px 0 0;font-size:13px;font-weight:600;color:var(--error)}
+.linkbtn{border:0;padding:0;background:none;color:var(--link);font:inherit;font-weight:600;text-decoration:underline}
+.linkbtn:disabled{opacity:.6}
+a.follow{display:inline-flex;align-items:center;text-decoration:none}

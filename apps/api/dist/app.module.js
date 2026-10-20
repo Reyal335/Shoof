@@ -24,6 +24,7 @@ import { FollowsModule } from './modules/follows/follows.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SkillsModule } from './modules/skills/skills.module.js';
+import { FeedModule } from './modules/feed/feed.module.js';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 const observeAppKey = process.env.OBSERVE_APP_KEY;
 const observeAppSecret = process.env.OBSERVE_APP_SECRET;
@@ -95,7 +96,8 @@ AppModule = __decorate([
             AuthModule,
             PostsModule,
             FollowsModule,
-            NotificationsModule, SkillsModule
+            NotificationsModule, SkillsModule,
+            FeedModule
         ],
         controllers: [AppController],
         providers: [AppService],

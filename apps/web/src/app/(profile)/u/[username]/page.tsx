@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPublicProfile } from "@/features/profile/public-api";
+import { getProfileActivity, getPublicProfile } from "@/features/profile/public-api";
 import { PublicProfilePage } from "@/features/profile/public-profile-page";
 
 // Served at /@username through the rewrite in next.config.ts. Rendered on the server per request so crawlers and
@@ -31,6 +31,7 @@ export default async function Page(props: PageProps<"/u/[username]">) {
   const { username } = await props.params;
   const user = await getPublicProfile(username);
   if (!user) notFound();
+  const { sites, counts } = await getProfileActivity(user.username);
 
-  return <PublicProfilePage user={user} />;
+  return <PublicProfilePage user={user} sites={sites} counts={counts} />;
 }

@@ -2,58 +2,89 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { cloneElement, createContext, useContext, useRef, useState } from "react";
+import { useState } from "react";
 import { FollowButton } from "@/components/follow-button";
 import { Header } from "@/components/header";
 import { SectionNav } from "@/components/section-nav";
 import { Tabs } from "@/components/tabs";
-import { dataOf, type Card } from "@/lib/cards";
+import { ListStatus, MoreButton } from "@/features/posts/components/list-states";
+import { usePostList } from "@/features/posts/hooks/use-post-list";
+import { ALL, skillFilter, useSkillTabs } from "@/features/posts/hooks/use-skill-tabs";
+import { useVisit } from "@/features/posts/hooks/use-visit";
+import { coverUrl, postHref, profileHref } from "@/features/posts/paths";
+import type { Post } from "@/features/posts/types";
+import { seedOf } from "@/lib/stand-ins";
+import { firstLine } from "@/lib/text";
 import { plural } from "@/lib/plural";
 import "./misc.css";
 
-const KINDS = ["All", "Toys", "Tools", "Experiments", "Generative art", "Extensions", "AI demos"].map((value) => ({
-  value,
-  label: value,
-}));
+const GEN_COLORS = ["#dba40c", "#9db4f0", "#ef6f6f", "#2ec4b6", "#eef1f8"];
 
-// Whether the card around a <PickedTag /> is the one "Shoof me something" picked.
-const PickContext = createContext(false);
+/** One of the design's six drawn previews, picked by the post id, until the project has a screenshot. */
+function StandIn({ post }: { post: Post }) {
+  const seed = seedOf(post.id);
+  switch (seed % 6) {
+    case 0:
+      return <div className="m-gen">{Array.from({ length: 14 }, (_, i) => { const size = 18 + ((seed + i * 17) % 44); return <i key={i} style={{ width: `${size}px`, height: `${size}px`, background: GEN_COLORS[i % 5] }} />; })}</div>;
+    case 1:
+      return <div className="m-tool"><div className="in">paste something here</div><div className="ar"><b>↓</b><i /></div><div className="out"><i style={{ width: '80%', background: '#eef1f8' }} /><i style={{ width: '56%', background: '#9db4f0' }} /></div></div>;
+    case 2:
+      return <div className="m-ext"><div className="tb"><i className="u" /><i className="a" /><i className="y" /></div><div className="pop"><div><i style={{ width: '60px', background: '#101b33' }} /><i className="sw" style={{ background: '#101b33' }} /></div><div><i style={{ width: '72px', background: '#9aa5c0' }} /><i className="sw" style={{ background: '#c3cadb' }} /></div></div></div>;
+    case 3:
+      return <div className="m-ai"><div className="usr"><i style={{ width: '120px' }} /><i style={{ width: '80px' }} /></div><div className="bot"><i style={{ width: '140px' }} /><i style={{ width: '100px', background: '#9aa5c0' }} /></div><div className="typing"><i /><i style={{ background: '#5b6a92' }} /><i style={{ background: '#9aa5c0' }} /></div></div>;
+    case 4:
+      return <div className="m-toy"><span className="btn">PRESS</span><span className="ct">{`opened ${post.visitCount.toLocaleString("en-US")} times`}</span></div>;
+    default:
+      return <div className="m-exp"><span>SCROLL</span><span className="o">SCROLL</span><span style={{ paddingLeft: '60px' }}>SCROLL</span></div>;
+  }
+}
 
-function PickedTag() {
+function ProjectCard({ post, wide, picked, onVisit }: { post: Post; wide: boolean; picked: boolean; onVisit: (id: string) => void }) {
+  const cover = coverUrl(post);
   return (
-    <span className="ptag" hidden={!useContext(PickContext)}>
-      Picked for you
-    </span>
+    <article id={`post-${post.id}`} className={["mcard", wide && "wide", picked && "picked"].filter(Boolean).join(" ")}>
+      <div className="mshot" role="img" aria-label={`Preview of ${post.caption}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- media can sit on any https host */}
+        {cover ? <img className="cover-img" src={cover} alt="" /> : <StandIn post={post} />}
+        <span className="ptag" hidden={!picked}>Picked for you</span>
+      </div>
+      <div className="mbody">
+        <span className="kind">{post.skills.length ? post.skills.slice(0, 2).map((s) => s.name).join(" · ") : "Misc"}</span>
+        <h3><Link className="title-link" href={postHref(post)}>{post.caption}</Link></h3>
+        <p>{firstLine(post.description)}</p>
+        <div className="mfoot">
+          <span>{post.author ? <>by <Link href={profileHref(post.author.username)}>{post.author.displayName}</Link></> : "by a former member"}</span>
+          <a className="try" href={post.link} target="_blank" rel="noopener noreferrer nofollow ugc" aria-label={`Try ${post.caption}`} onClick={() => onVisit(post.id)}>Try it ↗</a>
+        </div>
+      </div>
+    </article>
   );
 }
 
+// From design/Misc.html, with real posts in the misc section. The kind tabs became the section's most used skills.
 export function MiscPage() {
-  const [kind, setKind] = useState("All");
-  const [pickedKey, setPickedKey] = useState<string | null>(null);
-  const gridRef = useRef<HTMLElement>(null);
+  const [tab, setTab] = useState(ALL);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const tabs = useSkillTabs("misc");
+  const list = usePostList({ kind: "all" }, { category: "misc", sort: "new", skill: skillFilter(tab) });
+  const visit = useVisit();
+  const picked = list.posts.find((post) => post.id === pickedId);
 
-  const isVisible = (card: Card) => kind === "All" || dataOf(card, "kind") === kind;
-  const visible = cards.filter(isVisible);
-  const count = visible.length;
-  const picked = cards.find((card) => card.key === pickedKey);
+  function selectTab(value: string) {
+    setTab(value);
+    setPickedId(null);
+  }
 
-  const selectKind = (value: string) => {
-    setKind(value);
-    setPickedKey(null);
-  };
-
-  // First press picks the third visible card, later presses jump three ahead, wrapping round.
-  const shoofMe = () => {
-    if (!visible.length) return;
-    const i = visible.findIndex((card) => card.key === pickedKey);
-    const next = visible[i < 0 ? 2 % visible.length : (i + 3) % visible.length];
-    setPickedKey(next.key);
+  // First press picks the third card, later presses jump three ahead, wrapping round.
+  function shoofMe() {
+    const posts = list.posts;
+    if (!posts.length) return;
+    const i = posts.findIndex((post) => post.id === pickedId);
+    const next = posts[i < 0 ? 2 % posts.length : (i + 3) % posts.length];
+    setPickedId(next.id);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    gridRef.current?.children[cards.indexOf(next)]?.scrollIntoView({
-      block: "nearest",
-      behavior: reduceMotion ? "auto" : "smooth",
-    });
-  };
+    document.getElementById(`post-${next.id}`)?.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+  }
 
   return (
     <>
@@ -66,95 +97,26 @@ export function MiscPage() {
             <h1>Miscellaneous</h1>
             <p>Toys, tools, experiments and things that don&apos;t fit in a box. The weird corner of Shoof.</p>
             <div className="mact">
-              <button type="button" className="shoofme" id="shoofme" onClick={shoofMe}>Shoof me something</button>
+              <button type="button" className="shoofme" id="shoofme" onClick={shoofMe} disabled={!list.posts.length}>Shoof me something</button>
               <FollowButton className="follow" on="Following" off="Follow Misc" />
-              <span id="pick" role="status">{picked ? `Try the ${dataOf(picked, "kind").toLowerCase()} one.` : ""}</span>
+              <span id="pick" role="status">{picked ? `Try ${picked.caption}.` : ""}</span>
             </div>
           </div>
         </section>
         <div className="bar">
-          <Tabs label="Kind" options={KINDS} value={kind} onChange={selectKind} />
-          <span id="count" aria-live="polite">{plural(count, "thing", "things")}</span>
+          {tabs.length > 1 ? <Tabs label="Built with" options={tabs} value={tab} onChange={selectTab} /> : <span />}
+          <span id="count" aria-live="polite">{list.isPending ? "" : plural(list.total, "thing", "things")}</span>
         </div>
-        <section className="mgrid" aria-label="Projects" ref={gridRef}>
-          {cards.map((card) => (
-            <PickContext key={card.key} value={card.key === pickedKey}>
-              {cloneElement(card, {
-                hidden: !isVisible(card),
-                className: card.key === pickedKey ? `${card.props.className} picked` : card.props.className,
-              })}
-            </PickContext>
-          ))}
-        </section>
-        <p className="empty" id="empty" hidden={count !== 0}>Nothing weird enough yet. Post something.</p>
+        {list.posts.length > 0 && (
+          <section className="mgrid" aria-label="Projects">
+            {list.posts.map((post, i) => (
+              <ProjectCard key={post.id} post={post} wide={i % 6 === 0 || i % 6 === 5} picked={post.id === pickedId} onVisit={visit} />
+            ))}
+          </section>
+        )}
+        <ListStatus list={list} className="empty" empty={tab === ALL ? <>Nothing weird enough yet. <Link href="/post/new">Post something</Link>.</> : "Nothing built with this yet."} />
+        <MoreButton list={list} label="Show more things" />
       </main>
     </>
   );
 }
-
-// The project cards, written out as in design/Misc.html. Filtering reads data-kind.
-const cards: Card[] = [
-  <article key="1" className="mcard wide" data-kind="Generative art">
-    <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-gen"><i style={{ width: '48px', height: '48px', background: '#dba40c' }} /><i style={{ width: '22px', height: '22px', background: '#9db4f0' }} /><i style={{ width: '34px', height: '34px', background: '#ef6f6f' }} /><i style={{ width: '60px', height: '60px', background: '#2ec4b6' }} /><i style={{ width: '18px', height: '18px', background: '#eef1f8' }} /><i style={{ width: '40px', height: '40px', background: '#dba40c' }} /><i style={{ width: '26px', height: '26px', background: '#9db4f0' }} /><i style={{ width: '52px', height: '52px', background: '#ef6f6f' }} /><i style={{ width: '30px', height: '30px', background: '#2ec4b6' }} /><i style={{ width: '20px', height: '20px', background: '#eef1f8' }} /><i style={{ width: '44px', height: '44px', background: '#dba40c' }} /><i style={{ width: '28px', height: '28px', background: '#9db4f0' }} /><i style={{ width: '36px', height: '36px', background: '#ef6f6f' }} /><i style={{ width: '24px', height: '24px', background: '#2ec4b6' }} /></div><PickedTag /></div>
-    <div className="mbody">
-      <span className="kind">Generative art</span>
-      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
-      <p>A new pattern every time you load the page. Click to freeze one.</p>
-      <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
-    </div>
-  </article>,
-  <article key="2" className="mcard" data-kind="Tools">
-    <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-tool"><div className="in">paste something here</div><div className="ar"><b>↓</b><i /></div><div className="out"><i style={{ width: '80%', background: '#eef1f8' }} /><i style={{ width: '56%', background: '#9db4f0' }} /></div></div><PickedTag /></div>
-    <div className="mbody">
-      <span className="kind">Tools</span>
-      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
-      <p>Paste messy text, get a clean table back.</p>
-      <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
-    </div>
-  </article>,
-  <article key="3" className="mcard" data-kind="Extensions">
-    <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-ext"><div className="tb"><i className="u" /><i className="a" /><i className="y" /></div><div className="pop"><div><i style={{ width: '60px', background: '#101b33' }} /><i className="sw" style={{ background: '#101b33' }} /></div><div><i style={{ width: '72px', background: '#9aa5c0' }} /><i className="sw" style={{ background: '#c3cadb' }} /></div></div></div><PickedTag /></div>
-    <div className="mbody">
-      <span className="kind">Extensions</span>
-      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
-      <p>A browser extension that hides what distracts you.</p>
-      <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
-    </div>
-  </article>,
-  <article key="4" className="mcard" data-kind="AI demos">
-    <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-ai"><div className="usr"><i style={{ width: '120px' }} /><i style={{ width: '80px' }} /></div><div className="bot"><i style={{ width: '140px' }} /><i style={{ width: '100px', background: '#9aa5c0' }} /></div><div className="typing"><i /><i style={{ background: '#5b6a92' }} /><i style={{ background: '#9aa5c0' }} /></div></div><PickedTag /></div>
-    <div className="mbody">
-      <span className="kind">AI demos</span>
-      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
-      <p>Talk to a recipe book that only knows soup.</p>
-      <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
-    </div>
-  </article>,
-  <article key="5" className="mcard" data-kind="Toys">
-    <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-toy"><span className="btn">PRESS</span><span className="ct">pressed [1,204] times</span></div><PickedTag /></div>
-    <div className="mbody">
-      <span className="kind">Toys</span>
-      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
-      <p>One button. Everyone on the site presses the same one.</p>
-      <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
-    </div>
-  </article>,
-  <article key="6" className="mcard wide" data-kind="Experiments">
-    <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-exp"><span>SCROLL</span><span className="o">SCROLL</span><span style={{ paddingLeft: '60px' }}>SCROLL</span></div><PickedTag /></div>
-    <div className="mbody">
-      <span className="kind">Experiments</span>
-      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
-      <p>A page that changes its typography as you scroll.</p>
-      <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
-    </div>
-  </article>,
-  <article key="7" className="mcard" data-kind="Tools">
-    <div className="mshot" role="img" aria-label="Preview of [Project name]"><div className="m-tool"><div className="in">paste something here</div><div className="ar"><b>↓</b><i /></div><div className="out"><i style={{ width: '80%', background: '#eef1f8' }} /><i style={{ width: '56%', background: '#9db4f0' }} /></div></div><PickedTag /></div>
-    <div className="mbody">
-      <span className="kind">Tools</span>
-      <h3><Link className="title-link" href="/post/demo">[Project name]</Link></h3>
-      <p>Turn a long URL into a QR code you can print.</p>
-      <div className="mfoot"><span>by [Creator]</span><a className="try" href="#open">Try it ↗</a></div>
-    </div>
-  </article>
-];

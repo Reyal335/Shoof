@@ -21,6 +21,9 @@ import { User } from '../src/modules/users/entities/user.entity.js';
 import { User_Identity } from '../src/modules/users/entities/user-identity.js';
 import { Profile } from '../src/modules/users/entities/profile.entity.js';
 import { Notification } from '../src/modules/notifications/entities/notification.entity.js';
+import { UserSkill } from '../src/modules/users/entities/user-skill.entity.js';
+import { Skill } from '../src/modules/skills/entities/skill.entity.js';
+import { PostSkill } from '../src/modules/posts/entities/post-skill.entity.js';
 import type { NotificationPage, NotificationView } from '../src/modules/notifications/notifications.service.js';
 import { IS_PUBLIC_KEY } from '../src/modules/auth/decorators/public.decorator.js';
 
@@ -104,7 +107,7 @@ describe('Notifications (e2e)', () => {
           ...db,
           username: db.user,
           database: TEST_DB,
-          entities: [User, User_Identity, Profile, Follow, Post, Media, Comment, Rating, Notification],
+          entities: [User, User_Identity, Profile, UserSkill, Skill, Follow, Post, Media, Comment, Rating, PostSkill, Notification],
           synchronize: true,
           dropSchema: true,
         }),
@@ -330,5 +333,42 @@ describe('Notifications (e2e)', () => {
   it('needs a signed-in user', async () => {
     await request(app.getHttpServer()).get('/api/v1/notifications').expect(401);
     await request(app.getHttpServer()).get('/api/v1/notifications/unread-count').expect(401);
+  });
+
+  // The follows module's public reads, here because this spec already has real users
+  describe('follower lists and counts', () => {
+    const anon = () => request(app.getHttpServer());
+
+    it('lists followers and following newest first, with names, and counts both', async () => {
+      await as(fans[0].id).post(`/users/${creator.id}/follow`).expect(204);
+      await as(fans[1].id).post(`/users/${creator.id}/follow`).expect(204);
+      await as(creator.id).post(`/users/${fans[0].id}/follow`).expect(204);
+
+      const followers = await anon().get('/api/v1/users/creator/followers').expect(200);
+      expect(followers.body).toMatchObject({ total: 2, limit: 20, offset: 0 });
+      expect(followers.body.items.map((i: { user: { username: string } }) => i.user.username)).toEqual(['ben', 'ana']);
+      expect(followers.body.items[0].user).toEqual({ id: fans[1].id, username: 'ben', displayName: 'ben display', avatarUrl: null });
+
+      const following = await anon().get('/api/v1/users/creator/following').expect(200);
+      expect(following.body.items.map((i: { user: { username: string } }) => i.user.username)).toEqual(['ana']);
+
+      expect((await anon().get('/api/v1/users/creator/follow-counts').expect(200)).body).toEqual({ followers: 2, following: 1 });
+      expect((await anon().get('/api/v1/users/ana/follow-counts').expect(200)).body).toEqual({ followers: 1, following: 1 });
+    });
+
+    it('pages, validates and 404s an unknown username', async () => {
+      await as(fans[0].id).post(`/users/${creator.id}/follow`).expect(204);
+      await as(fans[1].id).post(`/users/${creator.id}/follow`).expect(204);
+      const page = await anon().get('/api/v1/users/creator/followers?limit=1&offset=1').expect(200);
+      expect(page.body.items.map((i: { user: { username: string } }) => i.user.username)).toEqual(['ana']);
+      await anon().get('/api/v1/users/creator/followers?limit=500').expect(400);
+      await anon().get('/api/v1/users/nobody/followers').expect(404);
+      await anon().get('/api/v1/users/nobody/follow-counts').expect(404);
+    });
+
+    it('refuses a malformed id on "do I follow"', async () => {
+      await as(fans[0].id).get('/users/not-a-uuid/follow').expect(400);
+      expect((await as(fans[0].id).get(`/users/${creator.id}/follow`).expect(200)).body).toEqual({ following: false });
+    });
   });
 });

@@ -17,7 +17,7 @@ import {
 import { PostsService } from './posts.service.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
-import { ListPostsQueryDto, PaginationQueryDto } from './dto/query.dto.js';
+import { ListPostsQueryDto, PaginationQueryDto, TopSkillsQueryDto } from './dto/query.dto.js';
 import { RatePostDto } from './dto/rate-post.dto.js';
 import { CommentDto } from './dto/comment.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
@@ -42,6 +42,13 @@ export class PostsController {
   @Get()
   findAll(@Query() query: ListPostsQueryDto) {
     return this.postsService.findAll(query);
+  }
+
+  // The skills a section's posts use most, for its filter chips. Declared before :id so "skills" isn't read as an id.
+  @Public()
+  @Get('skills')
+  findTopSkills(@Query() query: TopSkillsQueryDto) {
+    return this.postsService.findTopSkills(query);
   }
 
   @Public()

@@ -9,11 +9,13 @@ type Props = {
   /** Their username, for the "log in, then come back" link. */
   username: string;
   className: string;
+  /** The button's words, e.g. "Follow back" in notifications. */
+  labels?: { off: string; on: string };
 };
 
 // Follows a real user through the API. The plain FollowButton in components/ is the local-only toggle the mock pages
-// (categories, creator lists) still use.
-export function UserFollowButton({ userId, username, className }: Props) {
+// (category follows, creator lists) still use.
+export function UserFollowButton({ userId, username, className, labels = { off: "Follow", on: "Following" } }: Props) {
   const { state, toggle, reload, isPending, error } = useFollow(userId);
 
   switch (state.status) {
@@ -22,20 +24,20 @@ export function UserFollowButton({ userId, username, className }: Props) {
     case "signed-out":
       return (
         <Link className={className} href={`/login?next=${encodeURIComponent(`/@${username}`)}`}>
-          Follow
+          {labels.off}
         </Link>
       );
     case "loading":
       return (
         <button type="button" className={className} disabled aria-busy="true">
-          Follow
+          {labels.off}
         </button>
       );
     case "error":
       return (
         <>
           <button type="button" className={className} onClick={reload}>
-            Follow
+            {labels.off}
           </button>
           <p className="follow-err" role="alert">Couldn&apos;t load whether you follow @{username}. Try again.</p>
         </>
@@ -51,7 +53,7 @@ export function UserFollowButton({ userId, username, className }: Props) {
             disabled={isPending}
             onClick={toggle}
           >
-            {state.following ? "Following" : "Follow"}
+            {state.following ? labels.on : labels.off}
           </button>
           {error && <p className="follow-err" role="alert">{error}</p>}
         </>

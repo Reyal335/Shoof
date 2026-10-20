@@ -1,104 +1,102 @@
-import { useSyncExternalStore } from "react";
+"use client";
 
-// Front end only (no notifications API yet): which notifications are read is kept in this browser, so the header
-// bell on every page and the Notifications page agree, and it survives a reload.
-// shoof-read holds the read ids; shoof-unread holds the count for pages that don't render the list.
-const KEY_READ = "shoof-read";
-const KEY_UNREAD = "shoof-unread";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { useSession } from "@/features/auth/hooks/use-session";
+import { getUnreadCount, listNotifications, markAllNotificationsRead, setNotificationRead } from "../api";
+import type { NotificationFilter, NotificationPage, NotificationView } from "../types";
 
-export const NOTIFICATION_IDS = ["n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8"] as const;
-export type NotificationId = (typeof NOTIFICATION_IDS)[number];
+export const notificationKeys = {
+  all: ["notifications"] as const,
+  list: (filter: NotificationFilter) => [...notificationKeys.all, "list", filter] as const,
+  unread: () => [...notificationKeys.all, "unread-count"] as const,
+};
 
-const DEFAULT_UNREAD: readonly NotificationId[] = ["n1", "n2", "n3"];
-const DEFAULT_READ = NOTIFICATION_IDS.filter((id) => !DEFAULT_UNREAD.includes(id));
+type Pages = InfiniteData<NotificationPage, string | undefined>;
 
-const listeners = new Set<() => void>();
-
-// Used when storage is blocked (private mode, site data off): changes then last until reload.
-const memory = new Map<string, string>();
-
-function load(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return memory.get(key) ?? null;
-  }
-}
-
-function store(key: string, value: string) {
-  memory.set(key, value);
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // Kept in memory above.
-  }
-}
-
-// useSyncExternalStore needs the same array back while the stored value is unchanged
-let cachedRaw: string | null | undefined;
-let cachedRead: readonly string[] = DEFAULT_READ;
-
-function parseRead(raw: string | null): readonly string[] {
-  if (raw === null) return DEFAULT_READ;
-  try {
-    const value: unknown = JSON.parse(raw);
-    return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : DEFAULT_READ;
-  } catch {
-    return DEFAULT_READ;
-  }
-}
-
-function readIds(): readonly string[] {
-  const raw = load(KEY_READ);
-  if (raw !== cachedRaw) {
-    cachedRaw = raw;
-    cachedRead = parseRead(raw);
-  }
-  return cachedRead;
-}
-
-function storedUnreadCount(): number {
-  const raw = load(KEY_UNREAD);
-  const count = raw === null ? NaN : Number(raw);
-  return Number.isInteger(count) && count >= 0 ? count : DEFAULT_UNREAD.length;
-}
-
-function unreadIn(read: readonly string[]) {
-  return NOTIFICATION_IDS.filter((id) => !read.includes(id)).length;
-}
-
-function saveRead(read: readonly string[]) {
-  const ids = NOTIFICATION_IDS.filter((id) => read.includes(id));
-  store(KEY_READ, JSON.stringify(ids));
-  store(KEY_UNREAD, String(unreadIn(ids)));
-  listeners.forEach((listener) => listener());
-}
-
-function subscribe(listener: () => void) {
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === KEY_READ || event.key === KEY_UNREAD || event.key === null) listener();
-  };
-  listeners.add(listener);
-  window.addEventListener("storage", onStorage);
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-/** Read state for the Notifications page. Every change also updates the header bell, here and in other tabs. */
-export function useNotifications() {
-  const read = useSyncExternalStore(subscribe, readIds, () => DEFAULT_READ);
-  return {
-    unreadCount: unreadIn(read),
-    isUnread: (id: NotificationId) => !read.includes(id),
-    markRead: (id: NotificationId) => saveRead([...readIds(), id]),
-    markUnread: (id: NotificationId) => saveRead(readIds().filter((other) => other !== id)),
-    markAllRead: () => saveRead(NOTIFICATION_IDS),
-  };
-}
-
-/** The unread count for the header bell (3 until the Notifications page has saved one). */
+/**
+ * The header bell's number. Polls once a minute while signed in (no push yet); 0 when signed out. The
+ * Notifications page's changes update it at once.
+ */
 export function useUnreadCount() {
-  return useSyncExternalStore(subscribe, storedUnreadCount, () => DEFAULT_UNREAD.length);
+  const session = useSession();
+  const query = useQuery({
+    queryKey: notificationKeys.unread(),
+    queryFn: getUnreadCount,
+    enabled: session.isAuthenticated,
+    refetchInterval: 60_000,
+    staleTime: 15_000,
+  });
+  return session.isAuthenticated ? (query.data?.count ?? 0) : 0;
+}
+
+/**
+ * The signed-in user's notifications, newest first, cursor-paged, with mark read/unread and mark all read. Changes
+ * are optimistic: the list and the bell change at once and go back if the API refuses.
+ */
+export function useNotifications(filter: NotificationFilter) {
+  const session = useSession();
+  const queryClient = useQueryClient();
+
+  const query = useInfiniteQuery({
+    queryKey: notificationKeys.list(filter),
+    queryFn: ({ pageParam }) => listNotifications(filter, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled: session.isAuthenticated,
+  });
+
+  // Applies `change` to every cached list and moves the unread count by `delta`, returning how to undo it
+  async function optimistic(change: (n: NotificationView) => NotificationView, delta: (before: NotificationView[]) => number) {
+    await queryClient.cancelQueries({ queryKey: notificationKeys.all });
+    const lists = queryClient.getQueriesData<Pages>({ queryKey: [...notificationKeys.all, "list"] });
+    const unread = queryClient.getQueryData<{ count: number }>(notificationKeys.unread());
+    const before = lists.flatMap(([, data]) => data?.pages.flatMap((p) => p.items) ?? []);
+    for (const [key, data] of lists) {
+      if (data) queryClient.setQueryData<Pages>(key, { ...data, pages: data.pages.map((p) => ({ ...p, items: p.items.map(change) })) });
+    }
+    if (unread) queryClient.setQueryData(notificationKeys.unread(), { count: Math.max(0, unread.count + delta(before)) });
+    return () => {
+      for (const [key, data] of lists) queryClient.setQueryData(key, data);
+      if (unread) queryClient.setQueryData(notificationKeys.unread(), unread);
+    };
+  }
+
+  const setRead = useMutation({
+    mutationFn: ({ id, read }: { id: string; read: boolean }) => setNotificationRead(id, read),
+    onMutate: ({ id, read }) =>
+      optimistic(
+        (n) => (n.id === id ? { ...n, read } : n),
+        (before) => {
+          const current = before.find((n) => n.id === id);
+          return !current || current.read === read ? 0 : read ? -1 : 1;
+        },
+      ),
+    onError: (_error, _vars, undo) => undo?.(),
+  });
+
+  const markAll = useMutation({
+    mutationFn: (upTo?: string) => markAllNotificationsRead(upTo),
+    onMutate: (upTo) =>
+      optimistic(
+        (n) => (!upTo || n.createdAt <= upTo ? { ...n, read: true } : n),
+        (before) => -new Set(before.filter((n) => !n.read && (!upTo || n.createdAt <= upTo)).map((n) => n.id)).size,
+      ),
+    onError: (_error, _vars, undo) => undo?.(),
+    // The server decides exactly which ones it marked (e.g. one that arrived meanwhile)
+    onSettled: () => queryClient.invalidateQueries({ queryKey: notificationKeys.all }),
+  });
+
+  return {
+    status: session.status,
+    items: query.data?.pages.flatMap((page) => page.items) ?? [],
+    isPending: query.isPending,
+    isError: query.isError,
+    refetch: query.refetch,
+    hasMore: query.hasNextPage,
+    isLoadingMore: query.isFetchingNextPage,
+    loadMore: () => query.fetchNextPage(),
+    markRead: (id: string) => setRead.mutate({ id, read: true }),
+    markUnread: (id: string) => setRead.mutate({ id, read: false }),
+    markAllRead: (upTo?: string) => markAll.mutate(upTo),
+  };
 }

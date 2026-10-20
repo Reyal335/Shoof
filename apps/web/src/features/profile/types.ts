@@ -1,5 +1,22 @@
 import type { Skill } from "@/features/skills/types";
 
+/**
+ * Who made something, as the API sends it next to a post, comment, follower or notification. Mirrors UserSummary in
+ * apps/api/src/modules/users/users.service.ts. displayName is already the username when there is no profile.
+ */
+export interface UserSummary {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+/** GET /users/:username/follow-counts */
+export interface FollowCounts {
+  followers: number;
+  following: number;
+}
+
 // Mirrors ProfileView in apps/api/src/modules/users/users.service.ts.
 
 export interface Profile {

@@ -1,57 +1,47 @@
-// Stand-ins for the posted site's screenshots and the "More from" previews. They draw someone else's site, not Shoof,
-// so they keep their own literal colours. `thumb` hides the art from assistive tech when it sits inside a labelled button.
+import Image from "next/image";
+import { chartBars, gameCells, seedOf } from "@/lib/stand-ins";
+import type { Post } from "../types";
 
-const PAL = ["c0", "c0", "c0", "c1", "c2", "c3", "c4"];
-const SEED = 3;
-// Decorative pixel art, generated with the same formula design/Post.html used.
-const PLAY_CELLS = Array.from({ length: 160 }, (_, i) =>
-  PAL[Math.floor(Math.abs(Math.sin(i * 2.3 + SEED) * 3.4 + Math.cos(i * 0.7 + SEED * 1.7) * 2.6)) % 7],
-);
+// Drawn previews for a post with no screenshots, one look per section, varied by the post id. They draw someone
+// else's site, not Shoof, so they keep their own literal colours. Purely decorative: the caller labels the area.
 
-type ShotProps = { thumb?: boolean };
-
-export function PlayShot({ thumb }: ShotProps) {
-  return (
-    <div aria-hidden={thumb || undefined} className="scr s-play cells">
-      {PLAY_CELLS.map((cell, i) => (
-        <span key={i} className={cell} />
-      ))}
-    </div>
-  );
-}
-
-export function TitleShot({ thumb }: ShotProps) {
-  return (
-    <div aria-hidden={thumb || undefined} className="scr s-title"><b /><b /><i /><u /></div>
-  );
-}
-
-export function LevelsShot({ thumb }: ShotProps) {
-  return (
-    <div aria-hidden={thumb || undefined} className="scr s-levels"><i /><i /><i /><i /><i /><i /><i /><i /></div>
-  );
-}
-
-export function ScoresShot({ thumb }: ShotProps) {
-  return (
-    <div aria-hidden={thumb || undefined} className="scr s-scores"><div><em /><i style={{ width: '90%' }} /></div><div><em /><i style={{ width: '76%' }} /></div><div><em /><i style={{ width: '64%' }} /></div><div><em /><i style={{ width: '52%' }} /></div><div><em /><i style={{ width: '40%' }} /></div></div>
-  );
-}
-
-export function CssPreview() {
-  return (
-    <div className="m-css"><div><i style={{ background: '#101b33' }} /><i style={{ background: '#dba40c', flex: 2 }} /></div><div><i style={{ background: '#9db4f0' }} /><i style={{ background: '#fff', flex: 2 }} /></div></div>
-  );
-}
-
-export function PortfolioPreview() {
-  return (
-    <div className="m-port"><b style={{ width: '40px', height: '7px' }} /><b style={{ width: '80%', marginTop: '10px' }} /><b style={{ width: '55%' }} /><em /></div>
-  );
-}
-
-export function SaasPreview() {
-  return (
-    <div className="m-saas"><span className="sd" /><div className="mn"><i style={{ height: '40px' }} /><i style={{ height: '62px' }} /><i style={{ height: '48px' }} /><i style={{ height: '80px' }} /><i style={{ height: '66px' }} /><i style={{ height: '92px' }} /><i style={{ height: '74px' }} /></div></div>
-  );
+/**
+ * Fills its positioned parent (.screen-item, .thumb or .mprev). `thumb` hides it from assistive tech when it sits
+ * inside a labelled button.
+ */
+export function PostStandIn({ post, thumb }: { post: Pick<Post, "id" | "category">; thumb?: boolean }) {
+  const seed = seedOf(post.id);
+  const hidden = thumb || undefined;
+  switch (post.category) {
+    case "games":
+      return (
+        <div aria-hidden={hidden} className="scr s-play cells">
+          {gameCells(seed, 160).map((cell, i) => <span key={i} className={cell} />)}
+        </div>
+      );
+    case "portfolios":
+      return (
+        <div aria-hidden={hidden} className="scr">
+          <div className="m-port"><b style={{ width: "40px", height: "7px" }} /><b style={{ width: `${70 + (seed % 25)}%`, marginTop: "10px" }} /><b style={{ width: `${45 + (seed % 30)}%` }} /><em /></div>
+        </div>
+      );
+    case "saas":
+      return (
+        <div aria-hidden={hidden} className="scr">
+          <div className="m-saas"><span className="sd" /><div className="mn">{chartBars(seed, 8, 30, 110).map((h, i) => <i key={i} style={{ height: `${h}px` }} />)}</div></div>
+        </div>
+      );
+    case "css_ui":
+      return (
+        <div aria-hidden={hidden} className="scr">
+          <div className="m-css"><div><i style={{ background: "#101b33" }} /><i style={{ background: "#dba40c", flex: 1 + (seed % 3) }} /></div><div><i style={{ background: "#9db4f0", flex: 1 + (seed % 2) }} /><i style={{ background: "#fff", flex: 2 }} /></div></div>
+        </div>
+      );
+    case "misc":
+      return (
+        <div aria-hidden={hidden} className="scr s-misc">
+          <Image src="/shoof-blob.svg" alt="" width={120} height={118} />
+        </div>
+      );
+  }
 }

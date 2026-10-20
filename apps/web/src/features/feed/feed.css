@@ -83,3 +83,17 @@ h1,h2,h3{font-family:'Outfit',sans-serif;margin:0}
 .saas .chart i{flex-grow:1;border-radius:3px 3px 0 0;background:var(--link)}
 @media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.featured{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:700px){.grid{grid-template-columns:minmax(0,1fr)}.wrap{padding:20px 16px 48px}}
+/* Real posts: previews in their own box (so Visit stays reachable), creator links, sort buttons, drawn Misc preview */
+.preview .pic{height:100%}
+.creator-link{display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none}
+.creator-link:hover .cname,.creator-link:hover b{text-decoration:underline}
+.creator-link:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.sort button{padding:6px 12px;border:0;border-radius:8px;background:transparent;color:var(--navy);font:600 14px 'Figtree',sans-serif}
+.sort button.on{background:var(--navy);color:#fff}
+.sort button:focus-visible{outline:3px solid #1b3a8a;outline-offset:2px}
+.misc{background:#fdf3d3;display:flex;align-items:center;justify-content:center}
+.feat-pv{flex-grow:1;border-radius:12px;overflow:hidden}
+.feat-pv .pv{height:100%}
+.feat-cover{flex-grow:1;border-radius:12px;min-height:0}
+.feat-by{flex-wrap:wrap}
+.empty a{color:var(--link);font-weight:700}

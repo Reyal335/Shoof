@@ -2,20 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FollowButton } from "@/components/follow-button";
+import { UserFollowButton } from "@/features/follows/components/user-follow-button";
+import { formatDate, isoDay } from "@/lib/dates";
+import { hostOf, profileHref } from "../paths";
+import { CATEGORY_LABELS } from "../post-form";
+import type { Post } from "../types";
 
-type Props = {
-  avg: string;
-  count: number;
-  visits: string;
-  onVisit: () => void;
-};
-
-/** Creator, Visit live site, View the code, Save/Share/Report and the facts list. */
-export function SideCard({ avg, count, visits, onVisit }: Props) {
-  const [saved, setSaved] = useState(false);
+/** Creator (with a real follow button), Visit live site, View the code, Share and the facts list. */
+export function SideCard({ post, onVisit }: { post: Post; onVisit: () => void }) {
   const [shareLabel, setShareLabel] = useState("Share");
   const shareTimer = useRef<number | undefined>(undefined);
+  const author = post.author;
+  const host = hostOf(post.link);
 
   useEffect(() => () => window.clearTimeout(shareTimer.current), []);
 
@@ -34,25 +32,30 @@ export function SideCard({ avg, count, visits, onVisit }: Props) {
   return (
     <aside className="side" aria-label="About this post">
       <div className="card sidecard">
-        <div className="creator">
-          <Link className="av" href="/profile" aria-label="[Creator name]'s profile" tabIndex={-1}></Link>
-          <div className="cname"><Link href="/profile">[Creator name]</Link><span>@handle &middot; Game developer</span></div>
-          <FollowButton className="follow" on="Following" off="Follow" />
-        </div>
-        <a className="visit" href="https://yourgame.example.com" target="_blank" rel="noopener noreferrer" onClick={onVisit}>Visit live site <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17L17 7" /><path d="M8 7h9v9" /></svg></a>
-        <p className="host">Opens yourgame.example.com in a new tab</p>
-        <a className="code" href="https://github.com/[you]/[project]" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5" /></svg> View the code</a>
-        <div className="acts">
-          <button type="button" className="act" aria-pressed={saved} onClick={() => setSaved(!saved)}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-4-6 4z" /></svg> <span>{saved ? "Saved" : "Save"}</span></button>
-          <button type="button" className="act" onClick={share}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg> <span>{shareLabel}</span></button>
-          <a className="act" href="#report"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 21V4h11l-1.5 4L16 12H5" /></svg> <span>Report</span></a>
+        {author && (
+          <div className="creator">
+            <Link className="av" href={profileHref(author.username)} aria-label={`${author.displayName}'s profile`} tabIndex={-1}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- avatars can sit on any https host */}
+              {author.avatarUrl && <img className="cover-img" src={author.avatarUrl} alt="" />}
+            </Link>
+            <div className="cname"><Link href={profileHref(author.username)}>{author.displayName}</Link><span>@{author.username}</span></div>
+            <UserFollowButton className="follow" userId={author.id} username={author.username} />
+          </div>
+        )}
+        <a className="visit" href={post.link} target="_blank" rel="noopener noreferrer nofollow ugc" onClick={onVisit}>Visit live site <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17L17 7" /><path d="M8 7h9v9" /></svg></a>
+        <p className="host">Opens {host} in a new tab</p>
+        {post.repoUrl && (
+          <a className="code" href={post.repoUrl} target="_blank" rel="noopener noreferrer nofollow ugc"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5" /></svg> View the code</a>
+        )}
+        <div className="acts one">
+          <button type="button" className="act" onClick={share}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg> <span aria-live="polite">{shareLabel}</span></button>
         </div>
         <dl className="facts">
-          <dt>Category</dt><dd>Games</dd>
-          <dt>Rating</dt><dd><span>{avg}</span> from <span>{count}</span></dd>
-          <dt>Visits</dt><dd>{visits}</dd>
-          <dt>Posted</dt><dd><time dateTime="2026-10-03">Oct 3, 2026</time></dd>
-          <dt>Updated</dt><dd><time dateTime="2026-10-08">Oct 8, 2026</time></dd>
+          <dt>Category</dt><dd>{CATEGORY_LABELS[post.category]}</dd>
+          <dt>Rating</dt><dd>{post.ratingCount ? <><span>{post.rating.toFixed(1)}</span> from <span>{post.ratingCount}</span></> : "No ratings yet"}</dd>
+          <dt>Visits</dt><dd>{post.visitCount.toLocaleString("en-US")}</dd>
+          <dt>Posted</dt><dd><time dateTime={isoDay(post.createdAt)}>{formatDate(post.createdAt)}</time></dd>
+          <dt>Updated</dt><dd><time dateTime={isoDay(post.updatedAt)}>{formatDate(post.updatedAt)}</time></dd>
         </dl>
       </div>
     </aside>

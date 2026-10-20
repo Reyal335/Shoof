@@ -1,14 +1,25 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Header } from "@/components/header";
 import { UserFollowButton } from "@/features/follows/components/user-follow-button";
+import type { Page, Post } from "@/features/posts/types";
 import { groupByKind, KIND_LABELS } from "@/features/skills/skills";
+import { ProfileSites } from "./components/profile-sites";
+import { ProfileStats } from "./components/profile-stats";
 import { displayHost, isSiteUrl } from "./profile-form";
-import type { PublicUser } from "./types";
+import type { FollowCounts, PublicUser } from "./types";
 import "./profile.css";
 
-// Anyone's profile at /@username. A Server Component: everything is in the first HTML response, and only the follow
-// button hydrates. Same layout as the owner's ProfilePage, minus editing and the static mock sites and stats.
-export function PublicProfilePage({ user }: { user: PublicUser }) {
+type Props = {
+  user: PublicUser;
+  /** The server's first page of sites and follow numbers. Missing ones load in the browser. */
+  sites?: Page<Post>;
+  counts?: FollowCounts;
+};
+
+// Anyone's profile at /@username. A Server Component: the profile, numbers and first sites are in the first HTML
+// response; the follow button, numbers and site list hydrate so they can update.
+export function PublicProfilePage({ user, sites, counts }: Props) {
   const profile = user.profile;
   const name = profile?.displayName || user.username;
   const stack = groupByKind(user.skills);
@@ -49,12 +60,17 @@ export function PublicProfilePage({ user }: { user: PublicUser }) {
               <div className="btns">
                 <UserFollowButton className="follow" userId={user.id} username={user.username} />
               </div>
+              <ProfileStats username={user.username} initialSites={sites} initialCounts={counts} />
             </div>
           </div>
         </section>
         <div className="pcols">
           <section className="main" aria-label="Sites">
-            <div className="panel empty">Sites {name} has shared will show here.</div>
+            <ProfileSites
+              username={user.username}
+              initialPage={sites}
+              empty={<>{name} hasn&apos;t posted a site yet. <Link href="/">See what others are shipping</Link>.</>}
+            />
           </section>
           <aside aria-label="Tech stack">
             <section className="stack">

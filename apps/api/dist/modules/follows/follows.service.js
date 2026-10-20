@@ -18,6 +18,7 @@ import { UsersService } from "../users/users.service.js";
 import { NotFoundException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { FollowEvents } from "./follows.events.js";
+export const FOLLOWING_FEED_MAX_CREATORS = 1000;
 let FollowService = class FollowService {
     followRepository;
     usersService;
@@ -61,6 +62,52 @@ let FollowService = class FollowService {
     }
     isFollowing(followingId, followerId) {
         return this.followRepository.existsBy({ followingId, followerId });
+    }
+    async findFollowers(username, query) {
+        const userId = await this.usersService.findIdByUsername(username);
+        const [rows, total] = await this.followRepository.findAndCount({
+            where: { followingId: userId },
+            order: { createdAt: 'DESC', followerId: 'DESC' },
+            take: query.limit,
+            skip: query.offset,
+        });
+        return this.toPage(rows.map((row) => ({ userId: row.followerId, followedAt: row.createdAt })), total, query);
+    }
+    async findFollowing(username, query) {
+        const userId = await this.usersService.findIdByUsername(username);
+        const [rows, total] = await this.followRepository.findAndCount({
+            where: { followerId: userId },
+            order: { createdAt: 'DESC', followingId: 'DESC' },
+            take: query.limit,
+            skip: query.offset,
+        });
+        return this.toPage(rows.map((row) => ({ userId: row.followingId, followedAt: row.createdAt })), total, query);
+    }
+    async countsFor(username) {
+        const userId = await this.usersService.findIdByUsername(username);
+        const [followers, following] = await Promise.all([
+            this.followRepository.countBy({ followingId: userId }),
+            this.followRepository.countBy({ followerId: userId }),
+        ]);
+        return { followers, following };
+    }
+    async findFollowingIds(followerId) {
+        const rows = await this.followRepository.find({
+            where: { followerId },
+            select: { followingId: true },
+            order: { createdAt: 'DESC' },
+            take: FOLLOWING_FEED_MAX_CREATORS,
+        });
+        return rows.map((row) => row.followingId);
+    }
+    async toPage(rows, total, query) {
+        const users = await this.usersService.findSummariesByIds(rows.map((row) => row.userId));
+        const userById = new Map(users.map((user) => [user.id, user]));
+        const items = rows.flatMap((row) => {
+            const user = userById.get(row.userId);
+            return user ? [{ user, followedAt: row.followedAt }] : [];
+        });
+        return { items, total, limit: query.limit, offset: query.offset };
     }
 };
 FollowService = __decorate([

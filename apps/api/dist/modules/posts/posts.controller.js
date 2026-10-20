@@ -14,7 +14,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPi
 import { PostsService } from './posts.service.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
-import { ListPostsQueryDto, PaginationQueryDto } from './dto/query.dto.js';
+import { ListPostsQueryDto, PaginationQueryDto, TopSkillsQueryDto } from './dto/query.dto.js';
 import { RatePostDto } from './dto/rate-post.dto.js';
 import { CommentDto } from './dto/comment.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
@@ -30,6 +30,9 @@ let PostsController = class PostsController {
     }
     findAll(query) {
         return this.postsService.findAll(query);
+    }
+    findTopSkills(query) {
+        return this.postsService.findTopSkills(query);
     }
     findOne(id) {
         return this.postsService.findOne(id);
@@ -81,6 +84,14 @@ __decorate([
     __metadata("design:paramtypes", [ListPostsQueryDto]),
     __metadata("design:returntype", void 0)
 ], PostsController.prototype, "findAll", null);
+__decorate([
+    Public(),
+    Get('skills'),
+    __param(0, Query()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [TopSkillsQueryDto]),
+    __metadata("design:returntype", void 0)
+], PostsController.prototype, "findTopSkills", null);
 __decorate([
     Public(),
     Get(':id'),

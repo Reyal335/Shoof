@@ -16,9 +16,15 @@ import { Post, PostCategory } from '../src/modules/posts/entities/post.entity.js
 import { Media, MediaType } from '../src/modules/posts/entities/media.entity.js';
 import { Comment } from '../src/modules/posts/entities/comment.entity.js';
 import { Rating } from '../src/modules/posts/entities/rating.entity.js';
+import { PostSkill } from '../src/modules/posts/entities/post-skill.entity.js';
 import { IS_PUBLIC_KEY } from '../src/modules/auth/decorators/public.decorator.js';
-import { UserRole } from '../src/modules/users/entities/user.entity.js';
+import { User, UserRole } from '../src/modules/users/entities/user.entity.js';
+import { User_Identity } from '../src/modules/users/entities/user-identity.js';
+import { Profile } from '../src/modules/users/entities/profile.entity.js';
+import { UserSkill } from '../src/modules/users/entities/user-skill.entity.js';
+import { Skill } from '../src/modules/skills/entities/skill.entity.js';
 import type { CreatePostDto } from '../src/modules/posts/dto/create-post.dto.js';
+import type { PostView } from '../src/modules/posts/posts.service.js';
 
 // The real PostsModule over a real Postgres database, so the transactions, row locks and constraints are exercised.
 // Uses a separate database (<DB_DATABASE>_test, or TEST_DB_DATABASE), created if missing and wiped on every run.
@@ -74,8 +80,10 @@ describe('Posts (e2e)', () => {
   const anon = () => request(app.getHttpServer());
   const createPost = async (overrides: Partial<CreatePostDto> = {}, userId = owner) => {
     const res = await as(userId).post('/posts').send(valid(overrides)).expect(201);
-    return res.body as Post;
+    return res.body as PostView;
   };
+  // A slice of the real catalog, seeded in beforeAll: slug -> id
+  const skills: Record<string, string> = {};
 
   beforeAll(async () => {
     const admin = await new DataSource({ type: 'postgres', ...db, username: db.user, database: 'postgres' }).initialize();
@@ -90,7 +98,7 @@ describe('Posts (e2e)', () => {
           ...db,
           username: db.user,
           database: TEST_DB,
-          entities: [Post, Media, Comment, Rating],
+          entities: [User, User_Identity, Profile, UserSkill, Skill, Post, Media, Comment, Rating, PostSkill],
           synchronize: true,
           dropSchema: true,
         }),
@@ -106,6 +114,18 @@ describe('Posts (e2e)', () => {
     // Listening once up front stops supertest from opening a server per request in the concurrency tests
     await app.listen(0);
     dataSource = moduleRef.get(DataSource);
+
+    for (const [slug, name, kind, aliases] of [
+      ['phaser', 'Phaser', 'framework', []],
+      ['vite', 'Vite', 'platform', []],
+      ['typescript', 'TypeScript', 'language', ['ts']],
+    ] as const) {
+      const saved = await dataSource.getRepository(Skill).save({ slug, name, kind, aliases: [...aliases] });
+      skills[slug] = saved.id;
+    }
+    // Only the owner has an account row: the others exercise "author gone" (author: null)
+    await dataSource.getRepository(User).insert({ id: owner, email: 'owner@example.com', username: 'owner_one' });
+    await dataSource.getRepository(Profile).insert({ userId: owner, displayName: 'Owner One' });
   });
 
   afterAll(async () => {
@@ -113,21 +133,29 @@ describe('Posts (e2e)', () => {
   });
 
   describe('create', () => {
-    it('stores the post and its media in order, as the caller', async () => {
+    it('stores the post, its skills and its media in order, as the caller, and sends back the author', async () => {
       const res = await as(owner)
         .post('/posts')
         .send(valid({
           caption: '  Pixel dungeon  ',
           repoUrl: '',
-          techStack: ['Phaser', ' phaser ', 'Vite   JS'],
+          skillIds: [skills.vite, skills.phaser],
           media: [
             { type: MediaType.IMAGE, url: 'https://cdn.example.com/a.png' },
             { type: MediaType.IMAGE, url: 'https://cdn.example.com/b.png' },
           ],
         }))
         .expect(201);
-      expect(res.body).toMatchObject({ userId: owner, caption: 'Pixel dungeon', repoUrl: null, techStack: ['Phaser', 'Vite JS'], rating: 0, ratingCount: 0, visitCount: 0 });
+      expect(res.body).toMatchObject({ userId: owner, caption: 'Pixel dungeon', repoUrl: null, rating: 0, ratingCount: 0, visitCount: 0 });
+      expect(res.body.skills.map((s: Skill) => s.name)).toEqual(['Phaser', 'Vite']);
+      expect(res.body.author).toEqual({ id: owner, username: 'owner_one', displayName: 'Owner One', avatarUrl: null });
       expect(res.body.media.map((m: Media) => [m.url, m.sortOrder])).toEqual([['https://cdn.example.com/a.png', 0], ['https://cdn.example.com/b.png', 1]]);
+      expect(await dataSource.getRepository(PostSkill).countBy({ postId: res.body.id })).toBe(2);
+    });
+
+    it('creates a post without skills or media', async () => {
+      const post = await createPost();
+      expect(post).toMatchObject({ skills: [], media: [] });
     });
 
     it('needs a signed-in user', async () => {
@@ -142,7 +170,10 @@ describe('Posts (e2e)', () => {
       await as(owner).post('/posts').send(valid({ link: 'ftp://files.example.com' })).expect(400);
       await as(owner).post('/posts').send(valid({ link: 'https://localhost' })).expect(400);
       await as(owner).post('/posts').send(valid({ category: 'music' as PostCategory })).expect(400);
-      await as(owner).post('/posts').send(valid({ techStack: Array.from({ length: 16 }, (_, i) => `T${i}`) })).expect(400);
+      await as(owner).post('/posts').send(valid({ skillIds: Array.from({ length: 11 }, () => randomUUID()) })).expect(400);
+      await as(owner).post('/posts').send(valid({ skillIds: [skills.phaser, skills.phaser] })).expect(400);
+      // Well-formed but not in the catalog
+      await as(owner).post('/posts').send(valid({ skillIds: [skills.phaser, randomUUID()] })).expect(400);
     });
 
     it('is atomic: when a media row fails, the post is rolled back too', async () => {
@@ -167,11 +198,54 @@ describe('Posts (e2e)', () => {
       await anon().get('/api/v1/posts?sort=random').expect(400);
     });
 
-    it('returns one post, 404 for an unknown id and 400 for a malformed one', async () => {
+    it('returns one post with its rating distribution, 404 for an unknown id and 400 for a malformed one', async () => {
       const post = await createPost();
-      await anon().get(`/api/v1/posts/${post.id}`).expect(200);
+      await as(other).put(`/posts/${post.id}/rating`).send({ value: 4 }).expect(200);
+      const res = await anon().get(`/api/v1/posts/${post.id}`).expect(200);
+      expect(res.body.ratingDistribution).toEqual({ 1: 0, 2: 0, 3: 0, 4: 1, 5: 0 });
       await anon().get(`/api/v1/posts/${randomUUID()}`).expect(404);
       await anon().get('/api/v1/posts/not-a-uuid').expect(400);
+    });
+
+    it('filters by skill slug or alias, and finds nothing for an unknown skill', async () => {
+      const tagged = await createPost({ category: PostCategory.CSS_UI, skillIds: [skills.typescript] });
+      await createPost({ category: PostCategory.CSS_UI });
+      for (const skill of ['typescript', 'ts', 'TypeScript']) {
+        const res = await anon().get(`/api/v1/posts?category=css_ui&skill=${skill}`).expect(200);
+        expect(res.body.items.map((p: PostView) => p.id)).toEqual([tagged.id]);
+        expect(res.body.total).toBe(1);
+      }
+      const none = await anon().get('/api/v1/posts?skill=cobol').expect(200);
+      expect(none.body).toMatchObject({ items: [], total: 0 });
+      await anon().get('/api/v1/posts?skill=not%20a%20slug').expect(400);
+    });
+
+    it('lists the most used skills, optionally within a category', async () => {
+      await createPost({ category: PostCategory.MISC, skillIds: [skills.vite, skills.phaser] });
+      await createPost({ category: PostCategory.MISC, skillIds: [skills.vite] });
+      const res = await anon().get('/api/v1/posts/skills?category=misc').expect(200);
+      expect(res.body.map((u: { skill: Skill; count: number }) => [u.skill.slug, u.count])).toEqual([['vite', 2], ['phaser', 1]]);
+      await anon().get('/api/v1/posts/skills?limit=100').expect(400);
+    });
+
+    it('sorts by visits', async () => {
+      const quiet = await createPost({ category: PostCategory.PORTFOLIOS });
+      const busy = await createPost({ category: PostCategory.PORTFOLIOS });
+      await anon().post(`/api/v1/posts/${busy.id}/visits`).expect(204);
+      const res = await anon().get('/api/v1/posts?category=portfolios&sort=visited').expect(200);
+      expect(res.body.items.map((p: PostView) => p.id)).toEqual([busy.id, quiet.id]);
+    });
+
+    it('lists a creator\'s posts by username, and 404s an unknown username', async () => {
+      const mine = await createPost({ caption: 'by the owner' });
+      await createPost({ caption: 'by someone else' }, other);
+      const res = await anon().get('/api/v1/users/owner_one/posts?limit=50').expect(200);
+      expect(res.body.items.every((p: PostView) => p.userId === owner)).toBe(true);
+      expect(res.body.items.map((p: PostView) => p.id)).toContain(mine.id);
+      // ?userId can't widen it to someone else's posts
+      const forced = await anon().get(`/api/v1/users/owner_one/posts?userId=${other}`).expect(200);
+      expect(forced.body.items.every((p: PostView) => p.userId === owner)).toBe(true);
+      await anon().get('/api/v1/users/nobody_here/posts').expect(404);
     });
   });
 
@@ -186,6 +260,16 @@ describe('Posts (e2e)', () => {
       expect(res.body).toMatchObject({ caption: 'Renamed', repoUrl: null, link: post.link, userId: owner });
       expect(res.body.media.map((m: Media) => m.url)).toEqual(['https://cdn.example.com/new.mp4']);
       await as(owner).patch(`/posts/${post.id}`).send({ visitCount: 1000 }).expect(400);
+    });
+
+    it('keeps the skills when they are left out, and replaces them when sent', async () => {
+      const post = await createPost({ skillIds: [skills.phaser, skills.vite] });
+      const kept = await as(owner).patch(`/posts/${post.id}`).send({ caption: 'Only the caption' }).expect(200);
+      expect(kept.body.skills.map((s: Skill) => s.slug)).toEqual(['phaser', 'vite']);
+      const replaced = await as(owner).patch(`/posts/${post.id}`).send({ skillIds: [skills.typescript] }).expect(200);
+      expect(replaced.body.skills.map((s: Skill) => s.slug)).toEqual(['typescript']);
+      const cleared = await as(owner).patch(`/posts/${post.id}`).send({ skillIds: [] }).expect(200);
+      expect(cleared.body.skills).toEqual([]);
     });
 
     it('rolls back the field changes when the media replacement fails', async () => {
@@ -269,9 +353,9 @@ describe('Posts (e2e)', () => {
       const post = await createPost();
       await as(other).put(`/posts/${post.id}/rating`).send({ value: 2 }).expect(200);
       const changed = await as(moderator).put(`/posts/${post.id}/rating`).send({ value: 5 }).expect(200);
-      expect(changed.body).toEqual({ postId: post.id, rating: 3.5, ratingCount: 2, value: 5 });
+      expect(changed.body).toEqual({ postId: post.id, rating: 3.5, ratingCount: 2, value: 5, distribution: { 1: 0, 2: 1, 3: 0, 4: 0, 5: 1 } });
       const removed = await as(moderator).delete(`/posts/${post.id}/rating`).expect(200);
-      expect(removed.body).toEqual({ postId: post.id, rating: 2, ratingCount: 1, value: null });
+      expect(removed.body).toEqual({ postId: post.id, rating: 2, ratingCount: 1, value: null, distribution: { 1: 0, 2: 1, 3: 0, 4: 0, 5: 0 } });
       await as(moderator).delete(`/posts/${post.id}/rating`).expect(200);
       const mine = await as(moderator).get(`/posts/${post.id}/rating`).expect(200);
       expect(mine.body.value).toBeNull();
@@ -301,11 +385,13 @@ describe('Posts (e2e)', () => {
     it('adds, lists, edits and deletes with the right permissions', async () => {
       const post = await createPost();
       const first = (await as(other).post(`/posts/${post.id}/comments`).send({ content: '  Love the art  ' }).expect(201)).body as Comment;
-      expect(first).toMatchObject({ postId: post.id, userId: other, content: 'Love the art' });
+      expect(first).toMatchObject({ postId: post.id, userId: other, content: 'Love the art', author: null });
       const second = (await as(moderator).post(`/posts/${post.id}/comments`).send({ content: 'Second' }).expect(201)).body as Comment;
+      await as(owner).post(`/posts/${post.id}/comments`).send({ content: 'Thanks!' }).expect(201);
 
       const list = await anon().get(`/api/v1/posts/${post.id}/comments`).expect(200);
-      expect(list.body.items.map((c: Comment) => c.content)).toEqual(['Love the art', 'Second']);
+      expect(list.body.items.map((c: Comment) => c.content)).toEqual(['Love the art', 'Second', 'Thanks!']);
+      expect(list.body.items[2].author).toMatchObject({ username: 'owner_one', displayName: 'Owner One' });
 
       await as(owner).patch(`/posts/${post.id}/comments/${first.id}`).send({ content: 'edited by someone else' }).expect(403);
       const edited = await as(other).patch(`/posts/${post.id}/comments/${first.id}`).send({ content: 'Edited' }).expect(200);

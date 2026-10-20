@@ -7,10 +7,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Type } from 'class-transformer';
-import { IsEnum, IsIn, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsEnum, IsIn, IsInt, IsOptional, IsUUID, Matches, Max, MaxLength, Min } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
-import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX } from '../posts.constants.js';
+import { PAGE_SIZE_DEFAULT, PAGE_SIZE_MAX, TOP_SKILLS_DEFAULT, TOP_SKILLS_MAX } from '../posts.constants.js';
 export class PaginationQueryDto {
     limit = PAGE_SIZE_DEFAULT;
     offset = 0;
@@ -30,10 +30,12 @@ __decorate([
     Min(0),
     __metadata("design:type", Number)
 ], PaginationQueryDto.prototype, "offset", void 0);
-export const POST_SORTS = ['new', 'top'];
+export const POST_SORTS = ['new', 'top', 'visited'];
+const SKILL_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export class ListPostsQueryDto extends PaginationQueryDto {
     category;
     userId;
+    skill;
     sort = 'new';
 }
 __decorate([
@@ -47,8 +49,32 @@ __decorate([
     __metadata("design:type", String)
 ], ListPostsQueryDto.prototype, "userId", void 0);
 __decorate([
+    Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value)),
+    IsOptional(),
+    MaxLength(64),
+    Matches(SKILL_SLUG, { message: 'skill must be a skill slug, e.g. nextjs' }),
+    __metadata("design:type", String)
+], ListPostsQueryDto.prototype, "skill", void 0);
+__decorate([
     IsOptional(),
     IsIn(POST_SORTS),
     __metadata("design:type", String)
 ], ListPostsQueryDto.prototype, "sort", void 0);
+export class TopSkillsQueryDto {
+    category;
+    limit = TOP_SKILLS_DEFAULT;
+}
+__decorate([
+    IsOptional(),
+    IsEnum(PostCategory),
+    __metadata("design:type", String)
+], TopSkillsQueryDto.prototype, "category", void 0);
+__decorate([
+    IsOptional(),
+    Type(() => Number),
+    IsInt(),
+    Min(1),
+    Max(TOP_SKILLS_MAX),
+    __metadata("design:type", Number)
+], TopSkillsQueryDto.prototype, "limit", void 0);
 //# sourceMappingURL=query.dto.js.map

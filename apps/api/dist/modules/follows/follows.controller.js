@@ -10,38 +10,48 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, HttpCode, Param, Delete } from "@nestjs/common";
-import { Get, Post } from "@nestjs/common";
+import { Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Query, UsePipes, ValidationPipe } from "@nestjs/common";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
+import { Public } from "../auth/decorators/public.decorator.js";
 import { FollowService } from "./follows.service.js";
-import { ParseUUIDPipe } from "@nestjs/common";
+import { FollowListQueryDto } from "./dto/follow-list.query.js";
+const uuid = new ParseUUIDPipe();
 let FollowsController = class FollowsController {
     followService;
     constructor(followService) {
         this.followService = followService;
     }
-    async followStatus(param, user) {
-        return { following: await this.followService.isFollowing(param.id, user.id) };
+    async followStatus(followingId, user) {
+        return { following: await this.followService.isFollowing(followingId, user.id) };
     }
-    followUser(followerId, user) {
-        return this.followService.followUser(followerId, user.id);
+    followUser(followingId, user) {
+        return this.followService.followUser(followingId, user.id);
     }
-    unfollowUser(followerId, user) {
-        return this.followService.unfollowUser(followerId, user.id);
+    unfollowUser(followingId, user) {
+        return this.followService.unfollowUser(followingId, user.id);
+    }
+    followers(username, query) {
+        return this.followService.findFollowers(username, query);
+    }
+    following(username, query) {
+        return this.followService.findFollowing(username, query);
+    }
+    counts(username) {
+        return this.followService.countsFor(username);
     }
 };
 __decorate([
     Get(':id/follow'),
-    __param(0, Param()),
+    __param(0, Param('id', uuid)),
     __param(1, CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], FollowsController.prototype, "followStatus", null);
 __decorate([
     Post(':id/follow'),
     HttpCode(204),
-    __param(0, Param('id', new ParseUUIDPipe())),
+    __param(0, Param('id', uuid)),
     __param(1, CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
@@ -50,14 +60,41 @@ __decorate([
 __decorate([
     Delete(':id/follow'),
     HttpCode(204),
-    __param(0, Param('id', new ParseUUIDPipe)),
+    __param(0, Param('id', uuid)),
     __param(1, CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], FollowsController.prototype, "unfollowUser", null);
+__decorate([
+    Public(),
+    Get(':username/followers'),
+    __param(0, Param('username')),
+    __param(1, Query()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, FollowListQueryDto]),
+    __metadata("design:returntype", void 0)
+], FollowsController.prototype, "followers", null);
+__decorate([
+    Public(),
+    Get(':username/following'),
+    __param(0, Param('username')),
+    __param(1, Query()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, FollowListQueryDto]),
+    __metadata("design:returntype", void 0)
+], FollowsController.prototype, "following", null);
+__decorate([
+    Public(),
+    Get(':username/follow-counts'),
+    __param(0, Param('username')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], FollowsController.prototype, "counts", null);
 FollowsController = __decorate([
     Controller('users'),
+    UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })),
     __metadata("design:paramtypes", [FollowService])
 ], FollowsController);
 export { FollowsController };

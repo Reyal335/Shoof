@@ -14,13 +14,12 @@ import {
 } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
 import { MediaType } from '../entities/media.entity.js';
-import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, MAX_TECH_STACK, TECH_NAME_MAX, URL_MAX } from '../posts.constants.js';
+import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, MAX_POST_SKILLS, URL_MAX } from '../posts.constants.js';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
 // Same rule as the web form: an http(s) address with a real hostname
 const SITE_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: true };
-const MAX_SKILLS = 10;
 
 export class MediaItemDto {
     @IsEnum(MediaType)
@@ -60,12 +59,13 @@ export class CreatePostDto {
     @MaxLength(DESCRIPTION_MAX)
     description: string;
 
+    // Picked from GET /skills (a closed catalog). PostsService checks each id exists.
     @IsOptional()
     @IsArray()
-    @ArrayMaxSize(MAX_SKILLS)
+    @ArrayMaxSize(MAX_POST_SKILLS)
     @ArrayUnique()
     @IsUUID('all', { each: true })
-    skillIds: string[] = [];
+    skillIds?: string[];
 
     // In display order; the first one is the cover
     @IsOptional()

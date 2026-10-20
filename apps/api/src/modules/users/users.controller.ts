@@ -31,8 +31,8 @@ export class UsersController {
 
   @Public()
   @Get(':username')
-  username(@Param() param: any) {
-    return this.usersService.findPublicProfile(param.username);
+  username(@Param('username') username: string) {
+    return this.usersService.findPublicProfile(username);
   }
 
   // The signed-in user's own profile, for the profile page and its edit form
@@ -48,7 +48,6 @@ export class UsersController {
     return this.usersService.updateProfile(user.id, dto);
   }
 
-  // User followers and following
-
-  // Whether the signed-in user follows :id, so the follow button starts in the right state
+  // Followers, following and "do I follow :id" are served by FollowsController under this same /users path.
+  // A user's posts are served by UserPostsController in the posts module.
 }
