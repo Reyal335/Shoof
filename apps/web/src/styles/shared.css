@@ -1,5 +1,9 @@
 /* Shared by every page: brand tokens, base reset, the top bar and the pixel-grid cells. Copied from the design/ files. */
-:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33;--field:#7d89a8;--track:#7d89a8;--on-tint:#5f4400;--error:#b3261e;--star:#dba40c;--star-line:#7d89a8}
+:root{--navy:#101b33;--yellow:#dba40c;--ground:#f3f5fa;--white:#fff;--border:#d5dbe9;--input:#9aa5c0;--link:#1b3a8a;--muted:#46516f;--tint:#fdf3d3;--chip:#e6eaf3;--ink:#0f1a33;--field:#7d89a8;--track:#7d89a8;--on-tint:#5f4400;--error:#b3261e;--star:#dba40c;--star-line:#7d89a8;--star-edge:#a07600;--bar-track:#e6eaf3;--bar:#101b33;--surface:#fff;--focus:#1b3a8a;--link-hover:#10275e}
+/* Rating tokens for a future dark theme. Nothing sets data-theme yet and the pages have no dark styles, so there is no
+   prefers-color-scheme block: it would put dark stars and bars on light cards. --bar-track is the design's --track,
+   renamed because Settings already uses --track for its switches. */
+:root[data-theme="dark"]{--star:#dba40c;--star-edge:#dba40c;--star-line:#8190b8;--bar-track:#25324f;--bar:#e9edf6;--field:#8190b8;--error:#ff9a91;--surface:#141e38;--focus:#a9c1ff;--link-hover:#d2deff}
 *{box-sizing:border-box}
 body{margin:0}
 h1,h2,h3,p{margin:0}
