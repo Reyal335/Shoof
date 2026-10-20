@@ -9,6 +9,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsService } from './posts.service.js';
 import { PostsController } from './posts.controller.js';
 import { UserPostsController } from './user-posts.controller.js';
+import { RatingsController } from './ratings.controller.js';
+import { RatingsService } from './ratings.service.js';
 import { Post } from './entities/post.entity.js';
 import { Media } from './entities/media.entity.js';
 import { Comment } from './entities/comment.entity.js';
@@ -21,8 +23,8 @@ let PostsModule = class PostsModule {
 PostsModule = __decorate([
     Module({
         imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating, PostSkill]), SkillsModule, UsersModule],
-        controllers: [PostsController, UserPostsController],
-        providers: [PostsService],
+        controllers: [PostsController, UserPostsController, RatingsController],
+        providers: [PostsService, RatingsService],
         exports: [PostsService],
     })
 ], PostsModule);

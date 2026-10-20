@@ -9,7 +9,6 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Put,
   Query,
   UsePipes,
   ValidationPipe,
@@ -18,7 +17,6 @@ import { PostsService } from './posts.service.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
 import { ListPostsQueryDto, PaginationQueryDto, TopSkillsQueryDto } from './dto/query.dto.js';
-import { RatePostDto } from './dto/rate-post.dto.js';
 import { CommentDto } from './dto/comment.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { Public } from '../auth/decorators/public.decorator.js';
@@ -74,23 +72,6 @@ export class PostsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   recordVisit(@Param('id', uuid) id: string) {
     return this.postsService.recordVisit(id);
-  }
-
-  // ---------- ratings: one per user per post ----------
-
-  @Get(':id/rating')
-  findMyRating(@Param('id', uuid) id: string, @CurrentUser() user: AuthUser) {
-    return this.postsService.findMyRating(id, user);
-  }
-
-  @Put(':id/rating')
-  rate(@Param('id', uuid) id: string, @CurrentUser() user: AuthUser, @Body() dto: RatePostDto) {
-    return this.postsService.rate(id, user, dto.value);
-  }
-
-  @Delete(':id/rating')
-  unrate(@Param('id', uuid) id: string, @CurrentUser() user: AuthUser) {
-    return this.postsService.unrate(id, user);
   }
 
   // ---------- comments ----------

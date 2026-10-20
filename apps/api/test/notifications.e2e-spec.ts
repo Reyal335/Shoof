@@ -177,7 +177,7 @@ describe('Notifications (e2e)', () => {
   describe('ratings', () => {
     it('tells the creator, once per rater, and a re-rating makes it unread again', async () => {
       const post = await createPost(creator.id);
-      await as(fans[0].id).put(`/posts/${post.id}/rating`).send({ value: 3 }).expect(200);
+      await as(fans[0].id).put(`/posts/${post.id}/ratings/me`).send({ value: 3 }).expect(200);
       await eventually(async () => expect(await unread(creator.id)).toBe(1));
 
       const [note] = (await list(creator.id)).items;
@@ -185,17 +185,17 @@ describe('Notifications (e2e)', () => {
       await as(creator.id).patch(`/notifications/${note.id}`).send({ read: true }).expect(204);
       expect(await unread(creator.id)).toBe(0);
 
-      await as(fans[0].id).put(`/posts/${post.id}/rating`).send({ value: 5 }).expect(200);
+      await as(fans[0].id).put(`/posts/${post.id}/ratings/me`).send({ value: 5 }).expect(200);
       await eventually(async () => expect(await unread(creator.id)).toBe(1));
       expect((await list(creator.id)).items).toEqual([expect.objectContaining({ id: note.id, read: false })]);
     });
 
     it('withdraws the notification when the rating is removed', async () => {
       const post = await createPost(creator.id);
-      await as(fans[0].id).put(`/posts/${post.id}/rating`).send({ value: 4 }).expect(200);
+      await as(fans[0].id).put(`/posts/${post.id}/ratings/me`).send({ value: 4 }).expect(200);
       await eventually(async () => expect(await unread(creator.id)).toBe(1));
 
-      await as(fans[0].id).delete(`/posts/${post.id}/rating`).expect(200);
+      await as(fans[0].id).delete(`/posts/${post.id}/ratings/me`).expect(200);
       await eventually(async () => expect(await unread(creator.id)).toBe(0));
     });
   });
@@ -227,7 +227,7 @@ describe('Notifications (e2e)', () => {
 
   it('a deleted post takes its notifications with it', async () => {
     const post = await createPost(creator.id);
-    await as(fans[0].id).put(`/posts/${post.id}/rating`).send({ value: 4 }).expect(200);
+    await as(fans[0].id).put(`/posts/${post.id}/ratings/me`).send({ value: 4 }).expect(200);
     await as(fans[1].id).post(`/posts/${post.id}/comments`).send({ content: 'Nice' }).expect(201);
     await as(fans[2].id).post(`/users/${creator.id}/follow`).expect(204);
     await eventually(async () => expect(await unread(creator.id)).toBe(3));
@@ -245,7 +245,7 @@ describe('Notifications (e2e)', () => {
         await eventually(async () => expect((await list(creator.id)).items.length).toBeGreaterThan(fans.indexOf(fan)));
       }
       const post = await createPost(creator.id);
-      await as(fans[0].id).put(`/posts/${post.id}/rating`).send({ value: 5 }).expect(200);
+      await as(fans[0].id).put(`/posts/${post.id}/ratings/me`).send({ value: 5 }).expect(200);
       await eventually(async () => expect(await unread(creator.id)).toBe(5));
     };
 

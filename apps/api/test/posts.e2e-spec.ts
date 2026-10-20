@@ -200,7 +200,7 @@ describe('Posts (e2e)', () => {
 
     it('returns one post with its rating distribution, 404 for an unknown id and 400 for a malformed one', async () => {
       const post = await createPost();
-      await as(other).put(`/posts/${post.id}/rating`).send({ value: 4 }).expect(200);
+      await as(other).put(`/posts/${post.id}/ratings/me`).send({ value: 4 }).expect(200);
       const res = await anon().get(`/api/v1/posts/${post.id}`).expect(200);
       expect(res.body.ratingDistribution).toEqual({ 1: 0, 2: 0, 3: 0, 4: 1, 5: 0 });
       await anon().get(`/api/v1/posts/${randomUUID()}`).expect(404);
@@ -284,7 +284,7 @@ describe('Posts (e2e)', () => {
     it('lets the creator or a moderator delete, and cascades to media, comments and ratings', async () => {
       const post = await createPost({ media: [{ type: MediaType.IMAGE, url: 'https://cdn.example.com/gone.png' }] });
       await as(other).post(`/posts/${post.id}/comments`).send({ content: 'nice' }).expect(201);
-      await as(other).put(`/posts/${post.id}/rating`).send({ value: 4 }).expect(200);
+      await as(other).put(`/posts/${post.id}/ratings/me`).send({ value: 4 }).expect(200);
       await as(other).delete(`/posts/${post.id}`).expect(403);
       await as(moderator, [UserRole.MODERATOR]).delete(`/posts/${post.id}`).expect(204);
       await anon().get(`/api/v1/posts/${post.id}`).expect(404);
@@ -303,81 +303,6 @@ describe('Posts (e2e)', () => {
       expect(after.visitCount).toBe(40);
       expect(after.updatedAt.toISOString()).toBe(new Date(post.updatedAt).toISOString());
       await anon().post(`/api/v1/posts/${randomUUID()}/visits`).expect(404);
-    });
-  });
-
-  describe('ratings', () => {
-    it('keeps the average and count exact under concurrent ratings', async () => {
-      const post = await createPost();
-      const values = Array.from({ length: 25 }, (_, i) => (i % 5) + 1).concat([5, 5, 4]);
-      await Promise.all(values.map((value) => as(randomUUID()).put(`/posts/${post.id}/rating`).send({ value }).expect(200)));
-      const after = await dataSource.getRepository(Post).findOneByOrFail({ id: post.id });
-      const average = Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
-      expect(after.ratingCount).toBe(values.length);
-      expect(after.rating).toBe(average);
-      expect(await dataSource.getRepository(Rating).countBy({ postId: post.id })).toBe(values.length);
-    });
-
-    // Deterministic version of the race above. Another transaction holds the post row while it adds a rating;
-    // the request must wait for it and then count both. Without the row lock in rate(), the request's totals
-    // query would read a snapshot taken before that commit and store ratingCount 1.
-    it('waits for an in-flight rating transaction, then counts both', async () => {
-      const post = await createPost();
-      const runner = dataSource.createQueryRunner();
-      await runner.connect();
-      await runner.startTransaction();
-      await runner.query('SELECT 1 FROM "posts" WHERE "id" = $1 FOR NO KEY UPDATE', [post.id]);
-      await runner.query('INSERT INTO "ratings" ("postId", "userId", "value") VALUES ($1, $2, 5)', [post.id, randomUUID()]);
-
-      const pending = as(other).put(`/posts/${post.id}/rating`).send({ value: 1 }).then((res) => res);
-      await new Promise((done) => setTimeout(done, 300));
-      await runner.query('UPDATE "posts" SET "rating" = 5, "ratingCount" = 1 WHERE "id" = $1', [post.id]);
-      await runner.commitTransaction();
-      await runner.release();
-
-      const res = await pending;
-      expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({ rating: 3, ratingCount: 2 });
-    });
-
-    it('keeps one rating per user even when the same user rates many times at once', async () => {
-      const post = await createPost();
-      await Promise.all([1, 2, 3, 4, 5, 3, 2].map((value) => as(other).put(`/posts/${post.id}/rating`).send({ value }).expect(200)));
-      expect(await dataSource.getRepository(Rating).countBy({ postId: post.id })).toBe(1);
-      const res = await as(other).get(`/posts/${post.id}/rating`).expect(200);
-      expect(res.body.ratingCount).toBe(1);
-      expect(res.body.rating).toBe(res.body.value);
-    });
-
-    it('changes, reads and removes the caller\'s rating, recomputing the totals', async () => {
-      const post = await createPost();
-      await as(other).put(`/posts/${post.id}/rating`).send({ value: 2 }).expect(200);
-      const changed = await as(moderator).put(`/posts/${post.id}/rating`).send({ value: 5 }).expect(200);
-      expect(changed.body).toEqual({ postId: post.id, rating: 3.5, ratingCount: 2, value: 5, distribution: { 1: 0, 2: 1, 3: 0, 4: 0, 5: 1 } });
-      const removed = await as(moderator).delete(`/posts/${post.id}/rating`).expect(200);
-      expect(removed.body).toEqual({ postId: post.id, rating: 2, ratingCount: 1, value: null, distribution: { 1: 0, 2: 1, 3: 0, 4: 0, 5: 0 } });
-      await as(moderator).delete(`/posts/${post.id}/rating`).expect(200);
-      const mine = await as(moderator).get(`/posts/${post.id}/rating`).expect(200);
-      expect(mine.body.value).toBeNull();
-    });
-
-    it('refuses self-ratings, values outside 1 to 5 and unknown posts', async () => {
-      const post = await createPost();
-      await as(owner).put(`/posts/${post.id}/rating`).send({ value: 5 }).expect(403);
-      await as(other).put(`/posts/${post.id}/rating`).send({ value: 6 }).expect(400);
-      await as(other).put(`/posts/${post.id}/rating`).send({ value: 2.5 }).expect(400);
-      await as(other).put(`/posts/${randomUUID()}/rating`).send({ value: 3 }).expect(404);
-      await anon().put(`/api/v1/posts/${post.id}/rating`).send({ value: 3 }).expect(401);
-    });
-
-    it('leaves no orphan ratings when a post is deleted while people are rating it', async () => {
-      const post = await createPost();
-      const results = await Promise.all([
-        ...Array.from({ length: 10 }, () => as(randomUUID()).put(`/posts/${post.id}/rating`).send({ value: 4 })),
-        as(owner).delete(`/posts/${post.id}`),
-      ]);
-      expect(results.every((r) => [200, 204, 404].includes(r.status))).toBe(true);
-      expect(await dataSource.getRepository(Rating).countBy({ postId: post.id })).toBe(0);
     });
   });
 

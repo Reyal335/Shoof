@@ -8,6 +8,7 @@ import { Comment } from './entities/comment.entity.js';
 import { PostSkill } from './entities/post-skill.entity.js';
 import { SkillsService } from '../skills/skills.service.js';
 import { UsersService } from '../users/users.service.js';
+import { RatingsService } from './ratings.service.js';
 import type { Skill } from '../skills/entities/skill.entity.js';
 import type { ListPostsQueryDto } from './dto/query.dto.js';
 
@@ -53,6 +54,7 @@ describe('PostsService', () => {
         { provide: EventEmitter2, useValue: { emit: vi.fn() } },
         { provide: SkillsService, useValue: skills },
         { provide: UsersService, useValue: users },
+        { provide: RatingsService, useValue: { distributionOf: vi.fn() } },
       ],
     }).compile();
 

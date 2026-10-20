@@ -10,6 +10,8 @@ import type { UpdatePostDto } from './dto/update-post.dto.js';
 import type { ListPostsQueryDto, PaginationQueryDto, TopSkillsQueryDto } from './dto/query.dto.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SkillsService, type SkillSummary } from '../skills/skills.service.js';
+import type { RatingDistribution } from './dto/rating-summary.dto.js';
+import { RatingsService } from './ratings.service.js';
 export interface Page<T> {
     items: T[];
     total: number;
@@ -39,16 +41,8 @@ export interface PostView {
     skills: SkillSummary[];
     author: UserSummary | null;
 }
-export type RatingDistribution = Record<1 | 2 | 3 | 4 | 5, number>;
 export interface PostDetailView extends PostView {
     ratingDistribution: RatingDistribution;
-}
-export interface RatingSummary {
-    postId: string;
-    rating: number;
-    ratingCount: number;
-    value: number | null;
-    distribution: RatingDistribution;
 }
 export interface CommentView {
     id: string;
@@ -75,7 +69,8 @@ export declare class PostsService {
     private readonly eventEmitter;
     private readonly skillService;
     private readonly usersService;
-    constructor(posts: Repository<Post>, comments: Repository<Comment>, postSkills: Repository<PostSkill>, eventEmitter: EventEmitter2, skillService: SkillsService, usersService: UsersService);
+    private readonly ratingsService;
+    constructor(posts: Repository<Post>, comments: Repository<Comment>, postSkills: Repository<PostSkill>, eventEmitter: EventEmitter2, skillService: SkillsService, usersService: UsersService, ratingsService: RatingsService);
     create(userId: string, dto: CreatePostDto): Promise<PostView>;
     findAll(query: ListPostsQueryDto, scope?: PostScope): Promise<Page<PostView>>;
     findOne(id: string): Promise<PostDetailView>;
@@ -85,9 +80,6 @@ export declare class PostsService {
     findSummariesByIds(ids: string[]): Promise<PostSummary[]>;
     findCommentSummariesByIds(ids: string[]): Promise<CommentSummary[]>;
     recordVisit(id: string): Promise<void>;
-    findMyRating(postId: string, user: AuthUser): Promise<RatingSummary>;
-    rate(postId: string, user: AuthUser, value: number): Promise<RatingSummary>;
-    unrate(postId: string, user: AuthUser): Promise<RatingSummary>;
     findComments(postId: string, query: PaginationQueryDto): Promise<Page<CommentView>>;
     addComment(postId: string, user: AuthUser, content: string): Promise<CommentView>;
     updateComment(postId: string, commentId: string, user: AuthUser, content: string): Promise<CommentView>;
@@ -101,6 +93,4 @@ export declare class PostsService {
     private insertMedia;
     private checkSkills;
     private insertSkills;
-    private refreshRating;
-    private ratingDistribution;
 }

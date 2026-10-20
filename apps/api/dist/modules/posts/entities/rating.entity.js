@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, Check, Column, CreateDateColumn, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Check, Column, CreateDateColumn, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Post } from './post.entity.js';
 let Rating = class Rating {
     id;
@@ -16,6 +16,7 @@ let Rating = class Rating {
     userId;
     value;
     createdAt;
+    updatedAt;
 };
 __decorate([
     PrimaryGeneratedColumn('uuid'),
@@ -43,6 +44,10 @@ __decorate([
     CreateDateColumn({ type: 'timestamptz' }),
     __metadata("design:type", Date)
 ], Rating.prototype, "createdAt", void 0);
+__decorate([
+    UpdateDateColumn({ type: 'timestamptz' }),
+    __metadata("design:type", Date)
+], Rating.prototype, "updatedAt", void 0);
 Rating = __decorate([
     Entity('ratings'),
     Index(['postId', 'userId'], { unique: true }),

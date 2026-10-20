@@ -7,21 +7,16 @@ import { UsersService, type UserSummary } from '../users/users.service.js';
 import { Post, PostCategory } from './entities/post.entity.js';
 import { Media, MediaType } from './entities/media.entity.js';
 import { Comment } from './entities/comment.entity.js';
-import { Rating } from './entities/rating.entity.js';
 import { PostSkill } from './entities/post-skill.entity.js';
 import type { CreatePostDto, MediaItemDto } from './dto/create-post.dto.js';
 import type { UpdatePostDto } from './dto/update-post.dto.js';
 import type { ListPostsQueryDto, PaginationQueryDto, TopSkillsQueryDto } from './dto/query.dto.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SkillsService, toSkillSummary, type SkillSummary } from '../skills/skills.service.js';
-import {
-  PostEvents,
-  type CommentCreatedEvent,
-  type CommentDeletedEvent,
-  type PostDeletedEvent,
-  type PostRatedEvent,
-  type PostUnratedEvent,
-} from './posts.events.js';
+import { PostEvents, type CommentCreatedEvent, type CommentDeletedEvent, type PostDeletedEvent } from './posts.events.js';
+import type { RatingDistribution } from './dto/rating-summary.dto.js';
+import { postNotFound } from './posts.errors.js';
+import { RatingsService } from './ratings.service.js';
 
 export interface Page<T> {
   items: T[];
@@ -61,21 +56,9 @@ export interface PostView {
   author: UserSummary | null;
 }
 
-/** How many ratings gave each number of stars. */
-export type RatingDistribution = Record<1 | 2 | 3 | 4 | 5, number>;
-
 /** GET /posts/:id: the post page also draws the ratings bars. */
 export interface PostDetailView extends PostView {
   ratingDistribution: RatingDistribution;
-}
-
-export interface RatingSummary {
-  postId: string;
-  rating: number;
-  ratingCount: number;
-  // The caller's own rating, null when they have none
-  value: number | null;
-  distribution: RatingDistribution;
 }
 
 export interface CommentView {
@@ -125,11 +108,12 @@ function toMediaView({ id, type, url, sortOrder }: Media): MediaView {
 }
 
 /**
- * Posts and everything hanging off them: media, skills, comments, ratings and visit counts.
+ * Posts and everything hanging off them: media, skills, comments and visit counts. Ratings have their own
+ * RatingsService in this module, which owns the ratings rows and the posts' rating cache.
  *
  * Every write that touches more than one row runs in a single transaction (READ COMMITTED, Postgres' default).
- * Where a check has to hold until the write lands (ownership, rating totals), the post or comment row is locked
- * first with SELECT ... FOR [NO KEY] UPDATE, so concurrent requests queue on that row instead of interleaving.
+ * Where a check has to hold until the write lands (ownership), the post or comment row is locked first with
+ * SELECT ... FOR [NO KEY] UPDATE, so concurrent requests queue on that row instead of interleaving.
  * Counters are changed with single UPDATE statements so no increment is ever lost.
  *
  * Posts hold user and skill ids only. Names, avatars and skill labels come from UsersService and SkillsService in
@@ -147,6 +131,7 @@ export class PostsService {
     private readonly eventEmitter: EventEmitter2,
     private readonly skillService: SkillsService,
     private readonly usersService: UsersService,
+    private readonly ratingsService: RatingsService,
   ) {}
 
   // ---------- posts ----------
@@ -208,11 +193,11 @@ export class PostsService {
       order: { media: { sortOrder: 'ASC' } },
     });
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw postNotFound();
     }
     const [view, ratingDistribution] = await Promise.all([
       this.toView(post),
-      this.ratingDistribution(this.posts.manager, id),
+      this.ratingsService.distributionOf(id),
     ]);
     return { ...view, ratingDistribution };
   }
@@ -316,61 +301,8 @@ export class PostsService {
       [id],
     );
     if (!rows.length) {
-      throw new NotFoundException('Post not found');
+      throw postNotFound();
     }
-  }
-
-  // ---------- ratings ----------
-
-  async findMyRating(postId: string, user: AuthUser): Promise<RatingSummary> {
-    const post = await this.findPostRow(postId);
-    const [mine, distribution] = await Promise.all([
-      this.posts.manager.findOneBy(Rating, { postId, userId: user.id }),
-      this.ratingDistribution(this.posts.manager, postId),
-    ]);
-    return { postId, rating: post.rating, ratingCount: post.ratingCount, value: mine?.value ?? null, distribution };
-  }
-
-  /**
-   * Adds or changes the caller's rating (one per user per post) and recomputes the post's average and count
-   * in the same transaction. The post row is locked first, so two people rating at once queue up and the
-   * totals always match the ratings table. The lock is FOR NO KEY UPDATE, so comments can still be added meanwhile.
-   */
-  async rate(postId: string, user: AuthUser, value: number): Promise<RatingSummary> {
-    const { summary, ownerId } = await this.posts.manager.transaction(async (manager) => {
-      const post = await this.lockPost(manager, postId, 'for_no_key_update');
-      if (post.userId === user.id) {
-        throw new ForbiddenException('You cannot rate your own post');
-      }
-      await manager
-        .createQueryBuilder()
-        .insert()
-        .into(Rating)
-        .values({ postId, userId: user.id, value })
-        .orUpdate(['value'], ['postId', 'userId'])
-        .execute();
-
-      const totals = await this.refreshRating(manager, postId);
-      const summary: RatingSummary = { postId, ...totals, value, distribution: await this.ratingDistribution(manager, postId) };
-      return { summary, ownerId: post.userId };
-    });
-
-    // After the commit, so a rolled-back rating never notifies anyone
-    this.eventEmitter.emit(PostEvents.Rated, { postId, actorId: user.id, recipientId: ownerId } satisfies PostRatedEvent);
-    return summary;
-  }
-
-  /** Removes the caller's rating if there is one (idempotent) and recomputes the totals, under the same lock. */
-  async unrate(postId: string, user: AuthUser): Promise<RatingSummary> {
-    const summary = await this.posts.manager.transaction(async (manager): Promise<RatingSummary> => {
-      await this.lockPost(manager, postId, 'for_no_key_update');
-      await manager.delete(Rating, { postId, userId: user.id });
-      const totals = await this.refreshRating(manager, postId);
-      return { postId, ...totals, value: null, distribution: await this.ratingDistribution(manager, postId) };
-    });
-
-    this.eventEmitter.emit(PostEvents.Unrated, { postId, actorId: user.id } satisfies PostUnratedEvent);
-    return summary;
   }
 
   // ---------- comments ----------
@@ -393,7 +325,7 @@ export class PostsService {
       comment = await this.comments.save(this.comments.create({ postId, userId: user.id, content }));
     } catch (error) {
       if (error instanceof QueryFailedError && (error.driverError as { code?: string }).code === FOREIGN_KEY_VIOLATION) {
-        throw new NotFoundException('Post not found');
+        throw postNotFound();
       }
       throw error;
     }
@@ -510,7 +442,7 @@ export class PostsService {
   private async findPostRow(id: string): Promise<Post> {
     const post = await this.posts.findOneBy({ id });
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw postNotFound();
     }
     return post;
   }
@@ -519,7 +451,7 @@ export class PostsService {
   private async lockPost(manager: EntityManager, id: string, mode: 'pessimistic_write' | 'for_no_key_update'): Promise<Post> {
     const post = await manager.findOne(Post, { where: { id }, lock: { mode } });
     if (!post) {
-      throw new NotFoundException('Post not found');
+      throw postNotFound();
     }
     return post;
   }
@@ -555,31 +487,5 @@ export class PostsService {
   private insertSkills(manager: EntityManager, postId: string, skillIds: string[]): Promise<unknown> {
     if (!skillIds.length) return Promise.resolve();
     return manager.insert(PostSkill, skillIds.map((skillId) => ({ postId, skillId })));
-  }
-
-  // Recomputes the average (one decimal) and count from the ratings table. Must run under the post lock.
-  private async refreshRating(manager: EntityManager, postId: string): Promise<{ rating: number; ratingCount: number }> {
-    const [rows] = await manager.query(
-      `UPDATE "posts" AS p
-          SET "rating" = COALESCE(s.avg, 0), "ratingCount" = s.count
-         FROM (SELECT ROUND(AVG("value"), 1) AS avg, COUNT(*)::int AS count FROM "ratings" WHERE "postId" = $1) AS s
-        WHERE p."id" = $1
-    RETURNING p."rating", p."ratingCount"`,
-      [postId],
-    );
-    return { rating: Number(rows[0].rating), ratingCount: rows[0].ratingCount };
-  }
-
-  // Served by the unique (postId, userId) index, so it reads only this post's ratings
-  private async ratingDistribution(manager: EntityManager, postId: string): Promise<RatingDistribution> {
-    const rows: { value: number; count: number }[] = await manager.query(
-      `SELECT "value", COUNT(*)::int AS "count" FROM "ratings" WHERE "postId" = $1 GROUP BY "value"`,
-      [postId],
-    );
-    const distribution: RatingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    for (const row of rows) {
-      distribution[row.value as keyof RatingDistribution] = row.count;
-    }
-    return distribution;
   }
 }

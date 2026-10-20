@@ -18,11 +18,12 @@ import { UsersService } from '../users/users.service.js';
 import { Post } from './entities/post.entity.js';
 import { Media } from './entities/media.entity.js';
 import { Comment } from './entities/comment.entity.js';
-import { Rating } from './entities/rating.entity.js';
 import { PostSkill } from './entities/post-skill.entity.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SkillsService, toSkillSummary } from '../skills/skills.service.js';
-import { PostEvents, } from './posts.events.js';
+import { PostEvents } from './posts.events.js';
+import { postNotFound } from './posts.errors.js';
+import { RatingsService } from './ratings.service.js';
 const FOREIGN_KEY_VIOLATION = '23503';
 const ORDER = {
     new: { createdAt: 'DESC', id: 'DESC' },
@@ -45,13 +46,15 @@ let PostsService = class PostsService {
     eventEmitter;
     skillService;
     usersService;
-    constructor(posts, comments, postSkills, eventEmitter, skillService, usersService) {
+    ratingsService;
+    constructor(posts, comments, postSkills, eventEmitter, skillService, usersService, ratingsService) {
         this.posts = posts;
         this.comments = comments;
         this.postSkills = postSkills;
         this.eventEmitter = eventEmitter;
         this.skillService = skillService;
         this.usersService = usersService;
+        this.ratingsService = ratingsService;
     }
     async create(userId, dto) {
         const skillIds = await this.checkSkills(dto.skillIds ?? []);
@@ -105,11 +108,11 @@ let PostsService = class PostsService {
             order: { media: { sortOrder: 'ASC' } },
         });
         if (!post) {
-            throw new NotFoundException('Post not found');
+            throw postNotFound();
         }
         const [view, ratingDistribution] = await Promise.all([
             this.toView(post),
-            this.ratingDistribution(this.posts.manager, id),
+            this.ratingsService.distributionOf(id),
         ]);
         return { ...view, ratingDistribution };
     }
@@ -192,46 +195,8 @@ let PostsService = class PostsService {
     async recordVisit(id) {
         const [rows] = await this.posts.query(`UPDATE "posts" SET "visitCount" = "visitCount" + 1 WHERE "id" = $1 RETURNING "id"`, [id]);
         if (!rows.length) {
-            throw new NotFoundException('Post not found');
+            throw postNotFound();
         }
-    }
-    async findMyRating(postId, user) {
-        const post = await this.findPostRow(postId);
-        const [mine, distribution] = await Promise.all([
-            this.posts.manager.findOneBy(Rating, { postId, userId: user.id }),
-            this.ratingDistribution(this.posts.manager, postId),
-        ]);
-        return { postId, rating: post.rating, ratingCount: post.ratingCount, value: mine?.value ?? null, distribution };
-    }
-    async rate(postId, user, value) {
-        const { summary, ownerId } = await this.posts.manager.transaction(async (manager) => {
-            const post = await this.lockPost(manager, postId, 'for_no_key_update');
-            if (post.userId === user.id) {
-                throw new ForbiddenException('You cannot rate your own post');
-            }
-            await manager
-                .createQueryBuilder()
-                .insert()
-                .into(Rating)
-                .values({ postId, userId: user.id, value })
-                .orUpdate(['value'], ['postId', 'userId'])
-                .execute();
-            const totals = await this.refreshRating(manager, postId);
-            const summary = { postId, ...totals, value, distribution: await this.ratingDistribution(manager, postId) };
-            return { summary, ownerId: post.userId };
-        });
-        this.eventEmitter.emit(PostEvents.Rated, { postId, actorId: user.id, recipientId: ownerId });
-        return summary;
-    }
-    async unrate(postId, user) {
-        const summary = await this.posts.manager.transaction(async (manager) => {
-            await this.lockPost(manager, postId, 'for_no_key_update');
-            await manager.delete(Rating, { postId, userId: user.id });
-            const totals = await this.refreshRating(manager, postId);
-            return { postId, ...totals, value: null, distribution: await this.ratingDistribution(manager, postId) };
-        });
-        this.eventEmitter.emit(PostEvents.Unrated, { postId, actorId: user.id });
-        return summary;
     }
     async findComments(postId, query) {
         await this.findPostRow(postId);
@@ -250,7 +215,7 @@ let PostsService = class PostsService {
         }
         catch (error) {
             if (error instanceof QueryFailedError && error.driverError.code === FOREIGN_KEY_VIOLATION) {
-                throw new NotFoundException('Post not found');
+                throw postNotFound();
             }
             throw error;
         }
@@ -349,14 +314,14 @@ let PostsService = class PostsService {
     async findPostRow(id) {
         const post = await this.posts.findOneBy({ id });
         if (!post) {
-            throw new NotFoundException('Post not found');
+            throw postNotFound();
         }
         return post;
     }
     async lockPost(manager, id, mode) {
         const post = await manager.findOne(Post, { where: { id }, lock: { mode } });
         if (!post) {
-            throw new NotFoundException('Post not found');
+            throw postNotFound();
         }
         return post;
     }
@@ -386,22 +351,6 @@ let PostsService = class PostsService {
             return Promise.resolve();
         return manager.insert(PostSkill, skillIds.map((skillId) => ({ postId, skillId })));
     }
-    async refreshRating(manager, postId) {
-        const [rows] = await manager.query(`UPDATE "posts" AS p
-          SET "rating" = COALESCE(s.avg, 0), "ratingCount" = s.count
-         FROM (SELECT ROUND(AVG("value"), 1) AS avg, COUNT(*)::int AS count FROM "ratings" WHERE "postId" = $1) AS s
-        WHERE p."id" = $1
-    RETURNING p."rating", p."ratingCount"`, [postId]);
-        return { rating: Number(rows[0].rating), ratingCount: rows[0].ratingCount };
-    }
-    async ratingDistribution(manager, postId) {
-        const rows = await manager.query(`SELECT "value", COUNT(*)::int AS "count" FROM "ratings" WHERE "postId" = $1 GROUP BY "value"`, [postId]);
-        const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-        for (const row of rows) {
-            distribution[row.value] = row.count;
-        }
-        return distribution;
-    }
 };
 PostsService = __decorate([
     Injectable(),
@@ -413,7 +362,8 @@ PostsService = __decorate([
         Repository,
         EventEmitter2,
         SkillsService,
-        UsersService])
+        UsersService,
+        RatingsService])
 ], PostsService);
 export { PostsService };
 //# sourceMappingURL=posts.service.js.map

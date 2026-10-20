@@ -68,8 +68,8 @@ __decorate([
 __decorate([
     Column({
         type: 'decimal',
-        precision: 2,
-        scale: 1,
+        precision: 3,
+        scale: 2,
         default: 0,
         transformer: { to: (value) => value, from: (value) => Number(value) }
     }),

@@ -7,14 +7,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { IsInt, Max, Min } from 'class-validator';
+import { IsIn } from 'class-validator';
 export class RatePostDto {
     value;
 }
 __decorate([
-    IsInt(),
-    Min(1),
-    Max(5),
+    IsIn([1, 2, 3, 4, 5], { message: 'Rating must be a whole number from 1 to 5.' }),
     __metadata("design:type", Number)
 ], RatePostDto.prototype, "value", void 0);
 //# sourceMappingURL=rate-post.dto.js.map

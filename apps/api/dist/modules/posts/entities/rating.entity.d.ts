@@ -7,4 +7,5 @@ export declare class Rating {
     userId: string;
     value: number;
     createdAt: Date;
+    updatedAt: Date;
 }

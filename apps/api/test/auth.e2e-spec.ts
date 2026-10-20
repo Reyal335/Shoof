@@ -13,6 +13,7 @@ import { EmailVerificationMailer } from '../src/modules/auth/email-verification.
 import { RefreshToken } from '../src/modules/auth/entities/refresh-token.entity.js';
 import { CurrentUser } from '../src/modules/auth/decorators/current-user.decorator.js';
 import { Public } from '../src/modules/auth/decorators/public.decorator.js';
+import { OptionalAuth } from '../src/modules/auth/decorators/optional-auth.decorator.js';
 import { Roles } from '../src/modules/auth/decorators/roles.decorator.js';
 import { REFRESH_COOKIE } from '../src/modules/auth/auth.constants.js';
 import type { AuthUser } from '../src/modules/auth/auth.types.js';
@@ -35,6 +36,13 @@ class ProbeController {
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
     return user;
+  }
+
+  // Public, but knows the caller when a valid access token comes along
+  @OptionalAuth()
+  @Get('optional')
+  optional(@CurrentUser() user: AuthUser | null) {
+    return { user };
   }
 
   @Roles(UserRole.ADMIN)
@@ -106,6 +114,18 @@ describe('Auth (e2e)', () => {
   it('lets @Public() routes through and refuses the rest without a token', async () => {
     await request(app.getHttpServer()).get('/api/v1/probe/public').expect(200);
     await request(app.getHttpServer()).get('/api/v1/probe/me').expect(401);
+  });
+
+  it('@OptionalAuth() knows a signed-in caller and treats every other request as anonymous, never failing', async () => {
+    const { body } = await signIn();
+    const probe = () => request(app.getHttpServer()).get('/api/v1/probe/optional');
+
+    expect((await probe().auth(body.accessToken, { type: 'bearer' }).expect(200)).body).toEqual({ user: { id: user.id, roles: [UserRole.MEMBER] } });
+    expect((await probe().expect(200)).body).toEqual({ user: null });
+    expect((await probe().auth('not-a-token', { type: 'bearer' }).expect(200)).body).toEqual({ user: null });
+    // A refresh token is not an access token, so it doesn't count either
+    const refresh = refreshCookieOf(await signIn()).split(';')[0].split('=')[1];
+    expect((await probe().auth(refresh, { type: 'bearer' }).expect(200)).body).toEqual({ user: null });
   });
 
   it('refuses a wrong password', async () => {
