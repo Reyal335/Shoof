@@ -58,3 +58,9 @@ h1{font-family:'Silkscreen',monospace;font-weight:700;font-size:96px;line-height
 @media (max-width:1200px){.gmain{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1000px){.ghero{grid-template-columns:minmax(0,1fr)}.ggrid{grid-template-columns:repeat(2,minmax(0,1fr))}.jam{flex-direction:column;align-items:flex-start}}
 @media (max-width:700px){.ggrid{grid-template-columns:minmax(0,1fr)}.wrap{padding:20px 16px 48px}h1{font-size:56px;line-height:56px}.jam-l{flex-direction:column;align-items:flex-start;gap:6px}}
+/* Real posts: a screenshot replaces the drawn cells, links on the dark theme */
+.gshot.has-img,.gotw-shot.has-img{display:block;padding:0}
+.shot-img{position:absolute;inset:0}
+.gotw-info .title-link{color:inherit}
+.empty a{color:#dba40c;font-weight:700}
+.more-btn{background:#151c38;color:#eef1f8;border-color:#3b4a75}

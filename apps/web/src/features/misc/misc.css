@@ -63,3 +63,6 @@ h1{font-weight:800;font-size:92px;line-height:88px;letter-spacing:-3px}
 .empty{padding:40px;text-align:center;font-size:22px;font-weight:800}
 @media (max-width:1100px){.mhero{grid-template-columns:minmax(0,1fr)}.mgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:700px){.mgrid{grid-template-columns:minmax(0,1fr)}.mcard.wide{grid-column:auto}.wrap{padding:20px 16px 48px}h1{font-size:44px;line-height:46px;letter-spacing:-2px}.mascot{width:160px;height:160px;border-radius:80px}.mascot img{width:100px;height:99px}}
+/* Real posts: creator names link to profiles */
+.mfoot span a,.empty a{color:inherit}
+.shoofme:disabled{opacity:.6;cursor:default}

@@ -1,17 +1,40 @@
+"use client";
+
 import Link from "next/link";
-import { CssPreview, PortfolioPreview, SaasPreview } from "./stand-ins";
+import { firstLine } from "@/lib/text";
+import { RatingChip } from "@/components/rating/rating-chip";
+import { usePostList } from "../hooks/use-post-list";
+import { coverUrl, postHref } from "../paths";
+import type { Post } from "../types";
+import { PostStandIn } from "./stand-ins";
 
-const STAR = "M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z";
+/** Up to three other sites by the same creator. Hidden when there are none. */
+export function MoreFrom({ post }: { post: Post }) {
+  const username = post.author?.username ?? "";
+  const list = usePostList({ kind: "user", username }, {}, { pageSize: 4, enabled: !!post.author });
+  const others = list.posts.filter((p) => p.id !== post.id).slice(0, 3);
+  if (!post.author || !others.length) return null;
 
-/** Three more sites by the same creator. Every card links to the demo post for now. */
-export function MoreFrom() {
   return (
     <section className="more" aria-labelledby="h-more">
-      <h2 id="h-more">More from [Creator name]</h2>
+      <h2 id="h-more">More from {post.author.displayName}</h2>
       <div className="mgrid">
-        <article className="mcard"><div className="mprev" role="img" aria-label="Screenshot of [Caption of another site]"><CssPreview /></div><div className="mbody"><h3><Link href="/post/demo">[Caption of another site]</Link></h3><p>A layout study built with flex and grid.</p><span className="r"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c" stroke="#a07600" strokeWidth="1.2"><path d={STAR} /></svg> 4.4</span></div></article>
-        <article className="mcard"><div className="mprev" role="img" aria-label="Screenshot of [Caption of another site]"><PortfolioPreview /></div><div className="mbody"><h3><Link href="/post/demo">[Caption of another site]</Link></h3><p>Personal portfolio with case studies.</p><span className="r"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c" stroke="#a07600" strokeWidth="1.2"><path d={STAR} /></svg> 4.7</span></div></article>
-        <article className="mcard"><div className="mprev" role="img" aria-label="Screenshot of [Caption of another site]"><SaasPreview /></div><div className="mbody"><h3><Link href="/post/demo">[Caption of another site]</Link></h3><p>A tool that solves one problem well.</p><span className="r"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="#dba40c" stroke="#a07600" strokeWidth="1.2"><path d={STAR} /></svg> 4.2</span></div></article>
+        {others.map((other) => {
+          const cover = coverUrl(other);
+          return (
+            <article className="mcard" key={other.id}>
+              <div className="mprev" role="img" aria-label={`Preview of ${other.caption}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- media can sit on any https host */}
+                {cover ? <img className="cover-img" src={cover} alt="" /> : <PostStandIn post={other} />}
+              </div>
+              <div className="mbody">
+                <h3><Link href={postHref(other)}>{other.caption}</Link></h3>
+                <p>{firstLine(other.description)}</p>
+                <span className="r"><RatingChip value={other.rating} count={other.ratingCount} /></span>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

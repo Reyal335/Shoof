@@ -8,19 +8,23 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsService } from './posts.service.js';
 import { PostsController } from './posts.controller.js';
+import { UserPostsController } from './user-posts.controller.js';
+import { RatingsController } from './ratings.controller.js';
+import { RatingsService } from './ratings.service.js';
 import { Post } from './entities/post.entity.js';
 import { Media } from './entities/media.entity.js';
 import { Comment } from './entities/comment.entity.js';
 import { Rating } from './entities/rating.entity.js';
 import { PostSkill } from './entities/post-skill.entity.js';
 import { SkillsModule } from '../skills/skills.module.js';
+import { UsersModule } from '../users/users.module.js';
 let PostsModule = class PostsModule {
 };
 PostsModule = __decorate([
     Module({
-        imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating, PostSkill]), SkillsModule],
-        controllers: [PostsController],
-        providers: [PostsService],
+        imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating, PostSkill]), SkillsModule, UsersModule],
+        controllers: [PostsController, UserPostsController, RatingsController],
+        providers: [PostsService, RatingsService],
         exports: [PostsService],
     })
 ], PostsModule);

@@ -5,34 +5,38 @@ import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { flushSync } from "react-dom";
 import { Header } from "@/components/header";
-import { useScreenshots } from "../hooks/use-screenshots";
-import { useTechStack } from "../hooks/use-tech-stack";
-import { CAPTION_MAX, REQUIRED_FIELDS, validatePost } from "../post-form";
+import { useSession } from "@/features/auth/hooks/use-session";
+import { SkillPicker } from "@/features/skills/components/skill-picker";
+import type { Skill } from "@/features/skills/types";
+import { describeError } from "@/lib/describe-error";
+import { useCreatePost } from "../hooks/use-create-post";
+import { CAPTION_MAX, MAX_POST_SKILLS, REQUIRED_FIELDS, validatePost } from "../post-form";
 import type { FieldErrors, FieldName } from "../post-form";
-import type { CreatePostValues, PostCategory, ScreenshotDraft } from "../types";
+import type { Post, PostCategory } from "../types";
 import { CategoryPicker } from "./category-picker";
 import { FieldError, FormSection } from "./form-section";
 import { PostPreview } from "./post-preview";
-import { ScreenshotPicker } from "./screenshot-picker";
 import { SuccessCard } from "./success-card";
-import { TechStackInput } from "./tech-stack-input";
 import "./create-post.css";
 
 // The element that gets focus when a field fails, in page order.
 const FOCUS_ID: Record<FieldName, string> = { category: "cat-games", link: "link", repo: "repo", caption: "caption", description: "description" };
 
-// From design/CreatePost.html. Front end only: a valid submit shows the success card and sends nothing.
+// From design/CreatePost.html. A valid submit sends POST /api/v1/posts and shows the success card with a link to the
+// new post. Screenshots wait for signed-URL uploads (the ScreenshotPicker and useScreenshots are ready for them).
 export function CreatePostPage() {
+  const session = useSession();
   const [category, setCategory] = useState<PostCategory | "">("");
   const [link, setLink] = useState("");
   const [repo, setRepo] = useState("");
   const [caption, setCaption] = useState("");
   const [description, setDescription] = useState("");
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [skillsAnnouncement, setSkillsAnnouncement] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState("");
-  const [posted, setPosted] = useState<{ values: CreatePostValues; screenshots: ScreenshotDraft[] } | null>(null);
-  const stack = useTechStack();
-  const shots = useScreenshots();
+  const [posted, setPosted] = useState<Post | null>(null);
+  const { create, isPending } = useCreatePost();
   const doneTitleRef = useRef<HTMLHeadingElement>(null);
 
   function clearError(field: FieldName) {
@@ -43,9 +47,9 @@ export function CreatePostPage() {
     return errors[field] ? true : undefined;
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const techStack = stack.commitDraft({ quiet: true });
+    if (isPending) return;
     const found = validatePost({ category, link, repo, caption, description });
     const failing = REQUIRED_FIELDS.filter((f) => found[f]);
     setErrors(found);
@@ -54,19 +58,23 @@ export function CreatePostPage() {
       document.getElementById(FOCUS_ID[failing[0]])?.focus();
       return;
     }
-    const values: CreatePostValues = {
-      category,
-      link: link.trim(),
-      repoUrl: repo.trim() || null,
-      caption: caption.trim(),
-      description: description.trim(),
-      techStack,
-    };
-    // Later: POST /api/v1/posts with `values`, then upload `shots.items` through signed URLs. Nothing is sent yet.
-    flushSync(() => {
-      setStatus("");
-      setPosted({ values, screenshots: shots.items });
-    });
+
+    setStatus("");
+    let post: Post;
+    try {
+      post = await create({
+        category,
+        link: link.trim(),
+        repoUrl: repo.trim() || null,
+        caption: caption.trim(),
+        description: description.trim(),
+        skillIds: skills.map((s) => s.id),
+      });
+    } catch (err) {
+      setStatus(describeError(err, "post your site"));
+      return;
+    }
+    flushSync(() => setPosted(post));
     doneTitleRef.current?.focus();
     window.scrollTo(0, 0);
   }
@@ -78,10 +86,10 @@ export function CreatePostPage() {
       setRepo("");
       setCaption("");
       setDescription("");
+      setSkills([]);
+      setSkillsAnnouncement("");
       setErrors({});
       setStatus("");
-      stack.reset();
-      shots.reset();
       setPosted(null);
     });
     document.getElementById(FOCUS_ID.category)?.focus();
@@ -94,10 +102,15 @@ export function CreatePostPage() {
         <div hidden={posted !== null}>
           <div className="pagehead">
             <h1>Post a site</h1>
-            <p>Share something you built in a browser. People will see it up front, so give it a clear caption and a screenshot or two.</p>
+            <p>Share something you built in a browser. People will see it up front, so give it a clear caption and say what it&apos;s built with.</p>
           </div>
+          {session.status === "anonymous" && (
+            <p className="signin-note" role="status">
+              <Link href="/login?next=/post/new">Log in</Link> to post. You can fill this in first; nothing is sent until you press Post site.
+            </p>
+          )}
           <div className="layout">
-            <form noValidate onSubmit={onSubmit}>
+            <form noValidate onSubmit={onSubmit} aria-busy={isPending}>
               <CategoryPicker
                 value={category}
                 error={errors.category}
@@ -192,21 +205,38 @@ export function CreatePostPage() {
                 </div>
               </FormSection>
 
-              <TechStackInput stack={stack} />
-              <ScreenshotPicker shots={shots} />
+              <FormSection number={4} title="Tech stack" optional>
+                <SkillPicker
+                  id="stack"
+                  label="What did you build it with?"
+                  selected={skills}
+                  max={MAX_POST_SKILLS}
+                  hintId="stack-hint"
+                  onChange={(next, message) => {
+                    setSkills(next);
+                    setSkillsAnnouncement(message);
+                  }}
+                />
+                <span className="hint" id="stack-hint">{`Type to search languages, frameworks, tools and disciplines. Up to ${MAX_POST_SKILLS}. People find your post on each skill's page.`}</span>
+                <div className="sr" role="status" aria-live="polite">{skillsAnnouncement}</div>
+              </FormSection>
+
+              <FormSection number={5} title="Screenshots" optional>
+                <p className="hint">Screenshot uploads are coming soon. Until then your post shows a preview drawn for its section, like the one on the right.</p>
+              </FormSection>
 
               <div className="actions">
-                <button className="go" type="submit">Post site</button>
+                <button className="go" type="submit" disabled={isPending} aria-busy={isPending}>{isPending ? "Posting…" : "Post site"}</button>
                 <Link className="cancel" href="/">Cancel</Link>
                 <span className="status" role="status" aria-live="polite" hidden={!status}>{status}</span>
               </div>
             </form>
 
-            <PostPreview category={category} caption={caption} description={description} link={link} techStack={stack.tags} coverUrl={shots.items[0]?.url} />
+            <PostPreview category={category} caption={caption} description={description} link={link} techStack={skills.map((s) => s.name)} />
           </div>
         </div>
 
-        {posted && <SuccessCard post={posted.values} titleRef={doneTitleRef} onPostAnother={postAnother} />}
+        {posted && <SuccessCard post={posted} titleRef={doneTitleRef} onPostAnother={postAnother} />}
       </main>
     </>
   );

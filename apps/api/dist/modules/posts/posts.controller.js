@@ -10,12 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Put, Query, UsePipes, ValidationPipe, } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, UsePipes, ValidationPipe, } from '@nestjs/common';
 import { PostsService } from './posts.service.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
-import { ListPostsQueryDto, PaginationQueryDto } from './dto/query.dto.js';
-import { RatePostDto } from './dto/rate-post.dto.js';
+import { ListPostsQueryDto, PaginationQueryDto, TopSkillsQueryDto } from './dto/query.dto.js';
 import { CommentDto } from './dto/comment.dto.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { Public } from '../auth/decorators/public.decorator.js';
@@ -31,6 +30,9 @@ let PostsController = class PostsController {
     findAll(query) {
         return this.postsService.findAll(query);
     }
+    findTopSkills(query) {
+        return this.postsService.findTopSkills(query);
+    }
     findOne(id) {
         return this.postsService.findOne(id);
     }
@@ -42,15 +44,6 @@ let PostsController = class PostsController {
     }
     recordVisit(id) {
         return this.postsService.recordVisit(id);
-    }
-    findMyRating(id, user) {
-        return this.postsService.findMyRating(id, user);
-    }
-    rate(id, user, dto) {
-        return this.postsService.rate(id, user, dto.value);
-    }
-    unrate(id, user) {
-        return this.postsService.unrate(id, user);
     }
     findComments(id, query) {
         return this.postsService.findComments(id, query);
@@ -81,6 +74,14 @@ __decorate([
     __metadata("design:paramtypes", [ListPostsQueryDto]),
     __metadata("design:returntype", void 0)
 ], PostsController.prototype, "findAll", null);
+__decorate([
+    Public(),
+    Get('skills'),
+    __param(0, Query()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [TopSkillsQueryDto]),
+    __metadata("design:returntype", void 0)
+], PostsController.prototype, "findTopSkills", null);
 __decorate([
     Public(),
     Get(':id'),
@@ -116,31 +117,6 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], PostsController.prototype, "recordVisit", null);
-__decorate([
-    Get(':id/rating'),
-    __param(0, Param('id', uuid)),
-    __param(1, CurrentUser()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
-], PostsController.prototype, "findMyRating", null);
-__decorate([
-    Put(':id/rating'),
-    __param(0, Param('id', uuid)),
-    __param(1, CurrentUser()),
-    __param(2, Body()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object, RatePostDto]),
-    __metadata("design:returntype", void 0)
-], PostsController.prototype, "rate", null);
-__decorate([
-    Delete(':id/rating'),
-    __param(0, Param('id', uuid)),
-    __param(1, CurrentUser()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", void 0)
-], PostsController.prototype, "unrate", null);
 __decorate([
     Public(),
     Get(':id/comments'),

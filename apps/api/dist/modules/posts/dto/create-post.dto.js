@@ -11,10 +11,9 @@ import { Transform, Type } from 'class-transformer';
 import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, ValidateNested, ArrayUnique, IsUUID } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
 import { MediaType } from '../entities/media.entity.js';
-import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, URL_MAX } from '../posts.constants.js';
+import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, MAX_POST_SKILLS, URL_MAX } from '../posts.constants.js';
 const trim = ({ value }) => (typeof value === 'string' ? value.trim() : value);
 const SITE_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: true };
-const MAX_SKILLS = 10;
 export class MediaItemDto {
     type;
     url;
@@ -34,7 +33,7 @@ export class CreatePostDto {
     repoUrl;
     caption;
     description;
-    skillIds = [];
+    skillIds;
     media;
 }
 __decorate([
@@ -71,7 +70,7 @@ __decorate([
 __decorate([
     IsOptional(),
     IsArray(),
-    ArrayMaxSize(MAX_SKILLS),
+    ArrayMaxSize(MAX_POST_SKILLS),
     ArrayUnique(),
     IsUUID('all', { each: true }),
     __metadata("design:type", Array)

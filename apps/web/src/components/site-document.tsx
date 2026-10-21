@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { QueryProvider } from "@/lib/query-provider";
 import "@/styles/shared.css";
 
 export const siteMetadata: Metadata = {
@@ -20,7 +21,9 @@ export function SiteDocument({ fonts, children }: { fonts: string; children: Rea
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="stylesheet" href={fonts} />
       </head>
-      <body>{children}</body>
+      <body>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }

@@ -10,11 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller } from "@nestjs/common";
+import { Controller, Get, Param, Query, UsePipes, ValidationPipe } from "@nestjs/common";
 import { UsersService } from "../users/users.service.js";
 import { PostsService } from "./posts.service.js";
-import { Get, Param, Query } from "@nestjs/common";
 import { ListPostsQueryDto } from "./dto/query.dto.js";
+import { Public } from "../auth/decorators/public.decorator.js";
 let UserPostsController = class UserPostsController {
     usersService;
     postsService;
@@ -22,12 +22,13 @@ let UserPostsController = class UserPostsController {
         this.usersService = usersService;
         this.postsService = postsService;
     }
-    async listByUsername(username, userPostQuery) {
-        const user = await this.usersService.findByUsername(username);
-        return this.postsService.findAll(userPostQuery);
+    async listByUsername(username, query) {
+        const userId = await this.usersService.findIdByUsername(username);
+        return this.postsService.findAll(query, { userIds: [userId] });
     }
 };
 __decorate([
+    Public(),
     Get(),
     __param(0, Param('username')),
     __param(1, Query()),
@@ -37,6 +38,7 @@ __decorate([
 ], UserPostsController.prototype, "listByUsername", null);
 UserPostsController = __decorate([
     Controller('users/:username/posts'),
+    UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })),
     __metadata("design:paramtypes", [UsersService,
         PostsService])
 ], UserPostsController);

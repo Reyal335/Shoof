@@ -67,3 +67,7 @@ h1 em{color:var(--muted)}
 .empty{padding:48px 0;text-align:center;font-family:'Instrument Serif',serif;font-size:32px;color:var(--muted)}
 @media (max-width:1100px){.phero{grid-template-columns:minmax(0,1fr)}.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:700px){.pgrid{grid-template-columns:minmax(0,1fr)}.pcard.big{grid-column:auto;grid-row:auto}.big .plink{min-height:300px}.big .sh{min-height:272px}.wrap{padding:20px 16px 48px}h1{font-size:72px;line-height:68px}.tabs{gap:18px}}
+/* Real posts: a screenshot fills the frame, creator names link to profiles */
+img.sh{width:100%;object-fit:cover}
+.pmeta .role a{color:inherit}
+.empty a{color:var(--link)}

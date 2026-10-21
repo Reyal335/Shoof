@@ -22,7 +22,8 @@ export enum PostCategory {
     MISC = 'misc'
 }
 
-// The counters and the average are written by PostsService only; the checks keep a bug from storing nonsense
+// rating and ratingCount are a cache of the ratings table, written only by RatingsService (under the post's row lock).
+// visitCount is written only by PostsService. No DTO accepts any of them. The checks keep a bug from storing nonsense.
 @Entity('posts')
 @Check(`"rating" BETWEEN 0 AND 5`)
 @Check(`"ratingCount" >= 0 AND "visitCount" >= 0`)
@@ -51,11 +52,12 @@ export class Post {
     @Column({ type: 'enum', enum: PostCategory })
     category: PostCategory
 
-    // Average of this post's ratings, recomputed by the service. pg returns numerics as strings.
+    // Average of this post's ratings to 2 decimals (0 with none), recomputed from SQL on every rating write. The web
+    // shows it to one decimal. pg returns numerics as strings, hence the transformer.
     @Column({
         type: 'decimal',
-        precision: 2,
-        scale: 1,
+        precision: 3,
+        scale: 2,
         default: 0,
         transformer: { to: (value: number) => value, from: (value: string) => Number(value) }
     })

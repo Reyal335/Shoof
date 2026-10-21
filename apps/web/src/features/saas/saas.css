@@ -69,3 +69,9 @@ fieldset.panel{gap:10px}
 .cta a{display:flex;align-items:center;justify-content:center;height:42px;border-radius:8px;background:var(--yellow);color:var(--navy);font:700 15px 'IBM Plex Sans',sans-serif;text-decoration:none}
 @media (max-width:1100px){.sbody{grid-template-columns:minmax(0,1fr)}.lgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:700px){.lgrid{grid-template-columns:minmax(0,1fr)}.stk{display:none}.wrap{padding:20px 16px 48px}h1{font-size:38px;line-height:42px}.prod{gap:10px;padding:14px 12px}}
+/* Real posts: the rating takes the vote button's place, creator names link to profiles */
+.prod .rating-chip{flex-shrink:0}
+.pmeta a.cat{text-decoration:none}.pmeta a.cat:hover{text-decoration:underline}
+.lshot .cover-img{height:150px}
+.list .more-row{padding:14px}
+.empty a{color:var(--link);font-weight:700}

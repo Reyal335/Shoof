@@ -23,8 +23,8 @@ let UsersController = class UsersController {
     me(user) {
         return this.usersService.findAccount(user.id);
     }
-    username(param) {
-        return this.usersService.findPublicProfile(param.username);
+    username(username) {
+        return this.usersService.findPublicProfile(username);
     }
     myProfile(user) {
         return this.usersService.findProfile(user.id);
@@ -43,9 +43,9 @@ __decorate([
 __decorate([
     Public(),
     Get(':username'),
-    __param(0, Param()),
+    __param(0, Param('username')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "username", null);
 __decorate([

@@ -2,71 +2,73 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
-import { FollowButton } from "@/components/follow-button";
+import type { KeyboardEvent } from "react";
 import { Header } from "@/components/header";
-import { NotificationListContext, NotificationRow } from "./components/notification-row";
-import type { NotificationList, NotificationType } from "./components/notification-row";
-import { NOTIFICATION_IDS, useNotifications } from "./hooks/use-notifications";
-import type { NotificationId } from "./hooks/use-notifications";
+import { authedRequest } from "@/features/auth/authed-request";
+import type { Account } from "@/features/auth/api";
+import { useSession } from "@/features/auth/hooks/use-session";
+import { NotificationRow } from "./components/notification-row";
+import { useNotifications, useUnreadCount } from "./hooks/use-notifications";
+import type { NotificationType, NotificationView } from "./types";
 import "./notifications.css";
 
 type Group = "Today" | "This week" | "Earlier";
-type Filter = "all" | "unread" | NotificationType;
+type Tab = "all" | "unread" | NotificationType;
 
-// The rows below are literal JSX (front end only, no notifications API yet). This index of each row's type and
-// group drives the tab counts and hides a group the filter leaves empty; keep it in step with the rows.
-const NOTES: Record<NotificationId, { type: NotificationType; group: Group }> = {
-  n1: { type: "comment", group: "Today" },
-  n2: { type: "rating", group: "Today" },
-  n3: { type: "follow", group: "Today" },
-  n4: { type: "request", group: "This week" },
-  n5: { type: "comment", group: "This week" },
-  n6: { type: "rating", group: "This week" },
-  n7: { type: "follow", group: "Earlier" },
-  n8: { type: "comment", group: "Earlier" },
-};
-
-const TABS: { value: Filter; label: string }[] = [
+const TABS: { value: Tab; label: string }[] = [
   { value: "all", label: "All" },
   { value: "unread", label: "Unread" },
   { value: "comment", label: "Comments" },
   { value: "rating", label: "Ratings" },
   { value: "follow", label: "Follows" },
-  { value: "request", label: "Requests" },
 ];
 
-const POST = "/post/demo";
-const ARCADE = "A tiny arcade game about a blob that can't stop bouncing";
-const OTHER_SITE = "[Caption of another site]";
+const GROUPS: Group[] = ["Today", "This week", "Earlier"];
 
-function GroupSection({ label, shown, children }: { label: Group; shown: (id: NotificationId) => boolean; children: ReactNode }) {
-  const id = `g-${label.toLowerCase().replace(/\s+/g, "-")}`;
-  const empty = !NOTIFICATION_IDS.some((note) => NOTES[note].group === label && shown(note));
-  return (
-    <section className="grp" aria-labelledby={id} hidden={empty}>
-      <h2 id={id}>{label}</h2>
-      <ol className="list">{children}</ol>
-    </section>
-  );
+function groupOf(createdAt: string, now: Date): Group {
+  const then = new Date(createdAt);
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (then.getTime() >= startOfToday) return "Today";
+  if (then.getTime() >= startOfToday - 6 * 24 * 60 * 60 * 1000) return "This week";
+  return "Earlier";
 }
 
-// From design/Notifications.html. Read state lives in this browser (useNotifications) and is shared with the bell.
-export function NotificationsPage() {
-  const { unreadCount, isUnread, markRead, markUnread, markAllRead } = useNotifications();
-  const [filter, setFilter] = useState<Filter>("all");
-  const [live, setLive] = useState("");
+/** The signed-in user's username, for links to their own posts (every comment and rating is about one). */
+function useMyUsername() {
+  const session = useSession();
+  const { data } = useQuery({
+    queryKey: ["account", "me"],
+    queryFn: () => authedRequest<Account>("/users/me"),
+    enabled: session.isAuthenticated,
+    staleTime: 5 * 60_000,
+  });
+  return data?.username;
+}
 
-  const matches = (id: NotificationId, by: Filter) =>
-    by === "all" || (by === "unread" ? isUnread(id) : NOTES[id].type === by);
-  const isShown = (id: NotificationId) => matches(id, filter);
-  const shownCount = NOTIFICATION_IDS.filter(isShown).length;
-  const list: NotificationList = { isShown, isUnread, markRead, markUnread, announce: setLive };
+// From design/Notifications.html, on GET /api/v1/notifications. Unread state lives on the server and is shared with
+// the header bell; collaboration requests wait for a messaging feature.
+export function NotificationsPage() {
+  const [tab, setTab] = useState<Tab>("all");
+  const [live, setLive] = useState("");
+  const unreadCount = useUnreadCount();
+  const list = useNotifications(tab === "unread" ? "unread" : "all");
+  const username = useMyUsername();
+
+  // A post link that skips the /post/:id redirect once the username is known
+  const postHref = (postId: string) => (username ? `/@${username}/posts/${postId}` : `/post/${postId}`);
+
+  const matches = (note: NotificationView, by: Tab) =>
+    by === "all" || (by === "unread" ? !note.read : note.type === by);
+  const shown = list.items.filter((note) => matches(note, tab));
+  const now = new Date();
 
   function markAll() {
     if (!unreadCount) return;
-    markAllRead();
+    // The newest one on screen: anything that arrives after it stays unread
+    const newest = list.items.reduce<string | undefined>((max, note) => (!max || note.createdAt > max ? note.createdAt : max), undefined);
+    list.markAllRead(newest);
     setLive("All notifications marked as read.");
   }
 
@@ -77,7 +79,24 @@ export function NotificationsPage() {
     event.preventDefault();
     const next = (index + step + TABS.length) % TABS.length;
     document.getElementById(`tab-${TABS[next].value}`)?.focus();
-    setFilter(TABS[next].value);
+    setTab(TABS[next].value);
+  }
+
+  if (list.status === "anonymous") {
+    return (
+      <>
+        <Header />
+        <main className="wrap">
+          <div className="panel">
+            <div className="empty">
+              <Image src="/shoof-blob-navy.svg" alt="" width={72} height={71} />
+              <h1>Notifications</h1>
+              <p><Link href="/login?next=/notifications">Log in</Link> to see who followed you, rated your sites and commented on them.</p>
+            </div>
+          </div>
+        </main>
+      </>
+    );
   }
 
   return (
@@ -101,121 +120,69 @@ export function NotificationsPage() {
         </div>
 
         <div className="tabs" role="tablist" aria-label="Show">
-          {TABS.map((tab, i) => {
-            const selected = tab.value === filter;
+          {TABS.map((t, i) => {
+            const selected = t.value === tab;
+            const count = t.value === "unread" ? unreadCount : t.value === "all" ? null : list.items.filter((note) => matches(note, t.value)).length;
             return (
               <button
-                key={tab.value}
+                key={t.value}
                 type="button"
                 className="tab"
                 role="tab"
-                id={`tab-${tab.value}`}
+                id={`tab-${t.value}`}
                 aria-selected={selected}
                 aria-controls="panel"
                 tabIndex={selected ? 0 : -1}
-                onClick={() => setFilter(tab.value)}
+                onClick={() => setTab(t.value)}
                 onKeyDown={(event) => moveTab(event, i)}
               >
-                {tab.label} <span className="n">{NOTIFICATION_IDS.filter((id) => matches(id, tab.value)).length}</span>
+                {t.label} {count !== null && <span className="n">{count}</span>}
               </button>
             );
           })}
         </div>
 
-        <div className="panel" id="panel" role="tabpanel" aria-labelledby={`tab-${filter}`}>
-          <NotificationListContext.Provider value={list}>
-            <GroupSection label="Today" shown={isShown}>
-              <NotificationRow
-                id="n1"
-                type="comment"
-                avatar="#6b7ba8"
-                quote="Level 3 took me a few tries, but it felt fair. The bounce sound is great."
-                time={{ datetime: "2026-10-10T19:40", label: "2 hours ago" }}
-                actions={<Link className="mini" href={`${POST}#h-comments`}>Reply</Link>}
-              >
-                <Link href="/profile">[Commenter]</Link> commented on <Link className="site" href={POST}>{ARCADE}</Link>
-              </NotificationRow>
-              <NotificationRow
-                id="n2"
-                type="rating"
-                avatar="#3b4f86"
-                time={{ datetime: "2026-10-10T16:05", label: "5 hours ago" }}
-                actions={<Link className="mini" href={`${POST}#h-ratings`}>See ratings</Link>}
-              >
-                <Link href="/profile">[Name]</Link> and 4 others rated <Link className="site" href={POST}>{ARCADE}</Link>
-              </NotificationRow>
-              <NotificationRow
-                id="n3"
-                type="follow"
-                avatar="#dba40c"
-                time={{ datetime: "2026-10-10T15:12", label: "6 hours ago" }}
-                actions={<FollowButton className="mini yellow followback" on="Following" off="Follow back" />}
-              >
-                <Link href="/profile">[Name]</Link> started following you
-              </NotificationRow>
-            </GroupSection>
+        <div className="panel" id="panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
+          {GROUPS.map((group) => {
+            const notes = shown.filter((note) => groupOf(note.createdAt, now) === group);
+            if (!notes.length) return null;
+            const id = `g-${group.toLowerCase().replace(/\s+/g, "-")}`;
+            return (
+              <section className="grp" aria-labelledby={id} key={group}>
+                <h2 id={id}>{group}</h2>
+                <ol className="list">
+                  {notes.map((note) => (
+                    <NotificationRow
+                      key={note.id}
+                      note={note}
+                      postHref={postHref}
+                      leavesOnRead={tab === "unread"}
+                      markRead={list.markRead}
+                      markUnread={list.markUnread}
+                      announce={setLive}
+                    />
+                  ))}
+                </ol>
+              </section>
+            );
+          })}
 
-            <GroupSection label="This week" shown={isShown}>
-              <NotificationRow
-                id="n4"
-                type="request"
-                avatar="#101b33"
-                quote="Looking for someone to help with the art for a jam game next month."
-                time={{ datetime: "2026-10-08T11:20", label: "2 days ago" }}
-                actions={<Link className="mini" href="/profile">View profile</Link>}
-              >
-                <Link href="/profile">[Name]</Link> asked to build something with you
-              </NotificationRow>
-              <NotificationRow
-                id="n5"
-                type="comment"
-                avatar="#6b7ba8"
-                quote="Good catch, the grid breaks below 360px. Fixed it."
-                time={{ datetime: "2026-10-07T09:02", label: "3 days ago" }}
-                actions={<Link className="mini" href={`${POST}#h-comments`}>Reply</Link>}
-              >
-                <Link href="/profile">[Name]</Link> replied to your comment on <Link className="site" href={POST}>{OTHER_SITE}</Link>
-              </NotificationRow>
-              <NotificationRow
-                id="n6"
-                type="rating"
-                avatar="#3b4f86"
-                time={{ datetime: "2026-10-06T20:45", label: "4 days ago" }}
-              >
-                <Link href="/profile">[Name]</Link> rated <Link className="site" href={POST}>{OTHER_SITE}</Link> 5 stars
-              </NotificationRow>
-            </GroupSection>
-
-            <GroupSection label="Earlier" shown={isShown}>
-              <NotificationRow
-                id="n7"
-                type="follow"
-                avatar="#6b7ba8"
-                time={{ datetime: "2026-09-28T13:30", label: "Sep 28" }}
-              >
-                <Link href="/profile">[Name]</Link> started following you
-              </NotificationRow>
-              <NotificationRow
-                id="n8"
-                type="comment"
-                avatar="#3b4f86"
-                quote="Works well on my phone. Would love a way to restart a level without going back to the menu."
-                time={{ datetime: "2026-09-24T18:10", label: "Sep 24" }}
-                actions={<Link className="mini" href={`${POST}#h-comments`}>Reply</Link>}
-              >
-                <Link href="/profile">[Commenter]</Link> commented on <Link className="site" href={POST}>{ARCADE}</Link>
-              </NotificationRow>
-            </GroupSection>
-          </NotificationListContext.Provider>
-
-          {shownCount === 0 ? (
+          {list.isPending || list.status === "unknown" ? (
+            <p className="end" role="status">Loading your notifications…</p>
+          ) : list.isError && !list.items.length ? (
+            <p className="end" role="alert">We couldn&apos;t load your notifications. <button type="button" className="mini" onClick={() => list.refetch()}>Try again</button></p>
+          ) : shown.length === 0 && !list.hasMore ? (
             <div className="empty">
               <Image src="/shoof-blob-navy.svg" alt="" width={72} height={71} />
-              <h2>{filter === "unread" ? "You’re all caught up" : "Nothing here yet"}</h2>
-              <p>{filter === "unread" ? "Nothing new since you last looked." : "When you get one, it will show up here."}</p>
+              <h2>{tab === "unread" ? "You’re all caught up" : "Nothing here yet"}</h2>
+              <p>{tab === "unread" ? "Nothing new since you last looked." : "When someone follows you, rates or comments on your sites, it shows up here."}</p>
+            </div>
+          ) : list.hasMore ? (
+            <div className="end">
+              <button type="button" className="mini" disabled={list.isLoadingMore} onClick={() => list.loadMore()}>{list.isLoadingMore ? "Loading…" : "Show older"}</button>
             </div>
           ) : (
-            <p className="end">That&apos;s everything from the last 30 days.</p>
+            <p className="end">That&apos;s everything.</p>
           )}
         </div>
         <p className="sr" role="status" aria-live="polite">{live}</p>

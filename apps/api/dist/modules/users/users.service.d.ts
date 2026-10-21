@@ -23,6 +23,13 @@ export type PublicUser = Pick<User, 'id' | 'username'> & {
 export type PublicProfileView = PublicUser & {
     skills: SkillSummary[];
 };
+export interface UserSummary {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+}
+export declare function toUserSummary(user: PublicUser): UserSummary;
 export interface AccountView {
     id: string;
     email: string;
@@ -55,6 +62,8 @@ export declare class UsersService {
     findByEmail(email: string): Promise<Omit<User, 'passwordHash'> | null>;
     findByUsername(username: string): Promise<PublicUser>;
     findPublicProfile(username: string): Promise<PublicProfileView>;
+    findIdByUsername(username: string): Promise<string>;
+    findSummariesByIds(ids: string[]): Promise<UserSummary[]>;
     findPublicByIds(ids: string[]): Promise<PublicUser[]>;
     findCredentials(email: string): Promise<{
         user: Omit<User, 'passwordHash'>;

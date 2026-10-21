@@ -13,12 +13,15 @@ import { EmailVerificationMailer } from '../src/modules/auth/email-verification.
 import { RefreshToken } from '../src/modules/auth/entities/refresh-token.entity.js';
 import { CurrentUser } from '../src/modules/auth/decorators/current-user.decorator.js';
 import { Public } from '../src/modules/auth/decorators/public.decorator.js';
+import { OptionalAuth } from '../src/modules/auth/decorators/optional-auth.decorator.js';
 import { Roles } from '../src/modules/auth/decorators/roles.decorator.js';
 import { REFRESH_COOKIE } from '../src/modules/auth/auth.constants.js';
 import type { AuthUser } from '../src/modules/auth/auth.types.js';
 import { User, UserRole } from '../src/modules/users/entities/user.entity.js';
 import { Profile } from '../src/modules/users/entities/profile.entity.js';
 import { User_Identity } from '../src/modules/users/entities/user-identity.js';
+import { UserSkill } from '../src/modules/users/entities/user-skill.entity.js';
+import { Skill } from '../src/modules/skills/entities/skill.entity.js';
 import { UsersService } from '../src/modules/users/users.service.js';
 import { fakeRefreshTokens } from './fakes/refresh-tokens.fake.js';
 
@@ -33,6 +36,13 @@ class ProbeController {
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
     return user;
+  }
+
+  // Public, but knows the caller when a valid access token comes along
+  @OptionalAuth()
+  @Get('optional')
+  optional(@CurrentUser() user: AuthUser | null) {
+    return { user };
   }
 
   @Roles(UserRole.ADMIN)
@@ -82,6 +92,8 @@ describe('Auth (e2e)', () => {
       .overrideProvider(getRepositoryToken(User)).useValue({})
       .overrideProvider(getRepositoryToken(User_Identity)).useValue({})
       .overrideProvider(getRepositoryToken(Profile)).useValue({})
+      .overrideProvider(getRepositoryToken(UserSkill)).useValue({})
+      .overrideProvider(getRepositoryToken(Skill)).useValue({})
       .overrideProvider(UsersService).useValue({ findOne: async (id: string) => (id === user.id ? user : null) })
       .overrideProvider(CredentialsService).useValue({
         verify: async (email: string, password: string) => (email === user.email && password === PASSWORD ? user : null),
@@ -102,6 +114,18 @@ describe('Auth (e2e)', () => {
   it('lets @Public() routes through and refuses the rest without a token', async () => {
     await request(app.getHttpServer()).get('/api/v1/probe/public').expect(200);
     await request(app.getHttpServer()).get('/api/v1/probe/me').expect(401);
+  });
+
+  it('@OptionalAuth() knows a signed-in caller and treats every other request as anonymous, never failing', async () => {
+    const { body } = await signIn();
+    const probe = () => request(app.getHttpServer()).get('/api/v1/probe/optional');
+
+    expect((await probe().auth(body.accessToken, { type: 'bearer' }).expect(200)).body).toEqual({ user: { id: user.id, roles: [UserRole.MEMBER] } });
+    expect((await probe().expect(200)).body).toEqual({ user: null });
+    expect((await probe().auth('not-a-token', { type: 'bearer' }).expect(200)).body).toEqual({ user: null });
+    // A refresh token is not an access token, so it doesn't count either
+    const refresh = refreshCookieOf(await signIn()).split(';')[0].split('=')[1];
+    expect((await probe().auth(refresh, { type: 'bearer' }).expect(200)).body).toEqual({ user: null });
   });
 
   it('refuses a wrong password', async () => {

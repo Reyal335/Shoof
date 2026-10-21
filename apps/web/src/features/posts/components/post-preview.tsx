@@ -96,7 +96,7 @@ export function PostPreview({ category, caption, description, link, techStack, c
           </div>
           <div className="pfoot">
             <span className="av"></span>
-            <b>[Creator]</b>
+            <b>You</b>
             <span className="host">{displayHost(link) ?? "yoursite.example.com"}</span>
           </div>
         </div>

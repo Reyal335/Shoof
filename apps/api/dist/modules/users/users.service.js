@@ -19,6 +19,14 @@ import { Profile } from './entities/profile.entity.js';
 import { UserSkill } from './entities/user-skill.entity.js';
 import { SkillsService, toSkillSummary } from '../skills/skills.service.js';
 import { NotFoundException } from '@nestjs/common';
+export function toUserSummary(user) {
+    return {
+        id: user.id,
+        username: user.username,
+        displayName: user.profile?.displayName || user.username,
+        avatarUrl: user.profile?.avatarUrl ?? null,
+    };
+}
 const ACCOUNT_COLUMNS = { id: true, email: true, username: true, emailVerified: true, role: true, createdAt: true };
 export function toAccountView(user) {
     return {
@@ -122,7 +130,20 @@ let UsersService = class UsersService {
         const user = await this.findByUsername(username);
         return { ...user, skills: await this.findSkills(user.id) };
     }
+    async findIdByUsername(username) {
+        const user = await this.usersRepository.findOne({ where: { username, isActive: true }, select: { id: true } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return user.id;
+    }
+    async findSummariesByIds(ids) {
+        const users = await this.findPublicByIds([...new Set(ids)]);
+        return users.map(toUserSummary);
+    }
     async findPublicByIds(ids) {
+        if (!ids.length)
+            return [];
         const users = await this.usersRepository.find({
             where: {
                 id: In(ids),

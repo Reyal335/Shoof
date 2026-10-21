@@ -25,6 +25,7 @@ import { FollowsModule } from './modules/follows/follows.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SkillsModule } from './modules/skills/skills.module.js';
+import { FeedModule } from './modules/feed/feed.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -106,7 +107,8 @@ const observeImports = [...(observeAppKey && observeAppSecret
     AuthModule, 
     PostsModule, 
     FollowsModule, 
-    NotificationsModule, SkillsModule
+    NotificationsModule, SkillsModule,
+    FeedModule
   ],
   controllers: [AppController],
   providers: [AppService],

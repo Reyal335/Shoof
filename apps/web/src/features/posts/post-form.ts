@@ -14,10 +14,10 @@ export const CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map((c) => [c.value
 
 export const CAPTION_MAX = 150;
 
-export const STACK_SUGGESTIONS = ["React", "TypeScript", "JavaScript", "Node.js", "Next.js", "Tailwind", "Python", "PostgreSQL", "MongoDB", "Docker", "Vite", "Phaser", "HTML & CSS"];
-export const MAX_TAGS = 15;
-const MAX_TAG_LENGTH = 30;
+/** MAX_POST_SKILLS in apps/api/src/modules/posts/posts.constants.ts */
+export const MAX_POST_SKILLS = 10;
 
+// For the screenshot picker, which comes back when uploads go through signed URLs
 export const MAX_SCREENSHOTS = 6;
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 export const SCREENSHOT_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
@@ -36,20 +36,6 @@ export function isSiteUrl(value: string) {
 export function displayHost(link: string) {
   const value = link.trim();
   return isSiteUrl(value) ? new URL(value).hostname.replace(/^www\./, "") : null;
-}
-
-export function sameName(a: string, b: string) {
-  return a.toLowerCase() === b.toLowerCase();
-}
-
-/** Tries to add one tech stack name. null means there was nothing to add (blank input). */
-export function tryAddTag(tags: string[], raw: string): { tags: string[]; added: string } | { error: string } | null {
-  const name = raw.replace(/\s+/g, " ").trim();
-  if (!name) return null;
-  if (name.length > MAX_TAG_LENGTH) return { error: `Keep each name under ${MAX_TAG_LENGTH} characters.` };
-  if (tags.some((t) => sameName(t, name))) return { error: `${name} is already added.` };
-  if (tags.length >= MAX_TAGS) return { error: `You can add up to ${MAX_TAGS}.` };
-  return { tags: [...tags, name], added: name };
 }
 
 /** The fields that block posting, in page order (the first one with an error gets focus). */

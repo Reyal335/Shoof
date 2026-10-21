@@ -53,3 +53,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--link);outline-offse
 .end{padding:16px 22px;border-top:1px solid var(--border);font-size:14px;color:var(--muted);text-align:center}
 @media (max-width:700px){.wrap{padding:24px 16px 56px}.nhead h1{font-size:32px;line-height:36px}.note{padding:14px 10px 14px 20px;gap:12px}.who{width:40px;height:40px}.grp h2{padding:12px 18px 6px}}
 @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+/* Real data: profile photos fill the avatar circle under the type badge */
+.who-img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.empty a{color:var(--link);font-weight:700}
+.empty h1{font:600 28px 'Outfit',sans-serif}

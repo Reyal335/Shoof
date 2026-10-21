@@ -2,21 +2,35 @@
 
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
+import { useSession } from "@/features/auth/hooks/use-session";
+import { getSessionUserId } from "@/features/auth/session";
+import { timeAgo } from "@/lib/dates";
+import { describeError } from "@/lib/describe-error";
+import { useComments } from "../hooks/use-comments";
+import { postHref, profileHref } from "../paths";
+import type { Post, PostComment } from "../types";
 
-type Added = { id: number; text: string; date: string };
+const MAX = 500;
 
-/** Today as YYYY-MM-DD in the viewer's time zone, for the <time dateTime> of a comment just posted. */
-function today() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** Composer and comment list, oldest first. You can delete your own comments, and any comment on your own post. */
+export function Comments({ post, demo = false }: { post: Post; demo?: boolean }) {
+  if (demo) {
+    return (
+      <section className="card sec" aria-labelledby="h-comments">
+        <h2 id="h-comments">Comments</h2>
+        <p className="hint">The demo post has no comments. Open a real post to read and write them.</p>
+      </section>
+    );
+  }
+  return <PostComments post={post} />;
 }
 
-/** Composer and comment list. Comments you post are kept on this page only and show above the existing ones. */
-export function Comments() {
+function PostComments({ post }: { post: Post }) {
+  const session = useSession();
+  const me = session.isAuthenticated ? getSessionUserId() : null;
+  const { comments, total, isPending, isError, refetch, hasMore, isLoadingMore, loadMore, add, remove } = useComments(post.id);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
-  const [added, setAdded] = useState<Added[]>([]);
-  const nextId = useRef(1);
   const field = useRef<HTMLTextAreaElement>(null);
 
   function submit(e: FormEvent<HTMLFormElement>) {
@@ -28,42 +42,93 @@ export function Comments() {
       return;
     }
     setError("");
-    setAdded([{ id: nextId.current++, text: value, date: today() }, ...added]);
-    setText("");
+    add.mutate(value, {
+      onSuccess: () => setText(""),
+      onError: (err) => setError(describeError(err, "comment")),
+    });
   }
+
+  const canDelete = (comment: PostComment) => me !== null && (comment.userId === me || post.userId === me);
 
   return (
     <section className="card sec" aria-labelledby="h-comments">
-      <h2 id="h-comments">Comments <span className="n">(<span>{3 + added.length}</span>)</span></h2>
-      <form className="composer" noValidate onSubmit={submit}>
-        <label htmlFor="comment">Add a comment</label>
-        <textarea
-          id="comment"
-          ref={field}
-          maxLength={500}
-          placeholder="What did you like? What would you change?"
-          aria-describedby="comment-hint comment-err"
-          aria-invalid={error ? true : undefined}
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            setError("");
-          }}
-        />
-        <span className="err" id="comment-err" hidden={!error}>{error}</span>
-        <div className="crow">
-          <span className="hint" id="comment-hint">Be kind and specific. Up to 500 characters.</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><span className="count" aria-hidden="true">{text.length} / 500</span><button type="submit" className="send">Post comment</button></span>
+      <h2 id="h-comments">Comments <span className="n">(<span>{total}</span>)</span></h2>
+      {session.status === "anonymous" ? (
+        <p className="composer-note">
+          <Link href={`/login?next=${encodeURIComponent(`${postHref(post)}#h-comments`)}`}>Log in</Link> to leave a comment.
+        </p>
+      ) : (
+        <form className="composer" noValidate onSubmit={submit} aria-busy={add.isPending}>
+          <label htmlFor="comment">Add a comment</label>
+          <textarea
+            id="comment"
+            ref={field}
+            maxLength={MAX}
+            placeholder="What did you like? What would you change?"
+            aria-describedby="comment-hint comment-err"
+            aria-invalid={error ? true : undefined}
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              setError("");
+            }}
+          />
+          <span className="err" id="comment-err" role="alert" hidden={!error}>{error}</span>
+          <div className="crow">
+            <span className="hint" id="comment-hint">Be kind and specific. Up to {MAX} characters.</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span className="count" aria-hidden="true">{text.length} / {MAX}</span>
+              <button type="submit" className="send" disabled={add.isPending}>{add.isPending ? "Posting…" : "Post comment"}</button>
+            </span>
+          </div>
+        </form>
+      )}
+
+      {isPending && <p className="hint" role="status">Loading comments…</p>}
+      {isError && !comments.length && (
+        <p className="hint" role="alert">We couldn&apos;t load the comments. <button type="button" className="linkbtn" onClick={() => refetch()}>Try again</button></p>
+      )}
+      {!isPending && !isError && !comments.length && <p className="hint">No comments yet. Be the first to say what you think.</p>}
+
+      {comments.length > 0 && (
+        <ol className="clist" aria-label="Comments">
+          {comments.map((comment) => (
+            <li key={comment.id}>
+              {comment.author?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- avatars can sit on any https host
+                <img className="av avatar-img" src={comment.author.avatarUrl} alt="" />
+              ) : (
+                <span className="av" aria-hidden="true" style={{ background: "#6b7ba8" }} />
+              )}
+              <div className="cbody">
+                <div className="chead">
+                  {comment.author ? <Link href={profileHref(comment.author.username)}>{comment.author.displayName}</Link> : <b>Former member</b>}
+                  {comment.userId === post.userId && <span className="badge">Creator</span>}
+                  <time dateTime={comment.createdAt}>{timeAgo(comment.createdAt)}</time>
+                  {canDelete(comment) && (
+                    <button
+                      type="button"
+                      className="linkbtn cdel"
+                      disabled={remove.isPending && remove.variables === comment.id}
+                      onClick={() => remove.mutate(comment.id)}
+                      aria-label={`Delete comment by ${comment.author?.displayName ?? "former member"}`}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+                <p>{comment.content}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {remove.isError && <p className="err" role="alert">{describeError(remove.error, "delete that comment")}</p>}
+      {hasMore && (
+        <div className="more-row">
+          <button type="button" className="more-btn" disabled={isLoadingMore} onClick={() => loadMore()}>{isLoadingMore ? "Loading…" : "Show more comments"}</button>
         </div>
-      </form>
-      <ol className="clist" aria-label="Comments">
-        {added.map((c) => (
-          <li key={c.id}><span className="av" aria-hidden="true" style={{ background: '#3b4f86' }} /><div className="cbody"><div className="chead"><Link href="/profile">You</Link><time dateTime={c.date}>Just now</time></div><p>{c.text}</p></div></li>
-        ))}
-        <li><span className="av" aria-hidden="true" style={{ background: '#6b7ba8' }} /><div className="cbody"><div className="chead"><Link href="/profile">[Commenter]</Link><time dateTime="2026-10-07">2 days ago</time></div><p>Level 3 took me a few tries, but it felt fair. The bounce sound is great.</p></div></li>
-        <li><span className="av" aria-hidden="true" style={{ background: '#101b33' }} /><div className="cbody"><div className="chead"><Link href="/profile">[Creator name]</Link><span className="badge">Creator</span><time dateTime="2026-10-07">2 days ago</time></div><p>Thanks! Level 3 gets a gentler start in the next update.</p></div></li>
-        <li><span className="av" aria-hidden="true" style={{ background: '#6b7ba8' }} /><div className="cbody"><div className="chead"><Link href="/profile">[Commenter]</Link><time dateTime="2026-10-04">5 days ago</time></div><p>Works well on my phone. Would love a way to restart a level without going back to the menu.</p></div></li>
-      </ol>
+      )}
     </section>
   );
 }

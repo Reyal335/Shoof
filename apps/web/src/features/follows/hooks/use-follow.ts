@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/features/auth/hooks/use-session";
 import { getSessionUserId } from "@/features/auth/session";
-import { ApiError, NetworkError } from "@/lib/api-client";
-import { followUser, getFollowStatus, unfollowUser } from "../api";
+import { describeError } from "@/lib/describe-error";
+import { followUser, getFollowStatus, unfollowUser, type FollowStatus } from "../api";
+import { followKeys } from "../queries";
 
 export type FollowState =
   | { status: "loading" }
@@ -15,77 +16,54 @@ export type FollowState =
   | { status: "error" }
   | { status: "ready"; following: boolean };
 
-// Tagged with the user it belongs to, so moving between profiles never shows the previous one's state
-type Loaded = { userId: string; following: boolean | null };
-
 /**
  * Whether the signed-in user follows `userId`, and a toggle that flips it. The toggle is optimistic: the button
- * changes at once and goes back, with an error, if the API refuses.
+ * changes at once and goes back, with an error, if the API refuses. Every follow button for the same user shares
+ * one cache entry, and the profile counts refetch after each change.
  */
 export function useFollow(userId: string) {
   const session = useSession();
-  const isSelf = session.status === "authenticated" && getSessionUserId() === userId;
-  const [loaded, setLoaded] = useState<Loaded | null>(null);
-  const [attempt, setAttempt] = useState(0);
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const isSelf = session.isAuthenticated && getSessionUserId() === userId;
+  const key = followKeys.status(userId);
 
-  useEffect(() => {
-    if (session.status !== "authenticated" || isSelf) return;
-    let current = true;
-    getFollowStatus(userId).then(
-      ({ following }) => current && setLoaded({ userId, following }),
-      () => current && setLoaded({ userId, following: null }),
-    );
-    return () => {
-      current = false;
-    };
-  }, [session.status, isSelf, userId, attempt]);
+  const status = useQuery({
+    queryKey: key,
+    queryFn: () => getFollowStatus(userId),
+    enabled: session.isAuthenticated && !isSelf,
+  });
+
+  const mutation = useMutation({
+    mutationFn: (follow: boolean) => (follow ? followUser(userId) : unfollowUser(userId)),
+    onMutate: async (follow) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<FollowStatus>(key);
+      queryClient.setQueryData<FollowStatus>(key, { following: follow });
+      return { previous };
+    },
+    onError: (_error, _follow, context) => queryClient.setQueryData(key, context?.previous),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: followKeys.counts() }),
+  });
 
   const state: FollowState = (() => {
     if (session.status === "anonymous") return { status: "signed-out" };
     if (isSelf) return { status: "self" };
-    if (!loaded || loaded.userId !== userId) return { status: "loading" };
-    if (loaded.following === null) return { status: "error" };
-    return { status: "ready", following: loaded.following };
+    if (status.isError) return { status: "error" };
+    if (!status.data) return { status: "loading" };
+    return { status: "ready", following: status.data.following };
   })();
 
-  async function toggle() {
-    if (state.status !== "ready" || isPending) return;
-    const next = !state.following;
-    setIsPending(true);
-    setError(null);
-    setLoaded({ userId, following: next });
-    try {
-      await (next ? followUser(userId) : unfollowUser(userId));
-    } catch (err) {
-      setLoaded({ userId, following: !next });
-      setError(describeError(err, next));
-    } finally {
-      setIsPending(false);
-    }
+  function toggle() {
+    if (state.status !== "ready" || mutation.isPending) return;
+    mutation.mutate(!state.following);
   }
 
-  const reload = useCallback(() => {
-    setLoaded(null);
-    setError(null);
-    setAttempt((n) => n + 1);
-  }, []);
-
-  return { state, toggle, reload, isPending, error };
-}
-
-function describeError(err: unknown, following: boolean): string {
-  if (err instanceof NetworkError) {
-    return "We couldn't reach Shoof. Check your connection and try again.";
-  }
-  if (err instanceof ApiError) {
-    switch (err.status) {
-      case 401:
-        return `Your session ended. Log in again to ${following ? "follow" : "unfollow"}.`;
-      case 429:
-        return "Too many tries in a row. Wait a moment, then try again.";
-    }
-  }
-  return `Couldn't ${following ? "follow" : "unfollow"} right now. Please try again.`;
+  const following = mutation.variables ?? true;
+  return {
+    state,
+    toggle,
+    reload: () => status.refetch(),
+    isPending: mutation.isPending,
+    error: mutation.error ? describeError(mutation.error, following ? "follow" : "unfollow") : null,
+  };
 }
