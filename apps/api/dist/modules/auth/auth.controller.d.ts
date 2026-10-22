@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { EmailVerificationService } from '@nestjs/authentication';
 import type { Response } from 'express';
 import { CredentialsService } from './credentials.service.js';
@@ -9,13 +10,11 @@ export declare class AuthController {
     private readonly credentialService;
     private readonly authService;
     private readonly emailVerificationService;
-    constructor(credentialService: CredentialsService, authService: AuthService, emailVerificationService: EmailVerificationService);
+    private readonly appUrl;
+    constructor(credentialService: CredentialsService, authService: AuthService, emailVerificationService: EmailVerificationService, config: ConfigService);
     signUp(body: SignUpDto): Promise<void>;
-    googleAuth(req: any): Promise<void>;
-    googleAuthRedirect(req: any): {
-        message: string;
-        user: any;
-    };
+    googleAuth(): Promise<void>;
+    googleAuthRedirect(user: Omit<User, 'passwordHash'>, res: Response): Promise<void>;
     signIn(user: Omit<User, 'passwordHash'>, res: Response): Promise<{
         accessToken: string;
         tokenType: string;
@@ -29,4 +28,5 @@ export declare class AuthController {
     signOut(token: RefreshTokenPayload, res: Response): Promise<void>;
     signOutAll(user: AuthUser, res: Response): Promise<void>;
     private respondWithTokens;
+    private setRefreshCookie;
 }

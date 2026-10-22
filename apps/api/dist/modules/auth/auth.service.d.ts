@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service.js';
 import type { User } from '../users/entities/user.entity.js';
 import { RefreshToken } from './entities/refresh-token.entity.js';
 import type { IssuedTokens, RefreshTokenPayload } from './auth.types.js';
+import type { GoogleAuthDto } from './dto/google-auth.dto.js';
 interface TokenFamily {
     familyId: string;
     familyExpiresAt: Date;
@@ -15,10 +16,8 @@ export declare class AuthService {
     private readonly jwtService;
     private readonly secrets;
     constructor(refreshTokens: Repository<RefreshToken>, usersService: UsersService, jwtService: JwtService, config: ConfigService);
-    googleLogin(req: any): {
-        message: string;
-        user: any;
-    };
+    signInWithGoogle(google: GoogleAuthDto): Promise<Omit<User, 'passwordHash'>>;
+    private activeOrThrow;
     issueTokens(user: Pick<User, 'id' | 'role'>, family?: TokenFamily): Promise<IssuedTokens>;
     rotate({ sub, jti }: RefreshTokenPayload): Promise<IssuedTokens>;
     revokeFamily(familyId: string): Promise<void>;

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +19,10 @@ import {
   type JwtSecrets,
 } from './auth.constants.js';
 import type { IssuedTokens, RefreshTokenPayload } from './auth.types.js';
+import type { GoogleAuthDto } from './dto/google-auth.dto.js';
+
+// The `provider` value stored in user_identity for Google accounts
+const GOOGLE_PROVIDER = 'google';
 
 interface TokenFamily {
   familyId: string;
@@ -39,15 +43,48 @@ export class AuthService {
     this.secrets = jwtSecrets(config);
   }
 
-  googleLogin(req: any) {
-    if (!req.user) {
-      throw new UnauthorizedException('No Google User')
+  // Runs on google/redirect: the returning user, an existing account to link, or a new account
+  async signInWithGoogle(google: GoogleAuthDto): Promise<Omit<User, 'passwordHash'>> {
+    // An unverified email proves nothing about who owns the address, so it can't sign in or link
+    if (!google.email || !google.emailVerified) {
+      throw new UnauthorizedException('Your Google account has no verified email address');
     }
 
-    return {
-      message: 'User information from Google',
-      user: req.user
+    // 1. Signed in with this Google account before
+    const linked = await this.usersService.findByIdentity(GOOGLE_PROVIDER, google.googleId);
+    if (linked) {
+      return this.activeOrThrow(linked);
     }
+
+    // 2. A Shoof account already uses this email: link Google to it
+    const existing = await this.usersService.findByEmail(google.email);
+    if (existing) {
+      // Whoever set this account's password never proved they own the email. Linking would let them into the
+      // Google user's account, so the owner verifies it first.
+      if (!existing.emailVerified) {
+        throw new ConflictException(
+          'An account with this email exists but is not verified. Verify it from your email, then continue with Google.',
+        );
+      }
+      await this.usersService.linkIdentity(existing.id, GOOGLE_PROVIDER, google.googleId);
+      return this.activeOrThrow(existing);
+    }
+
+    // 3. New to Shoof: the user, profile and Google link are created together
+    return this.usersService.createWithIdentity({
+      email: google.email,
+      displayName: google.displayName,
+      provider: GOOGLE_PROVIDER,
+      providerUserId: google.googleId,
+    });
+  }
+
+  // The same check LocalStrategy makes on password sign-in
+  private activeOrThrow(user: Omit<User, 'passwordHash'>) {
+    if (!user.isActive) {
+      throw new UnauthorizedException('This account is disabled');
+    }
+    return user;
   }
 
   // A new access token and a refresh token, in a new family (sign-in) or an existing one (rotation)

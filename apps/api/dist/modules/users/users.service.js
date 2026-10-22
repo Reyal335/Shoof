@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User } from './entities/user.entity.js';
@@ -19,6 +19,7 @@ import { Profile } from './entities/profile.entity.js';
 import { UserSkill } from './entities/user-skill.entity.js';
 import { SkillsService, toSkillSummary } from '../skills/skills.service.js';
 import { NotFoundException } from '@nestjs/common';
+import { randomInt } from 'node:crypto';
 export function toUserSummary(user) {
     return {
         id: user.id,
@@ -79,7 +80,29 @@ let UsersService = class UsersService {
             throw error;
         }
     }
-    async createWithEmail(createWithSignIn) {
+    async createWithIdentity(input) {
+        const createdUser = await this.usersRepository.manager.transaction(async (m) => {
+            const username = await this.availableUsername(m, input.displayName || input.email.split('@')[0]);
+            const user = await m.save(User, m.create(User, { email: input.email, username, emailVerified: true, passwordHash: null }));
+            await m.insert(Profile, { userId: user.id, displayName: (input.displayName || username).slice(0, 80) });
+            await m.insert(User_Identity, { userId: user.id, provider: input.provider, providerUserId: input.providerUserId });
+            return user;
+        });
+        const { passwordHash, ...result } = createdUser;
+        return result;
+    }
+    async availableUsername(manager, name) {
+        const base = name.normalize('NFKD').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20) || 'user';
+        if (base.length >= 5 && !(await manager.existsBy(User, { username: base }))) {
+            return base;
+        }
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const candidate = `${base}${randomInt(1000, 10000)}`;
+            if (!(await manager.existsBy(User, { username: candidate }))) {
+                return candidate;
+            }
+        }
+        throw new ConflictException('Could not pick a username, please try again');
     }
     async findOne(id) {
         const foundUser = await this.usersRepository.findOneBy({ id });
@@ -188,11 +211,24 @@ let UsersService = class UsersService {
             throw err;
         }
     }
-    async findByIdentity(provider, subject) {
-        return null;
+    async findByIdentity(provider, providerUserId) {
+        const user = await this.usersRepository.findOne({
+            where: { identities: { provider, providerUserId } },
+        });
+        if (!user)
+            return null;
+        const { passwordHash, ...result } = user;
+        return result;
     }
-    async linkIdentity(id, provider, subject) {
-        return;
+    async linkIdentity(id, provider, googleId) {
+        const savedUser = await this.userIdentityRepository.manager.transaction(async (manager) => {
+            const savedLinkedUser = await manager.insert(User_Identity, {
+                userId: id,
+                providerUserId: googleId,
+                provider: provider
+            });
+            return savedLinkedUser;
+        });
     }
     async findProfile(userId) {
         const { user, profile } = await this.profilesRepository.manager.transaction(async (manager) => {

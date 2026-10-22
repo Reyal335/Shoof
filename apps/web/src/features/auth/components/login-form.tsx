@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { GOOGLE_SIGN_IN_URL } from "../api";
 import { useSignIn } from "../hooks/use-sign-in";
 import { useSession } from "../hooks/use-session";
 
@@ -162,17 +163,12 @@ export function LoginForm() {
         <div className="h-px grow bg-divider" />
       </div>
 
-      {/* TODO: enable once the API has a GitHub OAuth endpoint. */}
-      <button
-        type="button"
-        disabled
-        className="flex h-[52px] cursor-not-allowed items-center justify-center gap-2.5 rounded-xl border-[1.5px] border-divider bg-white text-base font-semibold text-ink-muted"
+      <a
+        href={GOOGLE_SIGN_IN_URL}
+        className="flex h-[52px] items-center justify-center gap-2.5 rounded-xl border-[1.5px] border-divider bg-white text-base font-semibold text-ink hover:border-field-border"
       >
-        Continue with GitHub
-        <span className="rounded-md bg-chip px-2 py-0.5 text-xs font-semibold text-navy">
-          Coming soon
-        </span>
-      </button>
+        Continue with Google
+      </a>
 
       <p className="mt-1 mb-0 text-center text-[15px] text-ink-muted">
         New to Shoof?{" "}

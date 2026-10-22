@@ -1,5 +1,8 @@
-import { apiPost, request } from "@/lib/api-client";
+import { API_URL, apiPost, request } from "@/lib/api-client";
 import { authedRequest } from "./authed-request";
+
+/** Google sign-in is a full-page redirect, not a fetch: the API sends the browser on to Google's consent screen. */
+export const GOOGLE_SIGN_IN_URL = `${API_URL}/auth/google`;
 
 export type SignInCredentials = {
   email: string;

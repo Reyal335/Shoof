@@ -11,30 +11,32 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
-import { UsersService } from '../../users/users.service.js';
+import { AuthService } from '../auth.service.js';
 let GoogleStrategy = class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-    constructor(config, userService) {
+    authService;
+    constructor(config, authService) {
         super({
             clientID: config.getOrThrow('GOOGLE_CLIENT_ID'),
             clientSecret: config.getOrThrow('GOOGLE_CLIENT_SECRET'),
             callbackURL: config.get('GOOGLE_CALLBACK_URL', 'http://localhost:5000/api/v1/auth/google/redirect'),
             scope: ['email', 'profile']
         });
+        this.authService = authService;
     }
-    async validate(accessToken, refreshToken, profile, done) {
-        const { emails } = profile;
-        const user = {
-            username: profile.displayName,
-            email: emails[0].value,
-            accessToken
-        };
-        return user;
+    async validate(_accessToken, _refreshToken, profile) {
+        const email = profile.emails?.[0];
+        return this.authService.signInWithGoogle({
+            googleId: profile.id,
+            email: email?.value ?? '',
+            emailVerified: email?.verified === true,
+            displayName: profile.displayName,
+        });
     }
 };
 GoogleStrategy = __decorate([
     Injectable(),
     __metadata("design:paramtypes", [ConfigService,
-        UsersService])
+        AuthService])
 ], GoogleStrategy);
 export { GoogleStrategy };
 //# sourceMappingURL=google-strategy.js.map

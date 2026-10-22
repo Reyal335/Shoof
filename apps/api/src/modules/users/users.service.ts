@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 
 // DTO
 import { CreateUserDto, CreateWithSignIn } from './dto/create-user.dto.js';
@@ -15,6 +15,18 @@ import { NotFoundException } from '@nestjs/common';
 import { normalize } from 'node:path';
 import { _normalize } from 'zod/v4/core';
 import { errorMonitor } from 'node:stream';
+import { randomInt } from 'node:crypto';
+
+/** A new account that signs in through a provider such as Google, with no password. */
+export interface NewIdentityUser {
+  email: string;
+  /** The provider's name for the person. The username is derived from it, or from the email when it is missing. */
+  displayName?: string;
+  /** e.g. 'google' */
+  provider: string;
+  /** The provider's stable id for the person, never the email */
+  providerUserId: string;
+}
 
 /** What the owner sees and edits on their profile page. Never carries auth fields (email, passwordHash, role). */
 export interface ProfileView {
@@ -131,8 +143,36 @@ export class UsersService {
     }
   }
 
-  async createWithEmail(createWithSignIn: CreateWithSignIn) {
-    
+  // A provider-only account: no password, email verified by the provider. User, profile and identity are saved
+  // together, so the account can't exist without the link it signs in through.
+  async createWithIdentity(input: NewIdentityUser): Promise<Omit<User, 'passwordHash'>> {
+    const createdUser = await this.usersRepository.manager.transaction(async (m) => {
+      const username = await this.availableUsername(m, input.displayName || input.email.split('@')[0]);
+      const user = await m.save(User, m.create(User, { email: input.email, username, emailVerified: true, passwordHash: null }));
+      await m.insert(Profile, { userId: user.id, displayName: (input.displayName || username).slice(0, 80) });
+      await m.insert(User_Identity, { userId: user.id, provider: input.provider, providerUserId: input.providerUserId });
+      return user;
+    });
+
+    const { passwordHash, ...result } = createdUser;
+    return result;
+  }
+
+  // Usernames are 5-25 characters, unique, and go in /@username links. A provider's name may be none of those,
+  // so one is derived from it: "José Cruz" -> "josecruz", or "josecruz4821" when that is taken.
+  private async availableUsername(manager: EntityManager, name: string): Promise<string> {
+    const base = name.normalize('NFKD').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20) || 'user';
+
+    if (base.length >= 5 && !(await manager.existsBy(User, { username: base }))) {
+      return base;
+    }
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidate = `${base}${randomInt(1000, 10000)}`;
+      if (!(await manager.existsBy(User, { username: candidate }))) {
+        return candidate;
+      }
+    }
+    throw new ConflictException('Could not pick a username, please try again');
   }
 
   // Find by Id
@@ -271,14 +311,28 @@ export class UsersService {
     }
   }
 
-  // Not implemented yet. Fails closed: "no linked account", never someone else's user.
-  async findByIdentity(provider: string, subject: string): Promise<User | null> {
-    return null
+async findByIdentity(provider: string, providerUserId: string): Promise<Omit<User, 'passwordHash'> | null> {
+  const user = await this.usersRepository.findOne({
+    where: { identities: { provider, providerUserId } },
+  });
+  if (!user) return null;
+
+  const { passwordHash, ...result } = user;
+  return result;
+}
+
+
+  async linkIdentity(id: string, provider: string, googleId: string) {
+    const savedUser = await this.userIdentityRepository.manager.transaction(async (manager) => {
+      const savedLinkedUser = await manager.insert(User_Identity, {
+        userId: id,
+        providerUserId: googleId,
+        provider: provider
+      })
+      return savedLinkedUser
+    }) 
   }
 
-  async linkIdentity(id: string, provider: string, subject: string) {
-    return 
-  }
 
   // ---------- profile ----------
 

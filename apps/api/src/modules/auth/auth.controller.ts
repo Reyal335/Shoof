@@ -2,13 +2,13 @@ import {
     Controller,
     Body,
     Post,
-    Req,
     Get,
     HttpCode,
     HttpStatus,
     Res,
     UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EmailVerificationService } from '@nestjs/authentication';
 import type { Response } from 'express';
 import { CredentialsService } from './credentials.service.js';
@@ -28,11 +28,17 @@ import type { User } from '../users/entities/user.entity.js';
 
 @Controller('auth')
 export class AuthController {
+    // The web app, where Google sign-in lands the browser
+    private readonly appUrl: string;
+
     constructor (
         private readonly credentialService: CredentialsService,
         private readonly authService: AuthService,
-        private readonly emailVerificationService: EmailVerificationService
-    ) {}
+        private readonly emailVerificationService: EmailVerificationService,
+        config: ConfigService,
+    ) {
+        this.appUrl = config.getOrThrow<string>('APP_URL');
+    }
 
     @Public()
     @Post('sign-up')
@@ -47,15 +53,24 @@ export class AuthController {
         await this.emailVerificationService.send(user)
     }
 
-    @Public()    
+    // GoogleAuthGuard sends the browser to Google's consent screen; this body never runs
+    @Public()
     @Get('google')
     @UseGuards(GoogleAuthGuard)
-    async googleAuth(@Req() req: any) {}
+    async googleAuth() {}
 
+    // Google sends the browser back here. GoogleAuthGuard has already run GoogleStrategy.validate(), so the user
+    // is found, linked or created. Only the refresh cookie is set: the web app trades it for an access token on
+    // load, the same as after a reload, so no token ever appears in a URL.
+    @Public()
     @Get('google/redirect')
     @UseGuards(GoogleAuthGuard)
-    googleAuthRedirect(@Req() req: any) {
-        return this.authService.googleLogin(req)
+    async googleAuthRedirect(
+        @CurrentUser() user: Omit<User, 'passwordHash'>,
+        @Res() res: Response,
+    ) {
+        this.setRefreshCookie(res, await this.authService.issueTokens(user));
+        res.redirect(this.appUrl);
     }
 
     // LocalAuthGuard checks the email and password before this runs
@@ -109,6 +124,16 @@ export class AuthController {
     // The refresh token goes in an httpOnly cookie, out of reach of page scripts;
     // the access token goes in the body, for the client to keep in memory
     private respondWithTokens(res: Response, tokens: IssuedTokens) {
+        this.setRefreshCookie(res, tokens);
+
+        return {
+            accessToken: tokens.accessToken,
+            tokenType: 'Bearer',
+            expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+        };
+    }
+
+    private setRefreshCookie(res: Response, tokens: IssuedTokens) {
         res.cookie(REFRESH_COOKIE, tokens.refreshToken, {
             httpOnly: true,
             secure: true,
@@ -116,11 +141,5 @@ export class AuthController {
             path: REFRESH_COOKIE_PATH,
             expires: tokens.refreshExpiresAt,
         });
-        
-        return {
-            accessToken: tokens.accessToken,
-            tokenType: 'Bearer',
-            expiresIn: ACCESS_TOKEN_TTL_SECONDS,
-        };
     }
 }

@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +19,7 @@ import { IsNull, Repository } from 'typeorm';
 import { UsersService } from '../users/users.service.js';
 import { RefreshToken } from './entities/refresh-token.entity.js';
 import { ACCESS_TOKEN_AUDIENCE, ACCESS_TOKEN_TTL_SECONDS, JWT_ALGORITHM, JWT_ISSUER, REFRESH_FAMILY_MAX_AGE_SECONDS, REFRESH_TOKEN_AUDIENCE, REFRESH_TOKEN_TTL_SECONDS, jwtSecrets, } from './auth.constants.js';
+const GOOGLE_PROVIDER = 'google';
 let AuthService = class AuthService {
     refreshTokens;
     usersService;
@@ -30,14 +31,34 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
         this.secrets = jwtSecrets(config);
     }
-    googleLogin(req) {
-        if (!req.user) {
-            throw new UnauthorizedException('No Google User');
+    async signInWithGoogle(google) {
+        if (!google.email || !google.emailVerified) {
+            throw new UnauthorizedException('Your Google account has no verified email address');
         }
-        return {
-            message: 'User information from Google',
-            user: req.user
-        };
+        const linked = await this.usersService.findByIdentity(GOOGLE_PROVIDER, google.googleId);
+        if (linked) {
+            return this.activeOrThrow(linked);
+        }
+        const existing = await this.usersService.findByEmail(google.email);
+        if (existing) {
+            if (!existing.emailVerified) {
+                throw new ConflictException('An account with this email exists but is not verified. Verify it from your email, then continue with Google.');
+            }
+            await this.usersService.linkIdentity(existing.id, GOOGLE_PROVIDER, google.googleId);
+            return this.activeOrThrow(existing);
+        }
+        return this.usersService.createWithIdentity({
+            email: google.email,
+            displayName: google.displayName,
+            provider: GOOGLE_PROVIDER,
+            providerUserId: google.googleId,
+        });
+    }
+    activeOrThrow(user) {
+        if (!user.isActive) {
+            throw new UnauthorizedException('This account is disabled');
+        }
+        return user;
     }
     async issueTokens(user, family) {
         const now = Date.now();

@@ -1,4 +1,4 @@
-import { CreateUserDto, CreateWithSignIn } from './dto/create-user.dto.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
 import type { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity.js';
@@ -6,6 +6,12 @@ import { User_Identity } from './entities/user-identity.js';
 import { Profile } from './entities/profile.entity.js';
 import { UserSkill } from './entities/user-skill.entity.js';
 import { SkillsService, type SkillSummary } from '../skills/skills.service.js';
+export interface NewIdentityUser {
+    email: string;
+    displayName?: string;
+    provider: string;
+    providerUserId: string;
+}
 export interface ProfileView {
     userId: string;
     username: string;
@@ -56,7 +62,8 @@ export declare class UsersService {
     constructor(usersRepository: Repository<User>, userIdentityRepository: Repository<User_Identity>, profilesRepository: Repository<Profile>, userSkillsRepository: Repository<UserSkill>, skillsService: SkillsService);
     private readonly users;
     create(createUserDto: CreateUserDto): Promise<Omit<User, 'passwordHash'>>;
-    createWithEmail(createWithSignIn: CreateWithSignIn): Promise<void>;
+    createWithIdentity(input: NewIdentityUser): Promise<Omit<User, 'passwordHash'>>;
+    private availableUsername;
     findOne(id: string): Promise<Omit<User, 'passwordHash'> | null>;
     findAccount(id: string): Promise<AccountView>;
     findByEmail(email: string): Promise<Omit<User, 'passwordHash'> | null>;
@@ -71,8 +78,8 @@ export declare class UsersService {
     } | null>;
     remove(id: string): Promise<void>;
     markEmailVerified(id: string, email: string): Promise<boolean>;
-    findByIdentity(provider: string, subject: string): Promise<User | null>;
-    linkIdentity(id: string, provider: string, subject: string): Promise<void>;
+    findByIdentity(provider: string, providerUserId: string): Promise<Omit<User, 'passwordHash'> | null>;
+    linkIdentity(id: string, provider: string, googleId: string): Promise<void>;
     findProfile(userId: string): Promise<ProfileView>;
     updateProfile(userId: string, dto: UpdateProfileDto): Promise<ProfileView>;
     private findSkills;

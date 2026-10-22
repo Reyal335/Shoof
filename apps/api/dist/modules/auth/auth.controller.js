@@ -10,7 +10,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Body, Post, Req, Get, HttpCode, HttpStatus, Res, UseGuards, } from '@nestjs/common';
+import { Controller, Body, Post, Get, HttpCode, HttpStatus, Res, UseGuards, } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EmailVerificationService } from '@nestjs/authentication';
 import { CredentialsService } from './credentials.service.js';
 import { AuthService } from './auth.service.js';
@@ -25,18 +26,21 @@ let AuthController = class AuthController {
     credentialService;
     authService;
     emailVerificationService;
-    constructor(credentialService, authService, emailVerificationService) {
+    appUrl;
+    constructor(credentialService, authService, emailVerificationService, config) {
         this.credentialService = credentialService;
         this.authService = authService;
         this.emailVerificationService = emailVerificationService;
+        this.appUrl = config.getOrThrow('APP_URL');
     }
     async signUp(body) {
         const user = await this.credentialService.register(body.username, body.email, body.password);
         await this.emailVerificationService.send(user);
     }
-    async googleAuth(req) { }
-    googleAuthRedirect(req) {
-        return this.authService.googleLogin(req);
+    async googleAuth() { }
+    async googleAuthRedirect(user, res) {
+        this.setRefreshCookie(res, await this.authService.issueTokens(user));
+        res.redirect(this.appUrl);
     }
     async signIn(user, res) {
         return this.respondWithTokens(res, await this.authService.issueTokens(user));
@@ -53,6 +57,14 @@ let AuthController = class AuthController {
         res.clearCookie(REFRESH_COOKIE, { path: REFRESH_COOKIE_PATH });
     }
     respondWithTokens(res, tokens) {
+        this.setRefreshCookie(res, tokens);
+        return {
+            accessToken: tokens.accessToken,
+            tokenType: 'Bearer',
+            expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+        };
+    }
+    setRefreshCookie(res, tokens) {
         res.cookie(REFRESH_COOKIE, tokens.refreshToken, {
             httpOnly: true,
             secure: true,
@@ -60,11 +72,6 @@ let AuthController = class AuthController {
             path: REFRESH_COOKIE_PATH,
             expires: tokens.refreshExpiresAt,
         });
-        return {
-            accessToken: tokens.accessToken,
-            tokenType: 'Bearer',
-            expiresIn: ACCESS_TOKEN_TTL_SECONDS,
-        };
     }
 };
 __decorate([
@@ -79,18 +86,19 @@ __decorate([
     Public(),
     Get('google'),
     UseGuards(GoogleAuthGuard),
-    __param(0, Req()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleAuth", null);
 __decorate([
+    Public(),
     Get('google/redirect'),
     UseGuards(GoogleAuthGuard),
-    __param(0, Req()),
+    __param(0, CurrentUser()),
+    __param(1, Res()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleAuthRedirect", null);
 __decorate([
     Public(),
@@ -138,7 +146,8 @@ AuthController = __decorate([
     Controller('auth'),
     __metadata("design:paramtypes", [CredentialsService,
         AuthService,
-        EmailVerificationService])
+        EmailVerificationService,
+        ConfigService])
 ], AuthController);
 export { AuthController };
 //# sourceMappingURL=auth.controller.js.map
