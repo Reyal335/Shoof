@@ -336,7 +336,7 @@ let PostsService = class PostsService {
         if (!items.length) {
             return Promise.resolve([]);
         }
-        return manager.save(Media, items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.url, sortOrder })));
+        return manager.save(Media, items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.key, sortOrder })));
     }
     async checkSkills(ids) {
         const unique = [...new Set(ids)];

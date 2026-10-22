@@ -22,6 +22,7 @@ import { DataSource } from 'typeorm';
 import { User } from './modules/users/entities/user.entity.js';
 import { PostsModule } from './modules/posts/posts.module.js';
 import { FollowsModule } from './modules/follows/follows.module.js';
+import { AwsModule } from './modules/aws/aws.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SkillsModule } from './modules/skills/skills.module.js';
@@ -108,7 +109,8 @@ const observeImports = [...(observeAppKey && observeAppSecret
     PostsModule, 
     FollowsModule, 
     NotificationsModule, SkillsModule,
-    FeedModule
+    FeedModule,
+    AwsModule
   ],
   controllers: [AppController],
   providers: [AppService],

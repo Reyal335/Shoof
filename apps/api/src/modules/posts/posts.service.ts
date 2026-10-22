@@ -470,7 +470,7 @@ export class PostsService {
     }
     return manager.save(
       Media,
-      items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.url, sortOrder })),
+      items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.key, sortOrder })),
     );
   }
 

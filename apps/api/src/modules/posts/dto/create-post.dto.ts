@@ -10,7 +10,8 @@ import {
     MaxLength,
     ValidateNested,
     ArrayUnique,
-    IsUUID
+    IsUUID,
+    Matches
 } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
 import { MediaType } from '../entities/media.entity.js';
@@ -26,9 +27,9 @@ export class MediaItemDto {
     type: MediaType;
 
     // Until uploads go through signed URLs this is the already-uploaded file's https address
-    @IsUrl({ protocols: ['https'], require_protocol: true })
-    @MaxLength(URL_MAX)
-    url: string;
+    @IsString()
+    @Matches(/^posts\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpg|webp|gif)$/)
+    key: string;
 }
 
 export class CreatePostDto {

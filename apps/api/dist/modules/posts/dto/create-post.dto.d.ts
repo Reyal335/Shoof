@@ -2,7 +2,7 @@ import { PostCategory } from '../entities/post.entity.js';
 import { MediaType } from '../entities/media.entity.js';
 export declare class MediaItemDto {
     type: MediaType;
-    url: string;
+    key: string;
 }
 export declare class CreatePostDto {
     category: PostCategory;
