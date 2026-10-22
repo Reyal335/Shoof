@@ -9,6 +9,7 @@ import { PostSkill } from './entities/post-skill.entity.js';
 import { SkillsService } from '../skills/skills.service.js';
 import { UsersService } from '../users/users.service.js';
 import { RatingsService } from './ratings.service.js';
+import { AwsService } from '../aws/aws.services.js';
 import type { Skill } from '../skills/entities/skill.entity.js';
 import type { ListPostsQueryDto } from './dto/query.dto.js';
 
@@ -55,6 +56,7 @@ describe('PostsService', () => {
         { provide: SkillsService, useValue: skills },
         { provide: UsersService, useValue: users },
         { provide: RatingsService, useValue: { distributionOf: vi.fn() } },
+        { provide: AwsService, useValue: { verifyUpload: vi.fn(), publicUrl: (key: string) => `https://media.example.com/${key}` } },
       ],
     }).compile();
 

@@ -19,7 +19,7 @@ let Media = class Media {
     postId;
     post;
     type;
-    url;
+    key;
     sortOrder;
     createdAt;
 };
@@ -44,7 +44,7 @@ __decorate([
 __decorate([
     Column('varchar'),
     __metadata("design:type", String)
-], Media.prototype, "url", void 0);
+], Media.prototype, "key", void 0);
 __decorate([
     Column({ type: 'int', default: 0 }),
     __metadata("design:type", Number)

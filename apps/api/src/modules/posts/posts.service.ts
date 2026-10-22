@@ -17,6 +17,7 @@ import { PostEvents, type CommentCreatedEvent, type CommentDeletedEvent, type Po
 import type { RatingDistribution } from './dto/rating-summary.dto.js';
 import { postNotFound } from './posts.errors.js';
 import { RatingsService } from './ratings.service.js';
+import { AwsService } from '../aws/aws.services.js';
 
 export interface Page<T> {
   items: T[];
@@ -103,8 +104,8 @@ function emptyPage<T>(query: PaginationQueryDto): Page<T> {
   return { items: [], total: 0, limit: query.limit, offset: query.offset };
 }
 
-function toMediaView({ id, type, url, sortOrder }: Media): MediaView {
-  return { id, type, url, sortOrder };
+function toMediaView({ id, type, key, sortOrder }: Media, urlFor: (key: string) => string): MediaView {
+  return { id, type, url: urlFor(key), sortOrder };
 }
 
 /**
@@ -132,6 +133,7 @@ export class PostsService {
     private readonly skillService: SkillsService,
     private readonly usersService: UsersService,
     private readonly ratingsService: RatingsService,
+    private readonly awsService: AwsService,
   ) {}
 
   // ---------- posts ----------
@@ -139,6 +141,7 @@ export class PostsService {
   /** The post, its media and its skills are inserted together: either all exist afterwards or none do. */
   async create(userId: string, dto: CreatePostDto): Promise<PostView> {
     const skillIds = await this.checkSkills(dto.skillIds ?? []);
+    await this.checkMedia(userId, dto.media ?? []);
     const post = await this.posts.manager.transaction(async (manager) => {
       const post = await manager.save(
         manager.create(Post, {
@@ -233,6 +236,7 @@ export class PostsService {
   /** Owner only. Field changes and a media or skills replacement commit together. */
   async update(id: string, user: AuthUser, dto: UpdatePostDto): Promise<PostView> {
     const skillIds = dto.skillIds != null ? await this.checkSkills(dto.skillIds) : null;
+    if (dto.media != null) await this.checkMedia(user.id, dto.media);
     const post = await this.posts.manager.transaction(async (manager) => {
       const post = await this.lockPost(manager, id, 'for_no_key_update');
       if (post.userId !== user.id) {
@@ -415,7 +419,7 @@ export class PostsService {
         visitCount: post.visitCount,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
-        media: (post.media ?? []).map(toMediaView),
+        media: (post.media ?? []).map((media) => toMediaView(media, (key) => this.awsService.publicUrl(key))),
         skills: ids ? skills.filter((skill) => ids.has(skill.id)).map(toSkillSummary) : [],
         author: authorById.get(post.userId) ?? null,
       };
@@ -464,13 +468,19 @@ export class PostsService {
     return comment;
   }
 
+  // Every key must be the author's own finished upload. Asked of storage before the transaction opens, so no row
+  // lock waits on S3.
+  private async checkMedia(userId: string, items: MediaItemDto[]): Promise<void> {
+    await Promise.all(items.map((item) => this.awsService.verifyUpload(userId, item.key)));
+  }
+
   private insertMedia(manager: EntityManager, postId: string, items: MediaItemDto[]): Promise<Media[]> {
     if (!items.length) {
       return Promise.resolve([]);
     }
     return manager.save(
       Media,
-      items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.key, sortOrder })),
+      items.map((item, sortOrder) => manager.create(Media, { postId, type: MediaType.IMAGE, key: item.key, sortOrder })),
     );
   }
 

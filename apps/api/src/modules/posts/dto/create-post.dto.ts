@@ -14,7 +14,6 @@ import {
     Matches
 } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
-import { MediaType } from '../entities/media.entity.js';
 import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, MAX_POST_SKILLS, URL_MAX } from '../posts.constants.js';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
@@ -22,11 +21,9 @@ const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? val
 // Same rule as the web form: an http(s) address with a real hostname
 const SITE_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: true };
 
+// A screenshot already uploaded through POST /uploads. Only the key is sent: PostsService checks with AwsService that
+// it is the author's own upload and a real image, and the media type comes from that (images only for now).
 export class MediaItemDto {
-    @IsEnum(MediaType)
-    type: MediaType;
-
-    // Until uploads go through signed URLs this is the already-uploaded file's https address
     @IsString()
     @Matches(/^posts\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpg|webp|gif)$/)
     key: string;
@@ -72,6 +69,7 @@ export class CreatePostDto {
     @IsOptional()
     @IsArray()
     @ArrayMaxSize(MAX_MEDIA)
+    @ArrayUnique((item: MediaItemDto) => item?.key)
     @ValidateNested({ each: true })
     @Type(() => MediaItemDto)
     media?: MediaItemDto[];

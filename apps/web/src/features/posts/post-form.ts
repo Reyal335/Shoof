@@ -17,7 +17,7 @@ export const CAPTION_MAX = 150;
 /** MAX_POST_SKILLS in apps/api/src/modules/posts/posts.constants.ts */
 export const MAX_POST_SKILLS = 10;
 
-// For the screenshot picker, which comes back when uploads go through signed URLs
+// For the screenshot picker. MAX_SCREENSHOTS is MAX_MEDIA in apps/api/src/modules/posts/posts.constants.ts
 export const MAX_SCREENSHOTS = 6;
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 export const SCREENSHOT_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];

@@ -18,11 +18,12 @@ import { Rating } from './entities/rating.entity.js';
 import { PostSkill } from './entities/post-skill.entity.js';
 import { SkillsModule } from '../skills/skills.module.js';
 import { UsersModule } from '../users/users.module.js';
+import { AwsModule } from '../aws/aws.module.js';
 let PostsModule = class PostsModule {
 };
 PostsModule = __decorate([
     Module({
-        imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating, PostSkill]), SkillsModule, UsersModule],
+        imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating, PostSkill]), SkillsModule, UsersModule, AwsModule],
         controllers: [PostsController, UserPostsController, RatingsController],
         providers: [PostsService, RatingsService],
         exports: [PostsService],

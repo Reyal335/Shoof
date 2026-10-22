@@ -10,20 +10,24 @@ import { SkillPicker } from "@/features/skills/components/skill-picker";
 import type { Skill } from "@/features/skills/types";
 import { describeError } from "@/lib/describe-error";
 import { useCreatePost } from "../hooks/use-create-post";
+import { useScreenshots } from "../hooks/use-screenshots";
 import { CAPTION_MAX, MAX_POST_SKILLS, REQUIRED_FIELDS, validatePost } from "../post-form";
 import type { FieldErrors, FieldName } from "../post-form";
 import type { Post, PostCategory } from "../types";
+import { uploadScreenshots } from "../uploads";
 import { CategoryPicker } from "./category-picker";
 import { FieldError, FormSection } from "./form-section";
 import { PostPreview } from "./post-preview";
+import { ScreenshotPicker } from "./screenshot-picker";
 import { SuccessCard } from "./success-card";
 import "./create-post.css";
 
 // The element that gets focus when a field fails, in page order.
 const FOCUS_ID: Record<FieldName, string> = { category: "cat-games", link: "link", repo: "repo", caption: "caption", description: "description" };
 
-// From design/CreatePost.html. A valid submit sends POST /api/v1/posts and shows the success card with a link to the
-// new post. Screenshots wait for signed-URL uploads (the ScreenshotPicker and useScreenshots are ready for them).
+// From design/CreatePost.html. A valid submit uploads the screenshots straight to storage (signed URLs from
+// POST /api/v1/uploads), then sends POST /api/v1/posts with their keys and shows the success card with a link to the
+// new post. Nothing is uploaded until Post site is pressed.
 export function CreatePostPage() {
   const session = useSession();
   const [category, setCategory] = useState<PostCategory | "">("");
@@ -36,7 +40,10 @@ export function CreatePostPage() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState("");
   const [posted, setPosted] = useState<Post | null>(null);
+  const shots = useScreenshots();
+  const [uploading, setUploading] = useState(false);
   const { create, isPending } = useCreatePost();
+  const busy = uploading || isPending;
   const doneTitleRef = useRef<HTMLHeadingElement>(null);
 
   function clearError(field: FieldName) {
@@ -49,7 +56,7 @@ export function CreatePostPage() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (isPending) return;
+    if (busy) return;
     const found = validatePost({ category, link, repo, caption, description });
     const failing = REQUIRED_FIELDS.filter((f) => found[f]);
     setErrors(found);
@@ -59,9 +66,13 @@ export function CreatePostPage() {
       return;
     }
 
-    setStatus("");
+    setStatus(shots.items.length ? "Uploading screenshots…" : "");
     let post: Post;
     try {
+      setUploading(true);
+      const keys = await uploadScreenshots(shots.items.map((s) => s.file));
+      setUploading(false);
+      setStatus("");
       post = await create({
         category,
         link: link.trim(),
@@ -69,8 +80,10 @@ export function CreatePostPage() {
         caption: caption.trim(),
         description: description.trim(),
         skillIds: skills.map((s) => s.id),
+        media: keys.map((key) => ({ key })),
       });
     } catch (err) {
+      setUploading(false);
       setStatus(describeError(err, "post your site"));
       return;
     }
@@ -88,6 +101,7 @@ export function CreatePostPage() {
       setDescription("");
       setSkills([]);
       setSkillsAnnouncement("");
+      shots.reset();
       setErrors({});
       setStatus("");
       setPosted(null);
@@ -110,7 +124,7 @@ export function CreatePostPage() {
             </p>
           )}
           <div className="layout">
-            <form noValidate onSubmit={onSubmit} aria-busy={isPending}>
+            <form noValidate onSubmit={onSubmit} aria-busy={busy}>
               <CategoryPicker
                 value={category}
                 error={errors.category}
@@ -221,18 +235,16 @@ export function CreatePostPage() {
                 <div className="sr" role="status" aria-live="polite">{skillsAnnouncement}</div>
               </FormSection>
 
-              <FormSection number={5} title="Screenshots" optional>
-                <p className="hint">Screenshot uploads are coming soon. Until then your post shows a preview drawn for its section, like the one on the right.</p>
-              </FormSection>
+              <ScreenshotPicker shots={shots} />
 
               <div className="actions">
-                <button className="go" type="submit" disabled={isPending} aria-busy={isPending}>{isPending ? "Posting…" : "Post site"}</button>
+                <button className="go" type="submit" disabled={busy} aria-busy={busy}>{uploading ? "Uploading…" : isPending ? "Posting…" : "Post site"}</button>
                 <Link className="cancel" href="/">Cancel</Link>
                 <span className="status" role="status" aria-live="polite" hidden={!status}>{status}</span>
               </div>
             </form>
 
-            <PostPreview category={category} caption={caption} description={description} link={link} techStack={skills.map((s) => s.name)} />
+            <PostPreview category={category} caption={caption} description={description} link={link} techStack={skills.map((s) => s.name)} coverUrl={shots.items[0]?.url} />
           </div>
         </div>
 

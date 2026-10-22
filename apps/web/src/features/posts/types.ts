@@ -80,8 +80,7 @@ export type PostScope = { kind: "all" } | { kind: "following" } | { kind: "user"
 
 /**
  * The POST /posts body. Everything else on Post (id, userId, rating, ratingCount, visitCount, comments, ratings,
- * createdAt, updatedAt) is set by the server and must NOT appear on the create page. Screenshots (media) are left
- * out until uploads go through signed URLs.
+ * createdAt, updatedAt) is set by the server and must NOT appear on the create page.
  */
 export interface CreatePostInput {
   category: PostCategory;
@@ -90,9 +89,11 @@ export interface CreatePostInput {
   caption: string;
   description: string;
   skillIds: string[];
+  /** Keys from uploadScreenshots, in display order; the first one is the cover. */
+  media: { key: string }[];
 }
 
-/** A picked screenshot, held in component state until uploads exist. */
+/** A picked screenshot, held in component state until Post site uploads it. */
 export interface ScreenshotDraft {
   file: File;
   url: string; // URL.createObjectURL(file)

@@ -24,6 +24,8 @@ import { Skill } from '../src/modules/skills/entities/skill.entity.js';
 import { IS_PUBLIC_KEY } from '../src/modules/auth/decorators/public.decorator.js';
 import { OptionalJwtAuthGuard } from '../src/modules/auth/guards/optional-jwt-auth.guard.js';
 import type { RatingSummary } from '../src/modules/posts/dto/rating-summary.dto.js';
+import { AwsService } from '../src/modules/aws/aws.services.js';
+import { fakeStorage } from './fakes/storage.fake.js';
 
 // Ratings over a real Postgres database: the upsert, the row lock, the recount and the cascade. Same throwaway
 // database as posts.e2e-spec.ts (<DB_DATABASE>_test, or TEST_DB_DATABASE), wiped on every run.
@@ -99,6 +101,7 @@ describe('Ratings (e2e)', () => {
     })
       // The real one runs passport's jwt strategy (covered in auth.e2e-spec.ts); here the header guard sets the caller
       .overrideGuard(OptionalJwtAuthGuard).useValue({ canActivate: () => true })
+      .overrideProvider(AwsService).useValue(fakeStorage())
       .compile();
 
     app = moduleRef.createNestApplication();

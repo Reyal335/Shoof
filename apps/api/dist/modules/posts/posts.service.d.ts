@@ -12,6 +12,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SkillsService, type SkillSummary } from '../skills/skills.service.js';
 import type { RatingDistribution } from './dto/rating-summary.dto.js';
 import { RatingsService } from './ratings.service.js';
+import { AwsService } from '../aws/aws.services.js';
 export interface Page<T> {
     items: T[];
     total: number;
@@ -70,7 +71,8 @@ export declare class PostsService {
     private readonly skillService;
     private readonly usersService;
     private readonly ratingsService;
-    constructor(posts: Repository<Post>, comments: Repository<Comment>, postSkills: Repository<PostSkill>, eventEmitter: EventEmitter2, skillService: SkillsService, usersService: UsersService, ratingsService: RatingsService);
+    private readonly awsService;
+    constructor(posts: Repository<Post>, comments: Repository<Comment>, postSkills: Repository<PostSkill>, eventEmitter: EventEmitter2, skillService: SkillsService, usersService: UsersService, ratingsService: RatingsService, awsService: AwsService);
     create(userId: string, dto: CreatePostDto): Promise<PostView>;
     findAll(query: ListPostsQueryDto, scope?: PostScope): Promise<Page<PostView>>;
     findOne(id: string): Promise<PostDetailView>;
@@ -90,6 +92,7 @@ export declare class PostsService {
     private findPostRow;
     private lockPost;
     private lockComment;
+    private checkMedia;
     private insertMedia;
     private checkSkills;
     private insertSkills;

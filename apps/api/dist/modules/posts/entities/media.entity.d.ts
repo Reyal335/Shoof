@@ -9,7 +9,7 @@ export declare class Media {
     postId: string;
     post: Relation<Post>;
     type: MediaType;
-    url: string;
+    key: string;
     sortOrder: number;
     createdAt: Date;
 }

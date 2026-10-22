@@ -31,8 +31,10 @@ export class Media {
     @Column({ type: 'enum', enum: MediaType })
     type: MediaType
 
+    // Where the file sits in storage (posts/{userId}/{uuid}.png), not a URL. The URL depends on how media is served
+    // (MEDIA_BASE_URL) and is built on read, so a CDN or storage move needs no data change.
     @Column('varchar')
-    url: string
+    key: string
 
     @Column({ type: 'int', default: 0 })
     sortOrder: number

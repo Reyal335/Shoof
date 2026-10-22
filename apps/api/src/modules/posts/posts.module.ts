@@ -12,12 +12,13 @@ import { Rating } from './entities/rating.entity.js';
 import { PostSkill } from './entities/post-skill.entity.js';
 import { SkillsModule } from '../skills/skills.module.js';
 import { UsersModule } from '../users/users.module.js';
+import { AwsModule } from '../aws/aws.module.js';
 
 // Ratings (RatingsService, RatingsController) live here because this module owns both the ratings rows and the
-// posts' rating cache. Imports users and skills only through their services: author names and avatars, skill names
-// and the username behind /users/:username/posts.
+// posts' rating cache. Imports users, skills and storage only through their services: author names and avatars,
+// skill names, the username behind /users/:username/posts, and checking and addressing uploaded screenshots.
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating, PostSkill]), SkillsModule, UsersModule],
+  imports: [TypeOrmModule.forFeature([Post, Media, Comment, Rating, PostSkill]), SkillsModule, UsersModule, AwsModule],
   controllers: [PostsController, UserPostsController, RatingsController],
   providers: [PostsService, RatingsService],
   // For notifications (captions and comment text by id) and the feed (posts by followed creators)

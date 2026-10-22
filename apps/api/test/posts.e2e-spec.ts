@@ -25,6 +25,8 @@ import { UserSkill } from '../src/modules/users/entities/user-skill.entity.js';
 import { Skill } from '../src/modules/skills/entities/skill.entity.js';
 import type { CreatePostDto } from '../src/modules/posts/dto/create-post.dto.js';
 import type { PostView } from '../src/modules/posts/posts.service.js';
+import { AwsService } from '../src/modules/aws/aws.services.js';
+import { MEDIA_BASE_URL, fakeStorage } from './fakes/storage.fake.js';
 
 // The real PostsModule over a real Postgres database, so the transactions, row locks and constraints are exercised.
 // Uses a separate database (<DB_DATABASE>_test, or TEST_DB_DATABASE), created if missing and wiped on every run.
@@ -78,6 +80,13 @@ describe('Posts (e2e)', () => {
     get: (path: string) => request(app.getHttpServer()).get(`/api/v1${path}`).set('x-user-id', userId).set('x-roles', roles.join(',')),
   });
   const anon = () => request(app.getHttpServer());
+  const storage = fakeStorage();
+  // A key as POST /uploads hands out: under the uploader's folder
+  const upload = (userId = owner) => `posts/${userId}/${randomUUID()}.png`;
+  const urlOf = (key: string) => `${MEDIA_BASE_URL}/${key}`;
+  // Valid-looking and the owner's, but Postgres rejects the NUL byte: a failure inside the transaction, after the
+  // post row is written
+  const unstorable = () => `posts/${owner}/${randomUUID()}\0.png`;
   const createPost = async (overrides: Partial<CreatePostDto> = {}, userId = owner) => {
     const res = await as(userId).post('/posts').send(valid(overrides)).expect(201);
     return res.body as PostView;
@@ -106,7 +115,10 @@ describe('Posts (e2e)', () => {
         PostsModule,
       ],
       providers: [{ provide: APP_GUARD, useClass: HeaderAuthGuard }],
-    }).compile();
+    })
+      .overrideProvider(AwsService)
+      .useValue(storage)
+      .compile();
 
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api/v1');
@@ -134,23 +146,42 @@ describe('Posts (e2e)', () => {
 
   describe('create', () => {
     it('stores the post, its skills and its media in order, as the caller, and sends back the author', async () => {
+      const [a, b] = [upload(), upload()];
       const res = await as(owner)
         .post('/posts')
         .send(valid({
           caption: '  Pixel dungeon  ',
           repoUrl: '',
           skillIds: [skills.vite, skills.phaser],
-          media: [
-            { type: MediaType.IMAGE, url: 'https://cdn.example.com/a.png' },
-            { type: MediaType.IMAGE, url: 'https://cdn.example.com/b.png' },
-          ],
+          media: [{ key: a }, { key: b }],
         }))
         .expect(201);
       expect(res.body).toMatchObject({ userId: owner, caption: 'Pixel dungeon', repoUrl: null, rating: 0, ratingCount: 0, visitCount: 0 });
       expect(res.body.skills.map((s: Skill) => s.name)).toEqual(['Phaser', 'Vite']);
       expect(res.body.author).toEqual({ id: owner, username: 'owner_one', displayName: 'Owner One', avatarUrl: null });
-      expect(res.body.media.map((m: Media) => [m.url, m.sortOrder])).toEqual([['https://cdn.example.com/a.png', 0], ['https://cdn.example.com/b.png', 1]]);
+      expect(res.body.media.map((m: PostView['media'][number]) => [m.type, m.url, m.sortOrder])).toEqual([
+        [MediaType.IMAGE, urlOf(a), 0],
+        [MediaType.IMAGE, urlOf(b), 1],
+      ]);
+      // The key is what's stored; the URL is built on read
+      expect((await dataSource.getRepository(Media).findBy({ postId: res.body.id })).map((m) => m.key).sort()).toEqual([a, b].sort());
       expect(await dataSource.getRepository(PostSkill).countBy({ postId: res.body.id })).toBe(2);
+    });
+
+    it("only takes the author's own finished uploads as media", async () => {
+      const before = await dataSource.getRepository(Post).count();
+      // Someone else's upload
+      await as(owner).post('/posts').send(valid({ media: [{ key: upload(other) }] })).expect(400);
+      // Never finished uploading
+      const lost = upload();
+      storage.missing.add(lost);
+      await as(owner).post('/posts').send(valid({ media: [{ key: lost }] })).expect(400);
+      // Not a key POST /uploads hands out, a URL, the same file twice, or a client-chosen type
+      await as(owner).post('/posts').send(valid({ media: [{ key: 'https://cdn.example.com/a.png' }] })).expect(400);
+      const twice = upload();
+      await as(owner).post('/posts').send(valid({ media: [{ key: twice }, { key: twice }] })).expect(400);
+      await as(owner).post('/posts').send(valid({ media: [Object.assign({ key: upload() }, { type: MediaType.VIDEO })] })).expect(400);
+      expect(await dataSource.getRepository(Post).count()).toBe(before);
     });
 
     it('creates a post without skills or media', async () => {
@@ -179,10 +210,11 @@ describe('Posts (e2e)', () => {
     it('is atomic: when a media row fails, the post is rolled back too', async () => {
       const before = await dataSource.getRepository(Post).count();
       // Skips the DTO on purpose so the failure happens inside the transaction, after the post insert
-      const bad = valid({ media: [{ type: MediaType.IMAGE, url: 'https://cdn.example.com/ok.png' }, { type: 'gif' as MediaType, url: 'https://cdn.example.com/x.gif' }] });
+      const ok = upload();
+      const bad = valid({ media: [{ key: ok }, { key: unstorable() }] });
       await expect(app.get(PostsService).create(owner, bad)).rejects.toThrow();
       expect(await dataSource.getRepository(Post).count()).toBe(before);
-      expect(await dataSource.getRepository(Media).countBy({ url: 'https://cdn.example.com/ok.png' })).toBe(0);
+      expect(await dataSource.getRepository(Media).countBy({ key: ok })).toBe(0);
     });
   });
 
@@ -251,14 +283,17 @@ describe('Posts (e2e)', () => {
 
   describe('update and delete', () => {
     it('lets only the creator edit, and replaces media as a whole', async () => {
-      const post = await createPost({ repoUrl: 'https://github.com/a/b', media: [{ type: MediaType.IMAGE, url: 'https://cdn.example.com/old.png' }] });
+      const post = await createPost({ repoUrl: 'https://github.com/a/b', media: [{ key: upload() }] });
       await as(other).patch(`/posts/${post.id}`).send({ caption: 'hijacked' }).expect(403);
+      const replacement = upload();
       const res = await as(owner)
         .patch(`/posts/${post.id}`)
-        .send({ caption: 'Renamed', repoUrl: null, media: [{ type: MediaType.VIDEO, url: 'https://cdn.example.com/new.mp4' }] })
+        .send({ caption: 'Renamed', repoUrl: null, media: [{ key: replacement }] })
         .expect(200);
       expect(res.body).toMatchObject({ caption: 'Renamed', repoUrl: null, link: post.link, userId: owner });
-      expect(res.body.media.map((m: Media) => m.url)).toEqual(['https://cdn.example.com/new.mp4']);
+      expect(res.body.media.map((m: PostView['media'][number]) => m.url)).toEqual([urlOf(replacement)]);
+      // Swapping in someone else's upload is refused like on create
+      await as(owner).patch(`/posts/${post.id}`).send({ media: [{ key: upload(other) }] }).expect(400);
       await as(owner).patch(`/posts/${post.id}`).send({ visitCount: 1000 }).expect(400);
     });
 
@@ -273,16 +308,17 @@ describe('Posts (e2e)', () => {
     });
 
     it('rolls back the field changes when the media replacement fails', async () => {
-      const post = await createPost({ media: [{ type: MediaType.IMAGE, url: 'https://cdn.example.com/keep.png' }] });
+      const keep = upload();
+      const post = await createPost({ media: [{ key: keep }] });
       const service = app.get(PostsService);
-      await expect(service.update(post.id, { id: owner, roles: [] }, { caption: 'Should not stick', media: [{ type: 'gif' as MediaType, url: 'https://x.example.com/x.gif' }] })).rejects.toThrow();
+      await expect(service.update(post.id, { id: owner, roles: [] }, { caption: 'Should not stick', media: [{ key: unstorable() }] })).rejects.toThrow();
       const after = await service.findOne(post.id);
       expect(after.caption).toBe(post.caption);
-      expect(after.media.map((m) => m.url)).toEqual(['https://cdn.example.com/keep.png']);
+      expect(after.media.map((m) => m.url)).toEqual([urlOf(keep)]);
     });
 
     it('lets the creator or a moderator delete, and cascades to media, comments and ratings', async () => {
-      const post = await createPost({ media: [{ type: MediaType.IMAGE, url: 'https://cdn.example.com/gone.png' }] });
+      const post = await createPost({ media: [{ key: upload() }] });
       await as(other).post(`/posts/${post.id}/comments`).send({ content: 'nice' }).expect(201);
       await as(other).put(`/posts/${post.id}/ratings/me`).send({ value: 4 }).expect(200);
       await as(other).delete(`/posts/${post.id}`).expect(403);

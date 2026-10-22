@@ -26,6 +26,8 @@ import { Skill } from '../src/modules/skills/entities/skill.entity.js';
 import { PostSkill } from '../src/modules/posts/entities/post-skill.entity.js';
 import type { NotificationPage, NotificationView } from '../src/modules/notifications/notifications.service.js';
 import { IS_PUBLIC_KEY } from '../src/modules/auth/decorators/public.decorator.js';
+import { AwsService } from '../src/modules/aws/aws.services.js';
+import { fakeStorage } from './fakes/storage.fake.js';
 
 // Posts, follows and notifications over a real Postgres database: the events, the partial-index upserts and the
 // cursor pagination are exercised end to end. Same throwaway database as posts.e2e-spec.ts, wiped on every run.
@@ -117,7 +119,10 @@ describe('Notifications (e2e)', () => {
         NotificationsModule,
       ],
       providers: [{ provide: APP_GUARD, useClass: HeaderAuthGuard }],
-    }).compile();
+    })
+      .overrideProvider(AwsService)
+      .useValue(fakeStorage())
+      .compile();
 
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api/v1');

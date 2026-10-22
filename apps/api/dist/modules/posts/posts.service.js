@@ -16,7 +16,7 @@ import { In, QueryFailedError, Raw, Repository } from 'typeorm';
 import { UserRole } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
 import { Post } from './entities/post.entity.js';
-import { Media } from './entities/media.entity.js';
+import { Media, MediaType } from './entities/media.entity.js';
 import { Comment } from './entities/comment.entity.js';
 import { PostSkill } from './entities/post-skill.entity.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -24,6 +24,7 @@ import { SkillsService, toSkillSummary } from '../skills/skills.service.js';
 import { PostEvents } from './posts.events.js';
 import { postNotFound } from './posts.errors.js';
 import { RatingsService } from './ratings.service.js';
+import { AwsService } from '../aws/aws.services.js';
 const FOREIGN_KEY_VIOLATION = '23503';
 const ORDER = {
     new: { createdAt: 'DESC', id: 'DESC' },
@@ -36,8 +37,8 @@ function canModerate(user) {
 function emptyPage(query) {
     return { items: [], total: 0, limit: query.limit, offset: query.offset };
 }
-function toMediaView({ id, type, url, sortOrder }) {
-    return { id, type, url, sortOrder };
+function toMediaView({ id, type, key, sortOrder }, urlFor) {
+    return { id, type, url: urlFor(key), sortOrder };
 }
 let PostsService = class PostsService {
     posts;
@@ -47,7 +48,8 @@ let PostsService = class PostsService {
     skillService;
     usersService;
     ratingsService;
-    constructor(posts, comments, postSkills, eventEmitter, skillService, usersService, ratingsService) {
+    awsService;
+    constructor(posts, comments, postSkills, eventEmitter, skillService, usersService, ratingsService, awsService) {
         this.posts = posts;
         this.comments = comments;
         this.postSkills = postSkills;
@@ -55,9 +57,11 @@ let PostsService = class PostsService {
         this.skillService = skillService;
         this.usersService = usersService;
         this.ratingsService = ratingsService;
+        this.awsService = awsService;
     }
     async create(userId, dto) {
         const skillIds = await this.checkSkills(dto.skillIds ?? []);
+        await this.checkMedia(userId, dto.media ?? []);
         const post = await this.posts.manager.transaction(async (manager) => {
             const post = await manager.save(manager.create(Post, {
                 userId,
@@ -137,6 +141,8 @@ let PostsService = class PostsService {
     }
     async update(id, user, dto) {
         const skillIds = dto.skillIds != null ? await this.checkSkills(dto.skillIds) : null;
+        if (dto.media != null)
+            await this.checkMedia(user.id, dto.media);
         const post = await this.posts.manager.transaction(async (manager) => {
             const post = await this.lockPost(manager, id, 'for_no_key_update');
             if (post.userId !== user.id) {
@@ -290,7 +296,7 @@ let PostsService = class PostsService {
                 visitCount: post.visitCount,
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
-                media: (post.media ?? []).map(toMediaView),
+                media: (post.media ?? []).map((media) => toMediaView(media, (key) => this.awsService.publicUrl(key))),
                 skills: ids ? skills.filter((skill) => ids.has(skill.id)).map(toSkillSummary) : [],
                 author: authorById.get(post.userId) ?? null,
             };
@@ -332,11 +338,14 @@ let PostsService = class PostsService {
         }
         return comment;
     }
+    async checkMedia(userId, items) {
+        await Promise.all(items.map((item) => this.awsService.verifyUpload(userId, item.key)));
+    }
     insertMedia(manager, postId, items) {
         if (!items.length) {
             return Promise.resolve([]);
         }
-        return manager.save(Media, items.map((item, sortOrder) => manager.create(Media, { postId, type: item.type, url: item.key, sortOrder })));
+        return manager.save(Media, items.map((item, sortOrder) => manager.create(Media, { postId, type: MediaType.IMAGE, key: item.key, sortOrder })));
     }
     async checkSkills(ids) {
         const unique = [...new Set(ids)];
@@ -363,7 +372,8 @@ PostsService = __decorate([
         EventEmitter2,
         SkillsService,
         UsersService,
-        RatingsService])
+        RatingsService,
+        AwsService])
 ], PostsService);
 export { PostsService };
 //# sourceMappingURL=posts.service.js.map

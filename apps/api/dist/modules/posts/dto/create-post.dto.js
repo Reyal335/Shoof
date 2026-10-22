@@ -10,18 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { Transform, Type } from 'class-transformer';
 import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, ValidateNested, ArrayUnique, IsUUID, Matches } from 'class-validator';
 import { PostCategory } from '../entities/post.entity.js';
-import { MediaType } from '../entities/media.entity.js';
 import { CAPTION_MAX, DESCRIPTION_MAX, MAX_MEDIA, MAX_POST_SKILLS, URL_MAX } from '../posts.constants.js';
 const trim = ({ value }) => (typeof value === 'string' ? value.trim() : value);
 const SITE_URL = { protocols: ['http', 'https'], require_protocol: true, require_tld: true };
 export class MediaItemDto {
-    type;
     key;
 }
-__decorate([
-    IsEnum(MediaType),
-    __metadata("design:type", String)
-], MediaItemDto.prototype, "type", void 0);
 __decorate([
     IsString(),
     Matches(/^posts\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpg|webp|gif)$/),
@@ -79,6 +73,7 @@ __decorate([
     IsOptional(),
     IsArray(),
     ArrayMaxSize(MAX_MEDIA),
+    ArrayUnique((item) => item?.key),
     ValidateNested({ each: true }),
     Type(() => MediaItemDto),
     __metadata("design:type", Array)
